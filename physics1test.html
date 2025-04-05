@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AP Physics 1 2023 FRQ</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         body {
             margin: 0;
@@ -334,6 +336,26 @@
                 <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
             </div>
         </div>
+
+        <div class="page" id="page5">
+            <h2>Question 4 (7 points)</h2>
+            <div class="question-text">
+                <img src="images/image4.png" alt="Physics problem diagram" class="question-image">
+                <p>A block of unknown mass is attached to a long, lightweight string that is wrapped several turns around a pulley mounted on a horizontal axis through its center, as shown. The pulley is a uniform solid disk of mass \(M\) and radius \(R\). The rotational inertia of the pulley is described by the equation \(I = \frac{1}{2}MR^2\). The pulley can rotate about its center with negligible friction. The string does not slip on the pulley as the block falls.</p>
+                <p>When the block is released from rest and as the block travels toward the ground, the magnitude of the tension exerted on the block by the string is \(F_T\).</p>
+            </div>
+            <div class="sub-question">
+                <p>(a) Determine an expression for the magnitude of the angular acceleration \(\alpha_D\) of the disk as the block travels downward. Express your answer in terms of \(M\), \(R\), \(F_T\), and physical constants as appropriate.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <img src="images/image5.png" alt="Physics problem diagram" class="question-image">
+            </div>
+            <div class="sub-question">
+                <p>(b) Scenarios 1 and 2 show two different pulleys. In Scenario 1, the pulley is the same solid disk referenced in part (a). In Scenario 2, the pulley is a hoop that has the same mass \(M\) and radius \(R\) as the disk. Each pulley has a lightweight string wrapped around it several turns and is mounted on a horizontal axle, as shown. Each pulley is free to rotate about its center with negligible friction.</p>
+                <p>In both scenarios, the pulleys begin at rest. Then both strings are pulled with the same constant force \(F_A\) for the same time interval \(\Delta t\), causing the pulleys to rotate without the string slipping. After time interval \(\Delta t\), the change in angular momentum of the disk is equal to the change in angular momentum of the hoop, but the change in rotational kinetic energy for the disk is greater than that of the hoop.</p>
+                <p>In a clear, coherent paragraph-length response that may also contain equations and drawings, explain why the change in angular momentum of both pulleys is the same but the change in rotational kinetic energy is greater for the disk.</p>
+                <textarea class="answer-space long-answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+        </div>
     </div>
 
     <div class="navigation">
@@ -344,7 +366,7 @@
 
     <script>
         let currentPageIndex = 1;
-        const totalPages = 4;
+        const totalPages = 5;
 
         function updatePage() {
             document.querySelectorAll('.page').forEach(page => {
