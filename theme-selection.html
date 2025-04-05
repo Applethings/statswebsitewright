@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Selection</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="theme-selection-container">
+        <div class="diamond"></div>
+        <div class="diamond"></div>
+        <div class="diamond"></div>
+        <h1>Select a Theme</h1>
+        <div class="theme-option" id="dark-theme">
+            <h2>Dark Theme</h2>
+            <button onclick="selectTheme('dark')">Dark Theme</button>
+        </div>
+        <div class="theme-option" id="light-theme">
+            <h2>Light Theme</h2>
+            <button onclick="selectTheme('light')">Light Theme</button>
+        </div>
+        <div class="theme-option" id="rain-theme">
+            <h2>Rain Theme</h2>
+            <button onclick="selectTheme('rain')">Rain Theme</button>
+        </div>
+    </div>
+    <script>
+        function selectTheme(theme) {
+            // Store the selected theme in local storage
+            localStorage.setItem('selectedTheme', theme);
+            // Redirect back to the main page
+            window.location.href = 'main.html';
+        }
+    </script>
+</body>
+</html> 

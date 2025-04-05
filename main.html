@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats Website</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+<body>
+    <div class="stars">
+        <!-- Stars will be dynamically added here -->
+    </div>
+    <div class="milky-way"></div>
+    <div class="container">
+        <h1>Statistics Problem Generator</h1>
+        <button id="theme-toggle" class="theme-button">Switch Theme</button>
+        <div id="question-box">
+            <p id="question">Click 'New Question' to start!</p>
+        </div>
+        <select id="test-selector">
+            <option value="">Select a test or interval</option>
+            <option value="1-proportion-z-interval">1-Proportion z-interval for p</option>
+            <option value="2-proportion-z-interval">2-Proportion z-interval for p1-p2</option>
+            <option value="t-interval">t-Interval for μ</option>
+            <option value="2-sample-t-interval">2-Sample t-Interval for μ1-μ2</option>
+            <option value="matched-pairs-t-interval">Matched pairs t-interval for μd</option>
+            <option value="1-proportion-z-test">1-Proportion z-test for p</option>
+            <option value="2-proportion-z-test">2-Proportion z-test for p1-p2</option>
+            <option value="t-test">t-test for μ</option>
+            <option value="2-sample-t-test">2-Sample t-Test for μ1-μ2</option>
+            <option value="matched-pairs-t-test">Matched pairs t-Test for μd</option>
+        </select>
+        <button id="submit-answer">Submit Answer</button>
+        <button id="new-question">New Question</button>
+        <p id="feedback"></p>
+    </div>
+    <script src="script.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Ensure stars and diamonds are created
+        const starsContainer = document.querySelector('.stars');
+        const numberOfStars = 100;
+        for (let i = 0; i < numberOfStars; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.top = `${Math.random() * 100}vh`;
+            star.style.left = `${Math.random() * 100}vw`;
+            starsContainer.appendChild(star);
+        }
+
+        // Animate stars
+        anime({
+            targets: '.star',
+            translateY: [
+                { value: -10, duration: 1000 },
+                { value: 0, duration: 1000 }
+            ],
+            easing: 'easeInOutSine',
+            loop: true,
+            delay: anime.stagger(100, { start: 500 })
+        });
+
+
+        anime({
+            targets: '.diamond',
+            rotate: '1turn',
+            duration: 2000,
+            easing: 'easeInOutQuad',
+            loop: true,
+            delay: anime.stagger(200)
+        });
+
+        if (document.body.classList.contains('visionary-theme')) {
+            anime({
+                targets: '.container',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 1500,
+                easing: 'easeInOutExpo'
+            });
+        }
+    });
+    </script>
+</body>
+</html>
