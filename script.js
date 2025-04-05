@@ -89,11 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
     newQuestionButton.addEventListener('click', loadNewQuestion);
     submitAnswerButton.addEventListener('click', checkAnswer);
     themeToggleButton.addEventListener('click', openThemeSelection);
-
-    // Load the first question on page load
     loadNewQuestion();
 
-    // Animate the container on page load
+
     anime({
         targets: '.theme-selection-container',
         scale: [0.8, 1],
@@ -104,10 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function selectTheme(theme) {
-    // Store the selected theme in local storage
+
     localStorage.setItem('selectedTheme', theme);
 
-    // Animate the container before redirecting
+
     anime({
         targets: '.theme-selection-container',
         scale: [1, 0.8],
@@ -115,7 +113,7 @@ function selectTheme(theme) {
         duration: 500,
         easing: 'easeInExpo',
         complete: function() {
-            // Redirect back to the main page
+
             window.location.href = 'index.html';
         }
     });
