@@ -193,6 +193,25 @@
             background-color: white;
             border: 1px solid #000;
         }
+        .force-diagram-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .force-diagram {
+            background-color: white;
+            border: 1px solid #000;
+        }
+        .diagram-label {
+            text-align: center;
+            color: black;
+            margin-top: 5px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -308,15 +327,33 @@
 
         <div class="page" id="page4">
             <h2>Question 3 (12 points)</h2>
+            <img src="images/image6.png" alt="Physics problem diagram" class="question-image">
             <div class="question-text">
                 <p>A small block of mass <span class="math">m₀</span> is attached to the end of a spring of spring constant <span class="math">k₀</span> that is attached to a rod on a horizontal table. The rod is attached to a motor so that the rod can rotate at various speeds about its axis. When the rod is not rotating, the block is at rest and the spring is at its unstretched length <span class="math">L</span>, as shown. All frictional forces are negligible.</p>
             </div>
-            <img src="images/image3.png" alt="Physics problem diagram" class="question-image">
+            <img src="images/image7.png" alt="Physics problem diagram showing Figure 1 and Figure 2" class="question-image">
             <div class="sub-question">
                 <p>(a) At time <span class="math">t = t₁</span>, the rod is spinning such that the block moves in a circular path with a constant tangential speed <span class="math">v₁</span> and the spring is stretched a distance <span class="math">d₁</span> from the spring's unstretched length, as shown in Figure 1. At time <span class="math">t = t₂</span>, the rod is spinning such that the block moves in a circular path with a constant tangential speed <span class="math">v₂</span> and the spring is stretched a distance <span class="math">d₂</span> from the spring's unstretched length, where <span class="math">d₂ > d₁</span>, as shown in Figure 2.</p>
                 <p>i. On the following dots, which represent the block at the locations shown in Figure 1 and Figure 2, draw the force that is exerted on the block by the spring at times <span class="math">t = t₁</span> and <span class="math">t = t₂</span>. The spring force must be represented by a distinct arrow starting on, and pointing away from, the dot.</p>
                 <p><em>Note: Draw the relative lengths of the vectors to reflect the relative magnitudes of the forces exerted by the spring at both times.</em></p>
-                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <div class="force-diagram-container">
+                    <div>
+                        <canvas id="forceT1" width="200" height="200" class="force-diagram"></canvas>
+                        <div class="diagram-label">t = t₁</div>
+                        <div class="graph-controls">
+                            <button class="graph-button" onclick="clearForceDiagram('forceT1')">Clear</button>
+                            <button class="graph-button" onclick="undoForceStroke('forceT1')">Undo</button>
+                        </div>
+                    </div>
+                    <div>
+                        <canvas id="forceT2" width="200" height="200" class="force-diagram"></canvas>
+                        <div class="diagram-label">t = t₂</div>
+                        <div class="graph-controls">
+                            <button class="graph-button" onclick="clearForceDiagram('forceT2')">Clear</button>
+                            <button class="graph-button" onclick="undoForceStroke('forceT2')">Undo</button>
+                        </div>
+                    </div>
+                </div>
                 <p>ii. Referencing <span class="math">d₁</span> and <span class="math">d₂</span>, describe your reasoning for drawing the arrows the length that you did in part (a)(i).</p>
                 <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
                 <p>iii. Is the tangential speed <span class="math">v₁</span> of the block at time <span class="math">t = t₁</span> greater than, less than, or equal to the tangential speed <span class="math">v₂</span> of the block at time <span class="math">t = t₂</span>?</p>
@@ -645,6 +682,164 @@
             initCanvas('positionGraph');
             initCanvas('velocityGraph');
             initGridGraph();
+        });
+
+        const forceDiagramStates = {
+            forceT1: [],
+            forceT2: []
+        };
+        
+        function initForceDiagram(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid lines for reference (light gray)
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]); // This creates the dotted line effect
+            
+            // Vertical grid lines
+            for (let x = 0; x <= canvas.width; x += 20) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let y = 0; y <= canvas.height; y += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Reset line dash for other elements
+            ctx.setLineDash([]);
+            
+            // Draw dot in center
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'black';
+            ctx.fill();
+            
+            // Save initial state
+            forceDiagramStates[canvasId] = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
+            
+            let isDrawing = false;
+            let startX = canvas.width/2;
+            let startY = canvas.height/2;
+            let currentArrow = null;
+            
+            function drawArrow(fromX, fromY, toX, toY) {
+                // Clear to last saved state
+                ctx.putImageData(forceDiagramStates[canvasId][forceDiagramStates[canvasId].length - 1], 0, 0);
+                
+                // Draw the line
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Calculate the angle and length
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+                const arrowLength = 15;
+                
+                // Draw arrowhead
+                ctx.beginPath();
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(
+                    toX - arrowLength * Math.cos(angle - Math.PI/6),
+                    toY - arrowLength * Math.sin(angle - Math.PI/6)
+                );
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(
+                    toX - arrowLength * Math.cos(angle + Math.PI/6),
+                    toY - arrowLength * Math.sin(angle + Math.PI/6)
+                );
+                ctx.stroke();
+            }
+            
+            canvas.addEventListener('mousedown', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Check if click is near center dot
+                const distFromCenter = Math.sqrt(
+                    Math.pow(x - startX, 2) + 
+                    Math.pow(y - startY, 2)
+                );
+                
+                if (distFromCenter <= 15) {
+                    isDrawing = true;
+                    currentArrow = { fromX: startX, fromY: startY };
+                }
+            });
+            
+            canvas.addEventListener('mousemove', function(e) {
+                if (!isDrawing) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                drawArrow(currentArrow.fromX, currentArrow.fromY, x, y);
+            });
+            
+            canvas.addEventListener('mouseup', function(e) {
+                if (!isDrawing) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                drawArrow(currentArrow.fromX, currentArrow.fromY, x, y);
+                forceDiagramStates[canvasId].push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                
+                isDrawing = false;
+                currentArrow = null;
+            });
+            
+            canvas.addEventListener('mouseleave', function() {
+                if (!isDrawing) return;
+                
+                ctx.putImageData(forceDiagramStates[canvasId][forceDiagramStates[canvasId].length - 1], 0, 0);
+                isDrawing = false;
+                currentArrow = null;
+            });
+        }
+        
+        function clearForceDiagram(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            forceDiagramStates[canvasId] = [];
+            initForceDiagram(canvasId);
+        }
+        
+        function undoForceStroke(canvasId) {
+            if (forceDiagramStates[canvasId].length > 1) {
+                forceDiagramStates[canvasId].pop();
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                ctx.putImageData(forceDiagramStates[canvasId][forceDiagramStates[canvasId].length - 1], 0, 0);
+            }
+        }
+        
+        // Initialize force diagrams when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas('positionGraph');
+            initCanvas('velocityGraph');
+            initGridGraph();
+            initForceDiagram('forceT1');
+            initForceDiagram('forceT2');
         });
     </script>
 </body>
