@@ -116,7 +116,7 @@ function selectTheme(theme) {
         easing: 'easeInExpo',
         complete: function() {
             // Redirect back to the main page
-            window.location.href = 'main.html';
+            window.location.href = 'index.html';
         }
     });
 }
