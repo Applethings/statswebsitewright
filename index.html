@@ -33,6 +33,15 @@
         </select>
         <button id="submit-answer">Submit Answer</button>
         <button id="new-question">New Question</button>
+        <button id="submit-question" class="submit-question-button">Submit Question</button>
+        <div id="question-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Submit Your Question</h2>
+                <textarea id="question-input" placeholder="Type your question here..."></textarea>
+                <button id="send-question">Send</button>
+            </div>
+        </div>
         <p id="feedback"></p>
     </div>
     <script src="script.js"></script>
@@ -82,5 +91,53 @@
         }
     });
     </script>
+    <style>
+        .submit-question-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.9);
+        }
+        .modal-content {
+            background-color: #444;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            color: white;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        #question-input {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+    </style>
 </body>
 </html>

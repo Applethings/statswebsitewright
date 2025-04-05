@@ -116,3 +116,39 @@ function selectTheme(theme) {
         }
     });
 }
+
+document.getElementById('submit-question').addEventListener('click', function() {
+    document.getElementById('question-modal').style.display = 'block';
+});
+
+document.querySelector('.close-button').addEventListener('click', function() {
+    document.getElementById('question-modal').style.display = 'none';
+});
+
+document.getElementById('send-question').addEventListener('click', function() {
+    const question = document.getElementById('question-input').value;
+    if (question.trim() !== '') {
+        fetch('https://discord.com/api/webhooks/1357894378328428584/NdFhsolNc-kTN1XQE_8qx_aOwJR0rwCqOgE36BZEduXgG1S8bN-qqpCHX6RnO1uI6Ot1', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: question
+            })
+        }).then(response => {
+            if (response.ok) {
+                alert('Question submitted successfully!');
+                document.getElementById('question-modal').style.display = 'none';
+                document.getElementById('question-input').value = '';
+            } else {
+                alert('Failed to submit question.');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting question.');
+        });
+    } else {
+        alert('Please enter a question.');
+    }
+});
