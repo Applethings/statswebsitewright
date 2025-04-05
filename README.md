@@ -1,1 +1,1 @@
-https://statswebsitewright.github.io
+https://applethings.github.io/statswebsitewright/
