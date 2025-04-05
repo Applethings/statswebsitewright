@@ -982,16 +982,31 @@
 
         function collectAnswers() {
             const answers = {};
+            
+            // Collect text answers
             document.querySelectorAll('.answer-space').forEach((textarea, index) => {
                 answers[`answer_${index + 1}`] = textarea.value;
             });
+
+            // Collect canvas drawings
+            const canvasData = {
+                positionGraph: document.getElementById('positionGraph').toDataURL(),
+                velocityGraph: document.getElementById('velocityGraph').toDataURL(),
+                gridGraph: document.getElementById('gridGraph').toDataURL(),
+                forceT1: document.getElementById('forceT1').toDataURL(),
+                forceT2: document.getElementById('forceT2').toDataURL()
+            };
+
+            // Add canvas data to answers
+            answers['canvas_data'] = canvasData;
+
             return answers;
         }
 
         function submitTest(isAnonymous) {
             const answers = collectAnswers();
             const submission = {
-                testType: 'AP Physics 1',
+                testType: 'FRQ',
                 testId: 'physics1test',
                 timestamp: new Date().toISOString(),
                 name: isAnonymous ? 'Anonymous' : submitterName.value,
@@ -1041,6 +1056,126 @@
                 const testId = item.dataset.test;
                 window.location.href = `${testId}.html`;
             });
+        });
+
+        // Add redo states for each canvas
+        const canvasRedoStates = {
+            positionGraph: [],
+            velocityGraph: [],
+            gridGraph: [],
+            forceT1: [],
+            forceT2: []
+        };
+
+        // Add keyboard shortcut handling for the entire document
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey) {
+                switch(event.key) {
+                    case 'z':
+                        event.preventDefault();
+                        const activeCanvas = document.activeElement;
+                        if (activeCanvas && activeCanvas.tagName === 'CANVAS') {
+                            undoLastStroke(activeCanvas.id);
+                        }
+                        break;
+                    case 'y':
+                        event.preventDefault();
+                        const activeCanvasForRedo = document.activeElement;
+                        if (activeCanvasForRedo && activeCanvasForRedo.tagName === 'CANVAS') {
+                            redoLastStroke(activeCanvasForRedo.id);
+                        }
+                        break;
+                }
+            }
+        });
+
+        function undoLastStroke(canvasId) {
+            let states, redoStates;
+            
+            if (canvasId === 'gridGraph') {
+                states = gridCanvasStates;
+                redoStates = canvasRedoStates.gridGraph;
+            } else if (canvasId === 'forceT1' || canvasId === 'forceT2') {
+                states = forceDiagramStates[canvasId];
+                redoStates = canvasRedoStates[canvasId];
+            } else {
+                states = canvasStates[canvasId];
+                redoStates = canvasRedoStates[canvasId];
+            }
+
+            if (states && states.length > 1) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                redoStates.push(states.pop());
+                ctx.putImageData(states[states.length - 1], 0, 0);
+            }
+        }
+
+        function redoLastStroke(canvasId) {
+            let states, redoStates;
+            
+            if (canvasId === 'gridGraph') {
+                states = gridCanvasStates;
+                redoStates = canvasRedoStates.gridGraph;
+            } else if (canvasId === 'forceT1' || canvasId === 'forceT2') {
+                states = forceDiagramStates[canvasId];
+                redoStates = canvasRedoStates[canvasId];
+            } else {
+                states = canvasStates[canvasId];
+                redoStates = canvasRedoStates[canvasId];
+            }
+
+            if (redoStates && redoStates.length > 0) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const redoState = redoStates.pop();
+                ctx.putImageData(redoState, 0, 0);
+                states.push(redoState);
+            }
+        }
+
+        function clearCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvasStates[canvasId] = [];
+            canvasRedoStates[canvasId] = [];
+            initCanvas(canvasId);
+        }
+
+        function clearGridCanvas() {
+            const canvas = document.getElementById('gridGraph');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            gridCanvasStates.length = 0;
+            canvasRedoStates.gridGraph = [];
+            initGridGraph();
+        }
+
+        function clearForceDiagram(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            forceDiagramStates[canvasId] = [];
+            canvasRedoStates[canvasId] = [];
+            initForceDiagram(canvasId);
+        }
+
+        function makeCanvasFocusable() {
+            const canvases = document.querySelectorAll('canvas');
+            canvases.forEach(canvas => {
+                canvas.tabIndex = 0;
+                canvas.addEventListener('mousedown', () => canvas.focus());
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas('positionGraph');
+            initCanvas('velocityGraph');
+            initGridGraph();
+            initForceDiagram('forceT1');
+            initForceDiagram('forceT2');
+            makeCanvasFocusable();
         });
     </script>
 </body>

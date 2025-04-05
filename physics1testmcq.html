@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AP Physics 1 2023 MCQ</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: url('images/bgg.gif') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .content {
+            background-color: rgba(0, 0, 32, 0.6);
+            padding: 40px;
+            margin: 40px;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 90%;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            display: flex;
+            gap: 20px;
+            background-color: rgba(0, 0, 32, 0.4);
+            padding: 10px 20px;
+            border-radius: 5px;
+            backdrop-filter: blur(5px);
+        }
+        .nav-button {
+            background-color: rgba(0, 0, 128, 0.3);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .nav-button:hover {
+            background-color: rgba(0, 0, 128, 0.5);
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 128, 0.6);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: rgba(0, 0, 128, 0.8);
+        }
+        .question-container {
+            margin-bottom: 30px;
+        }
+        .question-text {
+            margin-bottom: 20px;
+        }
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .option:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .option.selected {
+            background-color: rgba(0, 128, 0, 0.3);
+        }
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .page-number {
+            color: white;
+            margin: 0 20px;
+        }
+    </style>
+</head>
+<body>
+    <a href="physics1.html" class="back-button">Back</a>
+    
+    <div class="content">
+        <div class="page active" id="page1">
+            <h1>AP Physics 1 2023 Multiple Choice Questions</h1>
+            <h2>Section I</h2>
+            <h3>Time—1 hour and 30 minutes</h3>
+            <h3>50 Questions</h3>
+            <br>
+            <h3>Directions:</h3>
+            <p>Each of the questions or incomplete statements below is followed by four suggested answers or completions. Select the one that is best in each case.</p>
+        </div>
+
+        <div class="page" id="page2">
+            <div class="question-container">
+                <h3>Question 1</h3>
+                <div class="question-text">
+                    <p>An object is moving to the right with speed v<sub>i</sub> when a force of magnitude F is exerted on it. In which of the following situations is the object's direction of motion changing and its kinetic energy decreasing at the instant shown?</p>
+                    <img src="images/image11.png" alt="Four diagrams showing different force scenarios" class="question-image">
+                </div>
+                <div class="options-container">
+                    <div class="option" onclick="selectOption(1, 0)">
+                        <p>A) The force is directed upward</p>
+                    </div>
+                    <div class="option" onclick="selectOption(1, 1)">
+                        <p>B) The force is directed to the left</p>
+                    </div>
+                    <div class="option" onclick="selectOption(1, 2)">
+                        <p>C) The force is directed at an angle above the horizontal</p>
+                    </div>
+                    <div class="option" onclick="selectOption(1, 3)">
+                        <p>D) The force is directed at an angle below the horizontal</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page3">
+            <div class="question-container">
+                <h3>Question 2</h3>
+                <div class="question-text">
+                    <p>A ball is suspended by a lightweight string, as shown in the figure above. The ball is displaced to position 1 and released. The four labeled positions are evenly spaced along the arc of the ball's motion. Between which adjacent pairs of positions is the change in kinetic energy of the ball greatest?</p>
+                    <img src="images/image12.png" alt="Diagram showing the positions of the ball" class="question-image">
+                </div>
+                <div class="options-container">
+                    <div class="option" onclick="selectOption(2, 0)">
+                        <p>A) 1 and 2</p>
+                    </div>
+                    <div class="option" onclick="selectOption(2, 1)">
+                        <p>B) 2 and 3</p>
+                    </div>
+                    <div class="option" onclick="selectOption(2, 2)">
+                        <p>C) 3 and 4</p>
+                    </div>
+                    <div class="option" onclick="selectOption(2, 3)">
+                        <p>D) The change is the same for all adjacent pairs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page4">
+            <div class="question-container">
+                <h3>Question 3</h3>
+                <div class="question-text">
+                    <p>A newly discovered planet is found to have density \( \frac{2}{3} \rho_E \) and radius \( 2R_E \), where \( \rho_E \) and \( R_E \) are the density and radius of Earth, respectively. The surface gravitational field of the planet is most nearly</p>
+                </div>
+                <div class="options-container">
+                    <div class="option" onclick="selectOption(3, 0)">
+                        <p>A) 1.7 N/kg</p>
+                    </div>
+                    <div class="option" onclick="selectOption(3, 1)">
+                        <p>B) 3.3 N/kg</p>
+                    </div>
+                    <div class="option" onclick="selectOption(3, 2)">
+                        <p>C) 6.7 N/kg</p>
+                    </div>
+                    <div class="option" onclick="selectOption(3, 3)">
+                        <p>D) 13 N/kg</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page5">
+            <div class="question-container">
+                <h3>Question 4</h3>
+                <div class="question-text">
+                    <p>A bus is initially traveling north at a constant speed, as shown in the figure above. As the bus starts to make a left turn without changing speed, a passenger notices that a box on the floor starts sliding toward the right side of the bus. Which of the following top views of the box, when correctly labeled, would best represent all of the horizontal forces exerted on the box as it starts sliding?</p>
+                    <img src="images/image13.png" alt="Diagram showing the top views of the box" class="question-image">
+                </div>
+                <div class="options-container">
+                    <div class="option" onclick="selectOption(4, 0)">
+                        <p>A) <img src="images/question4a.png" alt="Option A" class="question-image"></p>
+                    </div>
+                    <div class="option" onclick="selectOption(4, 1)">
+                        <p>B) <img src="images/question4b.png" alt="Option B" class="question-image"></p>
+                    </div>
+                    <div class="option" onclick="selectOption(4, 2)">
+                        <p>C) <img src="images/question4c.png" alt="Option C" class="question-image"></p>
+                    </div>
+                    <div class="option" onclick="selectOption(4, 3)">
+                        <p>D) <img src="images/question4d.png" alt="Option D" class="question-image"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page6">
+            <div class="question-container">
+                <h3>Question 5</h3>
+                <div class="question-text">
+                    <p>Three identical blocks each take a different path from a height \( h \) to the ground. Block \( A \) is released from rest and falls vertically. Block \( B \) is released from rest and slides down a frictionless incline. Block \( C \) is projected horizontally with an initial speed \( v \).</p>
+                    <img src="images/image14.png" alt="Diagram showing the paths of the blocks" class="question-image">
+                </div>
+                <div class="options-container">
+                    <div class="option" onclick="selectOption(5, 0)">
+                        <p>A) A</p>
+                    </div>
+                    <div class="option" onclick="selectOption(5, 1)">
+                        <p>B) B</p>
+                    </div>
+                    <div class="option" onclick="selectOption(5, 2)">
+                        <p>C) C</p>
+                    </div>
+                    <div class="option" onclick="selectOption(5, 3)">
+                        <p>D) The blocks take the same time to reach the ground.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page7">
+            <div class="question-container">
+                <h3>Question 6</h3>
+                <div class="question-text">
+                    <p>Which block has the greatest speed just before hitting the ground?</p>
+                    <img src="images/image14.png" alt="Diagram showing the paths of the blocks" class="question-image">
+                </div>
+                <div class="options-container">
+                    <div class="option" onclick="selectOption(6, 0)">
+                        <p>A) A</p>
+                    </div>
+                    <div class="option" onclick="selectOption(6, 1)">
+                        <p>B) B</p>
+                    </div>
+                    <div class="option" onclick="selectOption(6, 2)">
+                        <p>C) C</p>
+                    </div>
+                    <div class="option" onclick="selectOption(6, 3)">
+                        <p>D) The blocks reach the ground with the same speed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" id="prevBtn">←</button>
+        <span class="page-number">Question <span id="currentPage">1</span> of 50</span>
+        <button class="nav-button" id="nextBtn">→</button>
+        <button class="nav-button" id="submitBtn" style="background-color: #004d00;">Submit Test</button>
+    </div>
+
+    <script>
+        let currentPageIndex = 1;
+        const totalPages = 8; // Update total pages
+        const answers = new Array(50).fill(null); // Array to store answers
+
+        function updatePage() {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            document.getElementById(`page${currentPageIndex}`).classList.add('active');
+            
+            // Update the page number display and text
+            const pageNumberSpan = document.querySelector('.page-number');
+            if (currentPageIndex === 1) {
+                pageNumberSpan.textContent = "Page 1 - Instructions";
+                document.getElementById('currentPage').textContent = "1";
+            } else {
+                pageNumberSpan.textContent = `Page ${currentPageIndex} - Question ${currentPageIndex - 1}`;
+                document.getElementById('currentPage').textContent = currentPageIndex;
+            }
+            
+            // Update button states
+            document.getElementById('prevBtn').disabled = currentPageIndex === 1;
+            document.getElementById('nextBtn').disabled = currentPageIndex === totalPages;
+        }
+
+        function selectOption(questionNumber, optionIndex) {
+            // Remove selected class from all options in the question
+            const questionContainer = document.querySelector(`#page${currentPageIndex} .question-container`);
+            questionContainer.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            questionContainer.querySelectorAll('.option')[optionIndex].classList.add('selected');
+            
+            // Store the answer
+            answers[questionNumber - 1] = optionIndex;
+
+            // No longer automatically move to next question
+            // Let the user control navigation
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentPageIndex > 1) {
+                currentPageIndex--;
+                updatePage();
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentPageIndex < totalPages) {
+                currentPageIndex++;
+                updatePage();
+            }
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && currentPageIndex > 1) {
+                currentPageIndex--;
+                updatePage();
+            } else if (e.key === 'ArrowRight' && currentPageIndex < totalPages) {
+                currentPageIndex++;
+                updatePage();
+            } else if (e.key >= '1' && e.key <= '4') {
+                // Convert key 1-4 to index 0-3
+                const optionIndex = parseInt(e.key) - 1;
+                if (currentPageIndex > 1) { // Only if we're on a question page
+                    selectOption(currentPageIndex - 1, optionIndex);
+                }
+            }
+        });
+
+        document.getElementById('submitBtn').addEventListener('click', () => {
+
+            const submission = {
+                testType: 'MCQ',
+                testId: 'physics1test',
+                timestamp: new Date().toISOString(),
+                answers: answers
+            };
+
+
+            let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+            if (!allSubmissions['AP Physics 1']) {
+                allSubmissions['AP Physics 1'] = [];
+            }
+            allSubmissions['AP Physics 1'].push(submission);
+            localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+
+            window.location.href = 'test-results.html';
+        });
+
+        updatePage();
+    </script>
+</body>
+</html> 
