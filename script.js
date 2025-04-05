@@ -156,3 +156,13 @@ document.getElementById('send-question').addEventListener('click', function() {
         alert('Error submitting question.');
     });
 });
+
+document.getElementById('practice-tests').addEventListener('click', function() {
+    document.getElementById('practice-page').style.display = 'block';
+    document.querySelector('.container').style.display = 'none';
+});
+
+document.getElementById('back-button').addEventListener('click', function() {
+    document.getElementById('practice-page').style.display = 'none';
+    document.querySelector('.container').style.display = 'block';
+});
