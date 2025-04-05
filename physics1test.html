@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AP Physics 1 2023 FRQ</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: url('images/bgg.gif') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .content {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 40px;
+            margin: 40px;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 90%;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            display: flex;
+            gap: 20px;
+            background-color: rgba(0, 0, 32, 0.4);
+            padding: 10px 20px;
+            border-radius: 5px;
+            backdrop-filter: blur(5px);
+        }
+        .nav-button {
+            background-color: rgba(0, 0, 128, 0.3);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .nav-button:hover {
+            background-color: rgba(0, 0, 128, 0.5);
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 128, 0.6);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: rgba(0, 0, 128, 0.8);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .page-number {
+            color: white;
+            margin: 0 20px;
+        }
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #000;
+            border-radius: 5px;
+        }
+        .question-text {
+            margin-bottom: 20px;
+        }
+        .sub-question {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        .math {
+            font-style: italic;
+        }
+        .data-table {
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px;
+            text-align: center;
+        }
+        .data-table th {
+            background-color: rgba(0, 0, 128, 0.3);
+        }
+        .data-table tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .answer-space {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            min-height: 120px;
+            margin: 15px 0;
+            padding: 10px;
+            width: 100%;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .answer-space:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .short-answer-space {
+            min-height: 80px;
+        }
+        .long-answer-space {
+            min-height: 150px;
+        }
+        .graph-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .graph-box {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .graph-title {
+            text-align: center;
+            color: black;
+            margin-bottom: 10px;
+        }
+        canvas {
+            background-color: white;
+            border: 1px solid #ccc;
+            cursor: crosshair;
+        }
+        .graph-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .graph-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .graph-button:hover {
+            background-color: #444;
+        }
+        .grid-graph-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .grid-canvas {
+            background-color: white;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <a href="physics1.html" class="back-button">Back</a>
+    
+    <div class="content">
+        <div class="page active" id="page1">
+            <h1>AP Physics 1 2023 Free-Response Questions</h1>
+            <h2>Section II</h2>
+            <h3>Time—1 hour and 30 minutes</h3>
+            <h3>5 Questions</h3>
+            <br>
+            <h3>Directions:</h3>
+            <p>Questions 1, 4, and 5 are short free-response questions that require about 13 minutes each to answer and are worth 7 points each. Questions 2 and 3 are long free-response questions that require about 25 minutes each to answer and are worth 12 points each. Show your work for each part in the space provided after that part.</p>
+        </div>
+        
+        <div class="page" id="page2">
+            <h2>Question 1 (7 points)</h2>
+            <div class="question-text">
+                <p>A cart on a horizontal surface is attached to a spring. The other end of the spring is attached to a wall. The cart is initially held at rest, as shown in Figure 1. When the cart is released, the system consisting of the cart and spring oscillates between the positions <span class="math">x = +L</span> and <span class="math">x = -L</span>. Figure 2 shows the kinetic energy of the cart-spring system as a function of the system's potential energy. Frictional forces are negligible.</p>
+            </div>
+            <img src="images/image1.png" alt="Physics problem diagram" class="question-image">
+            <div class="sub-question">
+                <p>(a) On the graph of kinetic energy <span class="math">K</span> versus potential energy <span class="math">U</span> shown in Figure 2, the values for the <span class="math">x</span>-intercept and <span class="math">y</span>-intercept are the same. Briefly explain why this is true, using physics principles.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(b) When the cart is at <span class="math">+L</span> and momentarily at rest, a block is dropped onto the cart, as shown in Figure 3. The block sticks to the cart, and the block-cart-spring system continues to oscillate between <span class="math">-L</span> and <span class="math">+L</span>. The masses of the cart and the block are <span class="math">m₀</span> and <span class="math">3m₀</span>, respectively. The frequency of oscillation before the block is dropped onto the cart is <span class="math">f₁</span>. The frequency of oscillation after the block is dropped onto the cart is <span class="math">f₂</span>. Calculate the numerical value of the ratio <span class="math">f₂/f₁</span>.</p>
+                <textarea class="answer-space long-answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(c) The dashed line in Figure 4 shows the kinetic energy <span class="math">K</span> versus potential energy <span class="math">U</span> of the block-cart-spring system after the block is dropped onto the cart. This graph is identical to the graph shown in Figure 2 for the cart-spring system before the block is dropped onto the cart.</p>
+                <p>i. Briefly explain why the two graphs must be the same, using physics principles.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. After the block is dropped onto the cart, consider a system that consists only of the cart and the spring. On Figure 4, sketch a solid line that shows the kinetic energy of the system that consists of the cart and the spring but not the block after the block is dropped onto the cart.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+        </div>
+
+        <div class="page" id="page3">
+            <h2>Question 2 (12 points)</h2>
+            <div class="question-text">
+                <p>Students conduct an experiment to determine the acceleration <span class="math">a</span> of a cart. The cart is released from rest at the top of the ramp at time <span class="math">t = 0</span> and moves down the ramp. The <span class="math">x</span>-axis is defined to be parallel to the ramp with its origin at the top, as shown in the figure. The students collect the data shown in the following table.</p>
+            </div>
+            <img src="images/image2.png" alt="Physics problem diagram" class="question-image">
+            <div class="data-table">
+                <table>
+                    <tr>
+                        <th>Position <span class="math">x</span> (m)</th>
+                        <th>Time <span class="math">t</span> (s)</th>
+                    </tr>
+                    <tr><td>0.06</td><td>0.39</td></tr>
+                    <tr><td>0.14</td><td>0.59</td></tr>
+                    <tr><td>0.24</td><td>0.77</td></tr>
+                    <tr><td>0.37</td><td>0.96</td></tr>
+                    <tr><td>0.55</td><td>1.20</td></tr>
+                </table>
+            </div>
+            <div class="sub-question">
+                <p>(a)</p>
+                <p>i. Indicate which quantities could be graphed to yield a straight line whose slope could be used to determine the acceleration <span class="math">a</span> of the cart. You may use the remaining columns in the table, as needed, to record any quantities (including units) that are not already in the table.</p>
+                <p>Vertical axis: Horizontal axis: </p>
+                <textarea class="answer-space short-answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. On the following grid, plot the appropriate quantities to create a graph that can be used to determine the acceleration <span class="math">a</span> of the cart as it rolls down the ramp. Clearly scale and label all axes (including units), as appropriate. Draw a straight line that best represents the data.</p>
+                <div class="grid-graph-container">
+                    <canvas id="gridGraph" width="500" height="400" class="grid-canvas"></canvas>
+                    <div class="graph-controls">
+                        <button class="graph-button" onclick="clearGridCanvas()">Clear</button>
+                        <button class="graph-button" onclick="undoGridStroke()">Undo</button>
+                    </div>
+                </div>
+                <p>iii. Using the line you drew in part (a)(ii), calculate an experimental value for the acceleration <span class="math">a</span> of the cart as it rolls down the ramp.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(b) The students are asked to determine an experimental value for the acceleration due to gravity <span class="math">g<sub>exp</sub></span> using their data.</p>
+                <p>i. What additional quantities do the students need to measure in order to calculate <span class="math">g<sub>exp</sub></span> from <span class="math">a</span>?</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. Write an expression for the value of <span class="math">g<sub>exp</sub></span> in terms of <span class="math">a</span>.</p>
+                <textarea class="answer-space short-answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(c) The students calculate the value of <span class="math">g<sub>exp</sub></span> to be significantly lower than the accepted value of 9.8 m/s².</p>
+                <p>i. What is a physical reason, other than friction or air resistance, that could lead to a significant difference in the experimentally determined value of <span class="math">g<sub>exp</sub></span>?</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. Briefly explain how the physical reason you identified in part (c)(i) would lead to the decrease in the experimentally determined value of <span class="math">g<sub>exp</sub></span>.</p>
+                <img src="images/image3.png" alt="Physics problem diagram" class="question-image">
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(d) The students want to confirm that the acceleration is the same whether the cart rolls up or down the ramp. The students start the cart at the bottom and give the cart a quick push so that it rolls up the ramp and momentarily comes to rest. The <span class="math">x</span>-axis is still defined to be parallel to the ramp with the origin at the top.</p>
+                <p>On the following graphs, sketch the position <span class="math">x</span> and velocity <span class="math">v</span> as functions of time <span class="math">t</span> that correspond to the scenario shown while the cart moves up the ramp.</p>
+                <div class="graph-container">
+                    <div class="graph-box">
+                        <div class="graph-title">Position vs. Time</div>
+                        <canvas id="positionGraph" width="350" height="350"></canvas>
+                        <div class="graph-controls">
+                            <button class="graph-button" onclick="clearCanvas('positionGraph')">Clear</button>
+                            <button class="graph-button" onclick="undoLastStroke('positionGraph')">Undo</button>
+                        </div>
+                    </div>
+                    <div class="graph-box">
+                        <div class="graph-title">Velocity vs. Time</div>
+                        <canvas id="velocityGraph" width="350" height="350"></canvas>
+                        <div class="graph-controls">
+                            <button class="graph-button" onclick="clearCanvas('velocityGraph')">Clear</button>
+                            <button class="graph-button" onclick="undoLastStroke('velocityGraph')">Undo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="page4">
+            <h2>Question 3 (12 points)</h2>
+            <div class="question-text">
+                <p>A small block of mass <span class="math">m₀</span> is attached to the end of a spring of spring constant <span class="math">k₀</span> that is attached to a rod on a horizontal table. The rod is attached to a motor so that the rod can rotate at various speeds about its axis. When the rod is not rotating, the block is at rest and the spring is at its unstretched length <span class="math">L</span>, as shown. All frictional forces are negligible.</p>
+            </div>
+            <img src="images/image3.png" alt="Physics problem diagram" class="question-image">
+            <div class="sub-question">
+                <p>(a) At time <span class="math">t = t₁</span>, the rod is spinning such that the block moves in a circular path with a constant tangential speed <span class="math">v₁</span> and the spring is stretched a distance <span class="math">d₁</span> from the spring's unstretched length, as shown in Figure 1. At time <span class="math">t = t₂</span>, the rod is spinning such that the block moves in a circular path with a constant tangential speed <span class="math">v₂</span> and the spring is stretched a distance <span class="math">d₂</span> from the spring's unstretched length, where <span class="math">d₂ > d₁</span>, as shown in Figure 2.</p>
+                <p>i. On the following dots, which represent the block at the locations shown in Figure 1 and Figure 2, draw the force that is exerted on the block by the spring at times <span class="math">t = t₁</span> and <span class="math">t = t₂</span>. The spring force must be represented by a distinct arrow starting on, and pointing away from, the dot.</p>
+                <p><em>Note: Draw the relative lengths of the vectors to reflect the relative magnitudes of the forces exerted by the spring at both times.</em></p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. Referencing <span class="math">d₁</span> and <span class="math">d₂</span>, describe your reasoning for drawing the arrows the length that you did in part (a)(i).</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>iii. Is the tangential speed <span class="math">v₁</span> of the block at time <span class="math">t = t₁</span> greater than, less than, or equal to the tangential speed <span class="math">v₂</span> of the block at time <span class="math">t = t₂</span>?</p>
+                <p>Justify your answer without using equations.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(b) Consider a scenario where the block travels in a circular path where the spring is stretched a distance <span class="math">d</span> from its unstretched length <span class="math">L</span>.</p>
+                <p>i. Determine an expression for the magnitude of the net force <span class="math">F<sub>net</sub></span> exerted on the block. Express your answer in terms of <span class="math">m₀</span>, <span class="math">k₀</span>, <span class="math">L</span>, <span class="math">d</span>, and fundamental constants, as appropriate.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. Derive an equation for the tangential speed <span class="math">v</span> of the block. Express your answer in terms of <span class="math">m₀</span>, <span class="math">k₀</span>, <span class="math">L</span>, <span class="math">d</span>, and fundamental constants, as appropriate.</p>
+                <textarea class="answer-space long-answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(c) Does your equation for the tangential speed <span class="math">v</span> of the block from part (b)(ii) agree with your reasoning from part (a)?</p>
+                <p>Explain your reasoning.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" id="prevBtn">←</button>
+        <span class="page-number">Page <span id="currentPage">1</span></span>
+        <button class="nav-button" id="nextBtn">→</button>
+    </div>
+
+    <script>
+        let currentPageIndex = 1;
+        const totalPages = 4;
+
+        function updatePage() {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            document.getElementById(`page${currentPageIndex}`).classList.add('active');
+            
+            document.getElementById('currentPage').textContent = currentPageIndex;
+            
+            document.getElementById('prevBtn').disabled = currentPageIndex === 1;
+            document.getElementById('nextBtn').disabled = currentPageIndex === totalPages;
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentPageIndex > 1) {
+                currentPageIndex--;
+                updatePage();
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentPageIndex < totalPages) {
+                currentPageIndex++;
+                updatePage();
+            }
+        });
+
+        updatePage();
+
+        const canvasStates = {
+            positionGraph: [],
+            velocityGraph: []
+        };
+        
+        function initCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Draw axes
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            
+            // Draw x-axis
+            ctx.beginPath();
+            ctx.moveTo(50, canvas.height/2);
+            ctx.lineTo(canvas.width - 20, canvas.height/2);
+            ctx.stroke();
+            
+            // Draw y-axis
+            ctx.beginPath();
+            ctx.moveTo(50, canvas.height - 20);
+            ctx.lineTo(50, 20);
+            ctx.stroke();
+            
+            // Add arrows
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - 20, canvas.height/2);
+            ctx.lineTo(canvas.width - 30, canvas.height/2 - 10);
+            ctx.lineTo(canvas.width - 30, canvas.height/2 + 10);
+            ctx.fillStyle = '#000';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(50, 20);
+            ctx.lineTo(40, 30);
+            ctx.lineTo(60, 30);
+            ctx.fill();
+            
+            // Add labels
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#000';
+            ctx.fillText('t', canvas.width - 20, canvas.height/2 + 20);
+            ctx.fillText(canvasId === 'positionGraph' ? 'x' : 'v', 30, 30);
+            ctx.fillText('O', 35, canvas.height/2 + 15);
+            
+            // Save initial state
+            canvasStates[canvasId] = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
+            
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            function startDrawing(e) {
+                isDrawing = true;
+                [lastX, lastY] = getMousePos(canvas, e);
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                
+                const [currentX, currentY] = getMousePos(canvas, e);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(currentX, currentY);
+                ctx.stroke();
+                
+                [lastX, lastY] = [currentX, currentY];
+            }
+            
+            function stopDrawing() {
+                if (isDrawing) {
+                    isDrawing = false;
+                    canvasStates[canvasId].push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                }
+            }
+        }
+        
+        function getMousePos(canvas, e) {
+            const rect = canvas.getBoundingClientRect();
+            return [
+                e.clientX - rect.left,
+                e.clientY - rect.top
+            ];
+        }
+        
+        function clearCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvasStates[canvasId] = [];
+            initCanvas(canvasId);
+        }
+        
+        function undoLastStroke(canvasId) {
+            if (canvasStates[canvasId].length > 1) {
+                canvasStates[canvasId].pop();
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                ctx.putImageData(canvasStates[canvasId][canvasStates[canvasId].length - 1], 0, 0);
+            }
+        }
+        
+        // Initialize both canvases when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas('positionGraph');
+            initCanvas('velocityGraph');
+        });
+
+        const gridCanvasStates = [];
+        
+        function initGridGraph() {
+            const canvas = document.getElementById('gridGraph');
+            const ctx = canvas.getContext('2d');
+            
+            // Draw grid
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 0.5;
+            
+            // Draw vertical grid lines
+            const gridSize = 20;
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Draw horizontal grid lines
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw darker lines every 5 grid cells
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= canvas.width; x += gridSize * 5) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= canvas.height; y += gridSize * 5) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            
+            // Draw x and y axes
+            ctx.beginPath();
+            ctx.moveTo(40, canvas.height - 40);
+            ctx.lineTo(canvas.width - 40, canvas.height - 40); // x-axis
+            ctx.moveTo(40, canvas.height - 40);
+            ctx.lineTo(40, 40); // y-axis
+            ctx.stroke();
+            
+            // Add arrows
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - 40, canvas.height - 40);
+            ctx.lineTo(canvas.width - 50, canvas.height - 45);
+            ctx.lineTo(canvas.width - 50, canvas.height - 35);
+            ctx.fillStyle = '#000';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(40, 40);
+            ctx.lineTo(35, 50);
+            ctx.lineTo(45, 50);
+            ctx.fill();
+            
+            // Save initial state
+            gridCanvasStates.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            function startDrawing(e) {
+                isDrawing = true;
+                [lastX, lastY] = getMousePos(canvas, e);
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                
+                const [currentX, currentY] = getMousePos(canvas, e);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(currentX, currentY);
+                ctx.stroke();
+                
+                [lastX, lastY] = [currentX, currentY];
+            }
+            
+            function stopDrawing() {
+                if (isDrawing) {
+                    isDrawing = false;
+                    gridCanvasStates.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                }
+            }
+        }
+        
+        function clearGridCanvas() {
+            const canvas = document.getElementById('gridGraph');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            gridCanvasStates.length = 0;
+            initGridGraph();
+        }
+        
+        function undoGridStroke() {
+            if (gridCanvasStates.length > 1) {
+                gridCanvasStates.pop();
+                const canvas = document.getElementById('gridGraph');
+                const ctx = canvas.getContext('2d');
+                ctx.putImageData(gridCanvasStates[gridCanvasStates.length - 1], 0, 0);
+            }
+        }
+        
+        // Initialize grid graph when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas('positionGraph');
+            initCanvas('velocityGraph');
+            initGridGraph();
+        });
+    </script>
+</body>
+</html> 
