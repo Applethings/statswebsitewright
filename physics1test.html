@@ -212,6 +212,85 @@
             margin-top: 5px;
             font-size: 14px;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: rgba(0, 0, 32, 0.95);
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            color: white;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        .modal-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: rgba(0, 0, 128, 0.5);
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .modal-button:hover {
+            background-color: rgba(0, 0, 128, 0.8);
+        }
+        #submitAnonymous {
+            background-color: #666;
+        }
+        #submitWithName {
+            background-color: #004d00;
+        }
+        #cancelSubmit {
+            background-color: #660000;
+        }
+        .test-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .test-item {
+            background-color: rgba(0, 0, 128, 0.3);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .test-item:hover {
+            background-color: rgba(0, 0, 128, 0.5);
+        }
+        .test-item h4 {
+            margin: 0 0 10px 0;
+        }
+        .test-item p {
+            margin: 0;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -356,6 +435,7 @@
                 </div>
                 <p>ii. Referencing <span class="math">d₁</span> and <span class="math">d₂</span>, describe your reasoning for drawing the arrows the length that you did in part (a)(i).</p>
                 <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <img src="images/image10.png" alt="Physics problem diagram showing Figure 3" class="question-image">
                 <p>iii. Is the tangential speed <span class="math">v₁</span> of the block at time <span class="math">t = t₁</span> greater than, less than, or equal to the tangential speed <span class="math">v₂</span> of the block at time <span class="math">t = t₂</span>?</p>
                 <p>Justify your answer without using equations.</p>
                 <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
@@ -393,17 +473,71 @@
                 <textarea class="answer-space long-answer-space" placeholder="Enter your answer here..."></textarea>
             </div>
         </div>
+
+        <div class="page" id="page6">
+            <h2>Question 5 (7 points)</h2>
+            <img src="images/image8.png" alt="Physics problem diagram showing rod-sphere system" class="question-image">
+            <div class="question-text">
+                <p>A rod with a sphere attached to the end is connected to a horizontal mounted axle and carefully balanced so that it rests in a position vertically upward from the axle. The center of mass of the rod-sphere system is indicated with a \(\otimes\), as shown in Figure 1. The sphere is lightly tapped, and the rod-sphere system rotates clockwise with negligible friction about the axle due to the gravitational force.</p>
+                <p>A student takes a video of the rod rotating from the vertically upward position to the vertically downward position. Figure 2 shows five frames (still shots) that the student selected from the video. <em>Note: these frames are not equally spaced apart in time.</em></p>
+            </div>
+            <img src="images/image9.png" alt="Physics problem diagram showing video frames" class="question-image">
+            <div class="sub-question">
+                <p>(a) Use the frames of the video shown in Figure 2 to answer the following questions.</p>
+                <p>i. In which frame is the angular acceleration of the rod-sphere system the greatest? Justify your answer.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. In which frame is the rotational kinetic energy of the rod-sphere system the greatest? Briefly justify your answer.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <img src="images/image10.png" alt="Physics problem diagram showing Figure 3" class="question-image">
+            <div class="sub-question">
+                <p>(b) The rod-sphere system has mass \(M\) and length \(L\), and the center of mass is located a distance \(\frac{3}{4}L\) from the axle, shown in Figure 3.</p>
+                <p>i. Derive an expression for the change in kinetic energy of the rod-sphere-Earth system from the moment shown in Frame A to the moment shown in Frame E. Express your answer in terms of \(M\), \(L\), and fundamental constants, as appropriate.</p>
+                <textarea class="answer-space long-answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. Briefly explain why the rod and sphere gain kinetic energy, even if Earth is not included in the system.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+        </div>
     </div>
 
     <div class="navigation">
         <button class="nav-button" id="prevBtn">←</button>
         <span class="page-number">Page <span id="currentPage">1</span></span>
         <button class="nav-button" id="nextBtn">→</button>
+        <button class="nav-button" id="submitBtn" style="background-color: #004d00;">Submit Test</button>
+    </div>
+
+    <!-- Submission Modal -->
+    <div id="submissionModal" class="modal">
+        <div class="modal-content">
+            <h3>Submit Your Test</h3>
+            <p>Please enter your name or choose to submit anonymously:</p>
+            <input type="text" id="submitterName" placeholder="Your Name" class="modal-input">
+            <div class="modal-buttons">
+                <button id="submitAnonymous" class="modal-button">Submit Anonymously</button>
+                <button id="submitWithName" class="modal-button">Submit with Name</button>
+                <button id="cancelSubmit" class="modal-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Selection Modal -->
+    <div id="testSelectionModal" class="modal">
+        <div class="modal-content">
+            <h3>Select a Test</h3>
+            <div class="test-list">
+                <div class="test-item" data-test="physics1test">
+                    <h4>AP Physics 1 - 2023 FRQ</h4>
+                    <p>Free Response Questions from the 2023 AP Physics 1 exam</p>
+                </div>
+                <!-- More tests can be added here -->
+            </div>
+        </div>
     </div>
 
     <script>
         let currentPageIndex = 1;
-        const totalPages = 5;
+        const totalPages = 6;
 
         function updatePage() {
             document.querySelectorAll('.page').forEach(page => {
@@ -693,16 +827,13 @@
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
             
-            // Clear canvas
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw grid lines for reference (light gray)
             ctx.strokeStyle = '#ccc';
             ctx.lineWidth = 1;
-            ctx.setLineDash([2, 2]); // This creates the dotted line effect
+            ctx.setLineDash([2, 2]);
             
-            // Vertical grid lines
             for (let x = 0; x <= canvas.width; x += 20) {
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
@@ -710,7 +841,6 @@
                 ctx.stroke();
             }
             
-            // Horizontal grid lines
             for (let y = 0; y <= canvas.height; y += 20) {
                 ctx.beginPath();
                 ctx.moveTo(0, y);
@@ -718,16 +848,13 @@
                 ctx.stroke();
             }
             
-            // Reset line dash for other elements
             ctx.setLineDash([]);
             
-            // Draw dot in center
             ctx.beginPath();
             ctx.arc(canvas.width/2, canvas.height/2, 5, 0, 2 * Math.PI);
             ctx.fillStyle = 'black';
             ctx.fill();
             
-            // Save initial state
             forceDiagramStates[canvasId] = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
             
             let isDrawing = false;
@@ -736,10 +863,8 @@
             let currentArrow = null;
             
             function drawArrow(fromX, fromY, toX, toY) {
-                // Clear to last saved state
                 ctx.putImageData(forceDiagramStates[canvasId][forceDiagramStates[canvasId].length - 1], 0, 0);
                 
-                // Draw the line
                 ctx.beginPath();
                 ctx.moveTo(fromX, fromY);
                 ctx.lineTo(toX, toY);
@@ -747,11 +872,9 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // Calculate the angle and length
                 const angle = Math.atan2(toY - fromY, toX - fromX);
                 const arrowLength = 15;
                 
-                // Draw arrowhead
                 ctx.beginPath();
                 ctx.moveTo(toX, toY);
                 ctx.lineTo(
@@ -771,7 +894,6 @@
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 
-                // Check if click is near center dot
                 const distFromCenter = Math.sqrt(
                     Math.pow(x - startX, 2) + 
                     Math.pow(y - startY, 2)
@@ -840,6 +962,85 @@
             initGridGraph();
             initForceDiagram('forceT1');
             initForceDiagram('forceT2');
+        });
+
+        // Add submission handling
+        const submissionModal = document.getElementById('submissionModal');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitAnonymous = document.getElementById('submitAnonymous');
+        const submitWithName = document.getElementById('submitWithName');
+        const cancelSubmit = document.getElementById('cancelSubmit');
+        const submitterName = document.getElementById('submitterName');
+
+        submitBtn.addEventListener('click', () => {
+            submissionModal.style.display = 'block';
+        });
+
+        cancelSubmit.addEventListener('click', () => {
+            submissionModal.style.display = 'none';
+        });
+
+        function collectAnswers() {
+            const answers = {};
+            document.querySelectorAll('.answer-space').forEach((textarea, index) => {
+                answers[`answer_${index + 1}`] = textarea.value;
+            });
+            return answers;
+        }
+
+        function submitTest(isAnonymous) {
+            const answers = collectAnswers();
+            const submission = {
+                testType: 'AP Physics 1',
+                testId: 'physics1test',
+                timestamp: new Date().toISOString(),
+                name: isAnonymous ? 'Anonymous' : submitterName.value,
+                answers: answers
+            };
+
+            // Store in localStorage with category organization
+            let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+            if (!allSubmissions['AP Physics 1']) {
+                allSubmissions['AP Physics 1'] = [];
+            }
+            allSubmissions['AP Physics 1'].push(submission);
+            localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+
+            // Close modal and show confirmation
+            submissionModal.style.display = 'none';
+            alert('Your test has been submitted successfully!');
+            
+            // Redirect to results page
+            window.location.href = 'test-results.html?test=physics1test';
+        }
+
+        submitAnonymous.addEventListener('click', () => {
+            submitTest(true);
+        });
+
+        submitWithName.addEventListener('click', () => {
+            if (!submitterName.value.trim()) {
+                alert('Please enter your name or choose to submit anonymously.');
+                return;
+            }
+            submitTest(false);
+        });
+
+        // Close modal if clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === submissionModal) {
+                submissionModal.style.display = 'none';
+            }
+        });
+
+        // Test selection handling
+        const testSelectionModal = document.getElementById('testSelectionModal');
+        
+        document.querySelectorAll('.test-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const testId = item.dataset.test;
+                window.location.href = `${testId}.html`;
+            });
         });
     </script>
 </body>

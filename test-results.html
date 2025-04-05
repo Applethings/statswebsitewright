@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Submissions</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: url('images/bgg.gif') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background-color: rgba(0, 0, 32, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .submissions-container, .test-selection-container {
+            background-color: rgba(0, 0, 32, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .submission {
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .submission-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .answer {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 128, 0.6);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: rgba(0, 0, 128, 0.8);
+        }
+
+        .no-submissions {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .test-category {
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 10px 0;
+            padding: 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .test-category:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .test-category h2 {
+            margin: 0;
+            color: white;
+        }
+
+        .test-category p {
+            margin: 10px 0 0 0;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        #submissionsView {
+            display: none;
+        }
+
+        .breadcrumb {
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .delete-button {
+            background-color: #660000;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            float: right;
+            margin-left: 10px;
+        }
+
+        .delete-button:hover {
+            background-color: #800000;
+        }
+
+        #passwordModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .password-modal-content {
+            background-color: rgba(0, 0, 32, 0.95);
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .password-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .password-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .confirm-password {
+            background-color: #660000;
+        }
+
+        .cancel-password {
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <a href="practice.html" class="back-button">Back to Practice</a>
+
+    <!-- Password Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="password-modal-content">
+            <h3>Developer Authentication</h3>
+            <p>Please enter the developer password to delete this submission:</p>
+            <input type="password" id="passwordInput" class="password-input" placeholder="Enter password">
+            <div class="password-buttons">
+                <button onclick="cancelDelete()" class="password-button cancel-password">Cancel</button>
+                <button onclick="confirmDelete()" class="password-button confirm-password">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Test Submissions</h1>
+            <p>View submitted responses by test category</p>
+        </div>
+
+        <div id="testSelection" class="test-selection-container">
+            <div id="testCategories">
+                <!-- Test categories will be loaded here -->
+            </div>
+        </div>
+
+        <div id="submissionsView">
+            <div class="breadcrumb">
+                <a href="#" onclick="showTestSelection()">All Tests</a> > <span id="currentTest"></span>
+            </div>
+            <div class="submissions-container" id="submissionsContainer">
+                <!-- Submissions will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+
+        function showTestSelection() {
+            document.getElementById('testSelection').style.display = 'block';
+            document.getElementById('submissionsView').style.display = 'none';
+        }
+
+        function showSubmissions(testType) {
+            document.getElementById('testSelection').style.display = 'none';
+            document.getElementById('submissionsView').style.display = 'block';
+            document.getElementById('currentTest').textContent = testType;
+            displaySubmissions(testType);
+        }
+
+        function displayTestCategories() {
+            const container = document.getElementById('testCategories');
+            const allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+            
+            if (Object.keys(allSubmissions).length === 0) {
+                container.innerHTML = `
+                    <div class="no-submissions">
+                        <p>No test submissions available.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const categoriesHTML = Object.entries(allSubmissions).map(([category, submissions]) => `
+                <div class="test-category" onclick="showSubmissions('${category}')">
+                    <h2>${category}</h2>
+                    <p>${submissions.length} submission${submissions.length !== 1 ? 's' : ''}</p>
+                </div>
+            `).join('');
+
+            container.innerHTML = categoriesHTML;
+        }
+
+        let submissionToDelete = null;
+        let categoryToRefresh = null;
+
+        function promptDelete(category, submissionIndex) {
+            submissionToDelete = submissionIndex;
+            categoryToRefresh = category;
+            document.getElementById('passwordModal').style.display = 'block';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('passwordInput').focus();
+        }
+
+        // Rate limiting variables
+        const MAX_ATTEMPTS = 3;
+        const LOCKOUT_DURATION = 30000; // 30 seconds in milliseconds
+        let attemptCount = 0;
+        let lastAttemptTime = 0;
+        let isLocked = false;
+
+        function checkRateLimit() {
+            const now = Date.now();
+            
+            // Reset attempts if lockout duration has passed
+            if (isLocked && now - lastAttemptTime >= LOCKOUT_DURATION) {
+                isLocked = false;
+                attemptCount = 0;
+            }
+
+            // Check if locked out
+            if (isLocked) {
+                const remainingTime = Math.ceil((LOCKOUT_DURATION - (now - lastAttemptTime)) / 1000);
+                alert(`Too many failed attempts. Please wait ${remainingTime} seconds before trying again.`);
+                return false;
+            }
+
+            // Increment attempt count
+            attemptCount++;
+            lastAttemptTime = now;
+
+            // Check if max attempts reached
+            if (attemptCount >= MAX_ATTEMPTS) {
+                isLocked = true;
+                alert(`Maximum attempts reached. Please wait ${LOCKOUT_DURATION/1000} seconds before trying again.`);
+                return false;
+            }
+
+            return true;
+        }
+
+        function resetRateLimit() {
+            attemptCount = 0;
+            isLocked = false;
+        }
+
+        async function loadPasswordHash() {
+            try {
+                const response = await fetch('/.env');
+                const text = await response.text();
+                const match = text.match(/DEVELOPER_PASSWORD_HASH=(.+)/);
+                return match ? match[1] : null;
+            } catch (error) {
+                console.error('Error loading password hash:', error);
+                return null;
+            }
+        }
+
+        async function verifyPassword(password) {
+            try {
+                const storedHash = await loadPasswordHash();
+                if (!storedHash) {
+                    console.error('Could not load password hash');
+                    return false;
+                }
+
+                // Hash the input password
+                const inputHash = await crypto.subtle.digest('SHA-256', 
+                    new TextEncoder().encode(password)
+                ).then(buffer => {
+                    return Array.from(new Uint8Array(buffer))
+                        .map(b => b.toString(16).padStart(2, '0'))
+                        .join('');
+                });
+
+                return inputHash === storedHash;
+            } catch (error) {
+                console.error('Error verifying password:', error);
+                return false;
+            }
+        }
+
+        async function confirmDelete() {
+            const password = document.getElementById('passwordInput').value;
+            
+            // Check rate limit before proceeding
+            if (!checkRateLimit()) {
+                return;
+            }
+            
+            try {
+                const isValid = await verifyPassword(password);
+                if (isValid) {
+                    resetRateLimit(); // Reset on successful attempt
+                    deleteSubmission();
+                    document.getElementById('passwordModal').style.display = 'none';
+                } else {
+                    alert('Incorrect password');
+                }
+            } catch (error) {
+                console.error('Error during password verification:', error);
+                alert('An error occurred during password verification');
+            }
+        }
+
+        function deleteSubmission() {
+            if (submissionToDelete === null || categoryToRefresh === null) return;
+
+            let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+            if (allSubmissions[categoryToRefresh]) {
+                allSubmissions[categoryToRefresh].splice(submissionToDelete, 1);
+                
+                // Remove the category if it's empty
+                if (allSubmissions[categoryToRefresh].length === 0) {
+                    delete allSubmissions[categoryToRefresh];
+                }
+                
+                localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                
+                // Refresh the display
+                if (Object.keys(allSubmissions).length === 0) {
+                    showTestSelection();
+                    displayTestCategories();
+                } else {
+                    displaySubmissions(categoryToRefresh);
+                }
+            }
+
+            submissionToDelete = null;
+            categoryToRefresh = null;
+        }
+
+        function displaySubmissions(testType) {
+            const container = document.getElementById('submissionsContainer');
+            const allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+            const submissions = allSubmissions[testType] || [];
+
+            if (submissions.length === 0) {
+                container.innerHTML = `
+                    <div class="no-submissions">
+                        <p>No submissions for ${testType} yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const submissionsHTML = submissions.map((submission, index) => `
+                <div class="submission">
+                    <div class="submission-header">
+                        <div class="submitter">Submitted by: ${submission.name}</div>
+                        <div>
+                            <button class="delete-button" onclick="promptDelete('${testType}', ${index})">Delete</button>
+                            <span class="timestamp">Date: ${formatDate(submission.timestamp)}</span>
+                        </div>
+                    </div>
+                    ${Object.entries(submission.answers).map(([key, value]) => `
+                        <div class="answer">
+                            <strong>Answer ${key.split('_')[1]}:</strong>
+                            <p>${value || '(No answer provided)'}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+
+            container.innerHTML = submissionsHTML;
+        }
+
+        // Check for test parameter in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const testParam = urlParams.get('test');
+        
+        if (testParam === 'physics1test') {
+            showSubmissions('AP Physics 1');
+        } else {
+            showTestSelection();
+        }
+
+        // Load test categories when the page loads
+        displayTestCategories();
+
+        // Add event listener for Enter key in password input
+        document.getElementById('passwordInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                confirmDelete();
+            }
+        });
+
+        // Add rate limit reset when modal is closed by clicking outside
+        window.addEventListener('click', (event) => {
+            const modal = document.getElementById('passwordModal');
+            if (event.target === modal) {
+                cancelDelete();
+                // Don't reset rate limit when closing modal
+            }
+        });
+    </script>
+</body>
+</html>
