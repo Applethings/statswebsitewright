@@ -6,14 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitAnswerButton = document.getElementById('submit-answer');
     const themeToggleButton = document.getElementById('theme-toggle');
 
-    // Apply the selected theme from local storage
     const selectedTheme = localStorage.getItem('selectedTheme');
     if (selectedTheme) {
         document.body.classList.add(selectedTheme + '-theme');
         document.querySelector('.container').classList.add(selectedTheme + '-theme');
     }
 
-    // Create stars
     const starsContainer = document.querySelector('.stars');
     const numberOfStars = 100;
 

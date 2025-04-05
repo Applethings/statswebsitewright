@@ -210,7 +210,7 @@ body.light-theme {
 }
 
 body.rain-theme {
-    background: url('C:/Users/Aus/Downloads/rain.jpg') no-repeat center center fixed;
+    background: url('images/rain.jpg') no-repeat center center fixed;
     background-size: cover;
     color: white;
 }
