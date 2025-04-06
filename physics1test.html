@@ -987,10 +987,21 @@
         function collectAnswers() {
             const answers = {};
             
-            // Collect text answers from all answer spaces
-            document.querySelectorAll('.answer-space').forEach((answerBox, index) => {
-                const id = answerBox.id || `answer_${index + 1}`;
-                answers[id] = answerBox.value || "";
+            // Get all answer spaces (textareas) throughout the test
+            const answerSpaces = document.querySelectorAll('.answer-space');
+            
+            // First assign IDs to any answer spaces that don't have one
+            answerSpaces.forEach((textarea, idx) => {
+                if (!textarea.id) {
+                    textarea.id = `answer_${idx + 1}`;
+                }
+            });
+            
+            // Now collect all answers, ensuring textareas with or without content are included
+            answerSpaces.forEach(answerBox => {
+                const id = answerBox.id;
+                const questionNumber = id.replace('answer_', '');
+                answers[id] = answerBox.value.trim() || "No answer provided";
             });
             
             // Collect canvas drawings and convert them to data URLs
@@ -999,38 +1010,117 @@
             // Position graph
             const positionGraph = document.getElementById('positionGraph');
             if (positionGraph) {
-                canvasData.positionGraph = positionGraph.toDataURL('image/png');
+                // Check if canvas has actually been drawn on
+                const hasContent = canvasHasContent(positionGraph);
+                canvasData.positionGraph = hasContent ? 
+                    positionGraph.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             // Velocity graph
             const velocityGraph = document.getElementById('velocityGraph');
             if (velocityGraph) {
-                canvasData.velocityGraph = velocityGraph.toDataURL('image/png');
+                const hasContent = canvasHasContent(velocityGraph);
+                canvasData.velocityGraph = hasContent ? 
+                    velocityGraph.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             // Grid graph
             const gridGraph = document.getElementById('gridGraph');
             if (gridGraph) {
-                canvasData.gridGraph = gridGraph.toDataURL('image/png');
+                const hasContent = canvasHasContent(gridGraph);
+                canvasData.gridGraph = hasContent ? 
+                    gridGraph.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             // Force diagrams
             const forceT1 = document.getElementById('forceT1');
             if (forceT1) {
-                canvasData.forceT1 = forceT1.toDataURL('image/png');
+                const hasContent = canvasHasContent(forceT1);
+                canvasData.forceT1 = hasContent ? 
+                    forceT1.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             const forceT2 = document.getElementById('forceT2');
             if (forceT2) {
-                canvasData.forceT2 = forceT2.toDataURL('image/png');
+                const hasContent = canvasHasContent(forceT2);
+                canvasData.forceT2 = hasContent ? 
+                    forceT2.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             // Add canvas data to answers object
-            if (Object.keys(canvasData).length > 0) {
-                answers.canvas_data = canvasData;
-            }
+            answers.canvas_data = canvasData;
             
             return answers;
+        }
+        
+        // Helper function to check if a canvas has been drawn on
+        function canvasHasContent(canvas) {
+            const ctx = canvas.getContext('2d');
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            
+            // A basic threshold approach: If more than 5% of the pixels are non-transparent
+            // and have some color variation, we consider it drawn on
+            let nonTransparentCount = 0;
+            let colorVariationCount = 0;
+            const totalPixels = canvas.width * canvas.height;
+            
+            for (let i = 0; i < imgData.length; i += 4) {
+                // Check if pixel is not transparent
+                if (imgData[i + 3] > 0) {
+                    nonTransparentCount++;
+                    
+                    // Check if it's not just a white or black pixel (part of grid/axes)
+                    const r = imgData[i];
+                    const g = imgData[i + 1];
+                    const b = imgData[i + 2];
+                    
+                    // If it's not grayscale, likely user drawn
+                    if (Math.abs(r - g) > 5 || Math.abs(r - b) > 5 || Math.abs(g - b) > 5) {
+                        colorVariationCount++;
+                    }
+                    // If it's not white/black/gray (grid lines & axes are usually these)
+                    else if (!((r > 240 && g > 240 && b > 240) || (r < 15 && g < 15 && b < 15) || (Math.abs(r - g) < 5 && Math.abs(r - b) < 5 && Math.abs(g - b) < 5))) {
+                        colorVariationCount++;
+                    }
+                }
+            }
+            
+            // Consider drawn if more than 5% of pixels are non-transparent
+            // or if there's significant color variation
+            const nonTransparentRatio = nonTransparentCount / totalPixels;
+            const colorVariationRatio = colorVariationCount / totalPixels;
+            
+            // Different thresholds for different canvas types
+            if (canvas.id === 'gridGraph') {
+                // Grid already has many lines, so need more non-transparent pixels
+                return nonTransparentRatio > 0.15 || colorVariationRatio > 0.05;
+            } else if (canvas.id === 'positionGraph' || canvas.id === 'velocityGraph') {
+                // These have axes
+                return nonTransparentRatio > 0.1 || colorVariationRatio > 0.03;
+            } else {
+                // Force diagrams start mostly empty
+                return nonTransparentRatio > 0.05 || colorVariationRatio > 0.02;
+            }
+        }
+        
+        function countNonTransparentPixels(canvas) {
+            const ctx = canvas.getContext('2d');
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            let count = 0;
+            
+            // Check alpha values (every 4th value in the array)
+            for (let i = 3; i < imgData.length; i += 4) {
+                if (imgData[i] > 0) {
+                    count++;
+                }
+            }
+            
+            return count;
         }
 
         // Function to handle test submission
@@ -1153,9 +1243,15 @@
                     return numA - numB;
                 });
             
+            // Create a map to track which questions we've already sent
+            const sentQuestions = new Set();
+            
             // Split answers into chunks of 5 to avoid message limits
             for (let i = 0; i < textAnswers.length; i += 5) {
                 const chunk = textAnswers.slice(i, i + 5);
+                
+                // Mark these questions as sent
+                chunk.forEach(([key]) => sentQuestions.add(key));
                 
                 // Create a message payload for this chunk
                 const chunkPayload = {
@@ -1165,7 +1261,7 @@
                         color: 3447003,
                         fields: chunk.map(([key, value]) => ({
                             name: `Answer ${key.replace('answer_', '')}`,
-                            value: value || '(No answer provided)'
+                            value: value || 'No answer provided'
                         }))
                     }]
                 };
@@ -1224,8 +1320,9 @@
                         default: displayName = name.replace(/([A-Z])/g, ' $1').trim();
                     }
                     
-                    // Only attempt to send if the dataUrl is valid and not empty
-                    if (dataUrl && dataUrl.startsWith('data:image/')) {
+                    // Handle both string messages and actual image data
+                    if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
+                        // It's an actual image
                         const drawingPayload = {
                             content: `**${displayName}:**`,
                             embeds: [{
@@ -1275,18 +1372,18 @@
                             }
                         }
                     } else {
-                        // If the drawing is empty or invalid, send a message about it
+                        // It's a message like "No drawing provided"
                         try {
                             await fetch(webhookURL, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                    content: `**${displayName}:** No drawing provided.`
+                                    content: `**${displayName}:** ${dataUrl}`
                                 })
                             });
                             await new Promise(resolve => setTimeout(resolve, 500));
                         } catch (error) {
-                            console.error(`Error sending empty canvas message for ${name}:`, error);
+                            console.error(`Error sending message for ${name}:`, error);
                         }
                     }
                 }
