@@ -500,6 +500,9 @@
         </div>
     </div>
 
+    <!-- Add this input field right before the navigation div -->
+    <input type="hidden" id="name" name="name">
+
     <div class="navigation">
         <button class="nav-button" id="prevBtn">←</button>
         <span class="page-number">Page <span id="currentPage">1</span></span>
@@ -1044,7 +1047,8 @@
 
         async function submitTest() {
             try {
-                const name = document.getElementById('name').value.trim();
+                // Get the name from the submission modal instead of a non-existent 'name' field
+                const name = document.getElementById('submitterName').value.trim();
                 if (!name) {
                     alert('Please enter your name before submitting.');
                     return;
@@ -1184,26 +1188,6 @@
                 alert(`Error submitting: ${error.message}`);
             }
         }
-
-        // Restore these event listeners that might have been lost in the edit
-        submitAnonymous.addEventListener('click', () => {
-            submitTest(true);
-        });
-
-        submitWithName.addEventListener('click', () => {
-            if (!submitterName.value.trim()) {
-                alert('Please enter your name or choose to submit anonymously.');
-                return;
-            }
-            submitTest(false);
-        });
-
-        // Close modal if clicking outside
-        window.addEventListener('click', (event) => {
-            if (event.target === submissionModal) {
-                submissionModal.style.display = 'none';
-            }
-        });
 
         function sendAnswersAsMultipleMessages(userName, answers, webhookURL) {
             // Create a promise chain to ensure sequential message delivery
@@ -1931,6 +1915,23 @@
                 alert(`Error: ${error.message}`);
             }
         }
+
+        // Initialize all the event listeners in one place to avoid duplicates
+        function initializeEventListeners() {
+            // Event listeners are now defined in one place
+        }
+
+        // Call this function after DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas('positionGraph');
+            initCanvas('velocityGraph');
+            initGridGraph();
+            initForceDiagram('forceT1');
+            initForceDiagram('forceT2');
+            
+            // Initialize all the event listeners
+            initializeEventListeners();
+        });
     </script>
 </body>
 </html> 
