@@ -381,6 +381,52 @@
                 <a href="#" onclick="showTestSelection()">All Tests</a> > <span id="currentTest"></span>
             </div>
             <div class="submissions-container" id="submissionsContainer">
+                
+            <div id="submissions-mcq-ap-physics-1" class="submission-type-container">
+                <h3>Multiple Choice Submissions</h3>
+                
+                <div class="submission" data-timestamp="2025-04-06T20:03:48.696Z">
+                    <div class="submission-header">
+                        <div class="submitter">Submitted by: Anonymous</div>
+                        <div>
+                            <span class="timestamp">Date: 4/6/2025, 1:03:48 PM</span>
+                        </div>
+                    </div>
+                    
+                            <div class="answer">
+                                <strong>Q1:</strong>
+                                <span>A</span>
+                            </div>
+                        
+                            <div class="answer">
+                                <strong>Q2:</strong>
+                                <span>Not answered</span>
+                            </div>
+                        
+                            <div class="answer">
+                                <strong>Q3:</strong>
+                                <span>Not answered</span>
+                            </div>
+                        
+                            <div class="answer">
+                                <strong>Q4:</strong>
+                                <span>Not answered</span>
+                            </div>
+                        
+                            <div class="answer">
+                                <strong>Q5:</strong>
+                                <span>Not answered</span>
+                            </div>
+                        
+                            <div class="answer">
+                                <strong>Q6:</strong>
+                                <span>Not answered</span>
+                            </div>
+                        
+                    
+                </div>
+            
+            </div>
                 <!-- Submissions will be dynamically added here -->
             </div>
         </div>
@@ -391,6 +437,25 @@
             document.getElementById('testSelection').style.display = 'block';
             document.getElementById('submissionsView').style.display = 'none';
             displayTestCategories();
+        
+                    // Add newest submission to localStorage
+                    (function() {
+                        let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                        if (!allSubmissions['AP Physics 1']) {
+                            allSubmissions['AP Physics 1'] = [];
+                        }
+                        // Check if submission already exists
+                        const exists = allSubmissions['AP Physics 1'].some(s => 
+                            s.name === 'Anonymous' && 
+                            s.timestamp === '2025-04-06T20:03:48.696Z' &&
+                            s.testType === 'MCQ'
+                        );
+                        if (!exists) {
+                            allSubmissions['AP Physics 1'].push({"testType":"MCQ","testId":"physics1testmcq","timestamp":"2025-04-06T20:03:48.696Z","name":"Anonymous","answers":{"question_1":"A","question_2":"Not answered","question_3":"Not answered","question_4":"Not answered","question_5":"Not answered","question_6":"Not answered"}});
+                            localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                        }
+                    })();
+                
         }
 
         function showTestTypes(category) {
@@ -409,7 +474,7 @@
                 
                 <div class="test-category" id="ap-physics-1" onclick="showTestTypes('AP Physics 1')">
                     <h2>AP Physics 1</h2>
-                    <p>0 FRQ submissions, 0 MCQ submissions</p>
+                    <p>0 FRQ submissions, 1 MCQ submissions</p>
                 </div>
                     ${frqCount > 0 ? `
                         <div class="test-category" onclick="showSubmissions('${category}', 'FRQ')">
@@ -900,7 +965,7 @@
             'Ctrl + 0': 'Reset zoom',
             'Esc': 'Close modal/fullscreen',
             'Enter': 'Confirm action',
-            '←/→': 'Navigate images'
+            'â/â': 'Navigate images'
         };
     </script>
 </body>
