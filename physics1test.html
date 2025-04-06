@@ -512,11 +512,11 @@
         <div class="modal-content">
             <h3>Submit Your Test</h3>
             <p>Please enter your name or choose to submit anonymously:</p>
-            <input type="text" id="submitterName" placeholder="Your Name" class="modal-input">
+            <input type="text" id="modalName" placeholder="Your Name" class="modal-input">
             <div class="modal-buttons">
-                <button id="submitAnonymous" class="modal-button">Submit Anonymously</button>
-                <button id="submitWithName" class="modal-button">Submit with Name</button>
-                <button id="cancelSubmit" class="modal-button">Cancel</button>
+                <button id="modalAnonymous" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #666; color: white;">Submit Anonymously</button>
+                <button id="modalWithName" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #004d00; color: white;">Submit with Name</button>
+                <button id="modalCancel" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #660000; color: white;">Cancel</button>
             </div>
         </div>
     </div>
@@ -969,77 +969,89 @@
 
         // Add submission handling
         const submitBtn = document.getElementById('submitBtn');
+        const submissionModal = document.getElementById('submissionModal');
 
         submitBtn.addEventListener('click', function() {
-            // Create a custom modal directly in the DOM
-            const modalDiv = document.createElement('div');
-            modalDiv.style.position = 'fixed';
-            modalDiv.style.top = '0';
-            modalDiv.style.left = '0';
-            modalDiv.style.width = '100%';
-            modalDiv.style.height = '100%';
-            modalDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-            modalDiv.style.zIndex = '1000';
-            modalDiv.style.display = 'flex';
-            modalDiv.style.justifyContent = 'center';
-            modalDiv.style.alignItems = 'center';
+            console.log("Submit button clicked, showing modal");
             
-            const modalContent = document.createElement('div');
-            modalContent.style.backgroundColor = 'rgba(0, 0, 32, 0.95)';
-            modalContent.style.padding = '20px';
-            modalContent.style.borderRadius = '10px';
-            modalContent.style.width = '80%';
-            modalContent.style.maxWidth = '500px';
-            modalContent.style.color = 'white';
+            // Display the already-existing modal instead of creating a dynamic one
+            submissionModal.style.display = 'block';
             
-            modalContent.innerHTML = `
-                <h3>Submit Your Test</h3>
-                <p>Please enter your name or choose to submit anonymously:</p>
-                <input type="text" id="modalName" placeholder="Your Name" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; background-color: rgba(255, 255, 255, 0.1); color: white;">
-                <div style="display: flex; justify-content: space-between; margin-top: 20px; gap: 10px;">
-                    <button id="modalAnonymous" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #666; color: white;">Submit Anonymously</button>
-                    <button id="modalWithName" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #004d00; color: white;">Submit with Name</button>
-                    <button id="modalCancel" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #660000; color: white;">Cancel</button>
-                </div>
-            `;
+            // Clear any previous name input
+            const nameInput = document.getElementById('modalName'); // Changed from 'submitterName' to 'modalName'
+            if (nameInput) nameInput.value = '';
+            if (nameInput) nameInput.focus();
             
-            modalDiv.appendChild(modalContent);
-            document.body.appendChild(modalDiv);
+            // Make sure we have each button properly attached
+            // Submit anonymously
+            const submitAnonymous = document.getElementById('modalAnonymous'); // Changed from 'submitAnonymous' to 'modalAnonymous'
+            if (submitAnonymous) {
+                // Remove any existing click handlers
+                const newSubmitAnonymous = submitAnonymous.cloneNode(true);
+                submitAnonymous.parentNode.replaceChild(newSubmitAnonymous, submitAnonymous);
+                
+                // Add click handler
+                newSubmitAnonymous.addEventListener('click', function() {
+                    console.log("Anonymous submit clicked");
+                    submissionModal.style.display = 'none';
+                    submitTest(true);
+                });
+            } else {
+                console.error("Anonymous submit button not found!");
+            }
             
-            // Get references to elements after they're in the DOM
-            const modalName = document.getElementById('modalName');
-            const modalAnonymous = document.getElementById('modalAnonymous');
-            const modalWithName = document.getElementById('modalWithName');
-            const modalCancel = document.getElementById('modalCancel');
+            // Submit with name
+            const submitWithName = document.getElementById('modalWithName'); // Changed from 'submitWithName' to 'modalWithName'
+            if (submitWithName) {
+                // Remove any existing click handlers
+                const newSubmitWithName = submitWithName.cloneNode(true);
+                submitWithName.parentNode.replaceChild(newSubmitWithName, submitWithName);
+                
+                // Add click handler
+                newSubmitWithName.addEventListener('click', function() {
+                    console.log("Named submit clicked");
+                    const name = document.getElementById('modalName').value.trim(); // Changed from 'submitterName' to 'modalName'
+                    if (!name) {
+                        alert('Please enter your name or choose to submit anonymously.');
+                        return;
+                    }
+                    submissionModal.style.display = 'none';
+                    submitTest(false, name);
+                });
+            } else {
+                console.error("Named submit button not found!");
+            }
             
-            // Handle anonymous submission
-            modalAnonymous.addEventListener('click', function() {
-                submitTest(true);
-                document.body.removeChild(modalDiv);
-            });
-            
-            // Handle named submission
-            modalWithName.addEventListener('click', function() {
-                const name = modalName.value.trim();
-                if (!name) {
-                    alert('Please enter your name or choose to submit anonymously.');
-                    return;
-                }
-                submitTest(false, name);
-                document.body.removeChild(modalDiv);
-            });
-            
-            // Handle cancel
-            modalCancel.addEventListener('click', function() {
-                document.body.removeChild(modalDiv);
-            });
+            // Cancel button
+            const cancelSubmit = document.getElementById('modalCancel'); // Changed from 'cancelSubmit' to 'modalCancel'
+            if (cancelSubmit) {
+                // Remove any existing click handlers
+                const newCancelSubmit = cancelSubmit.cloneNode(true);
+                cancelSubmit.parentNode.replaceChild(newCancelSubmit, cancelSubmit);
+                
+                // Add click handler
+                newCancelSubmit.addEventListener('click', function() {
+                    console.log("Cancel button clicked");
+                    submissionModal.style.display = 'none';
+                });
+            } else {
+                console.error("Cancel button not found!");
+            }
+        });
+
+        // Close modal if clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === submissionModal) {
+                console.log("Clicked outside modal, closing");
+                submissionModal.style.display = 'none';
+            }
         });
 
         // Function to handle test submission
         async function submitTest(isAnonymous = false, providedName = null) {
             console.log("Starting test submission process");
             
-            // Use the provided name if available, otherwise get it from the submitterName field
+            // Use the provided name if available, otherwise get it from the modalName field
             let userName = isAnonymous ? "Anonymous Student" : (providedName || document.getElementById('modalName')?.value?.trim() || "Unknown User");
             
             console.log("Submitting test for user:", userName);
@@ -1192,7 +1204,7 @@
             // Always return true to ensure canvas data is included
             return true;
         }
-        
+
         function countNonTransparentPixels(canvas) {
             const ctx = canvas.getContext('2d');
             const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -1247,11 +1259,11 @@
             // Send the header
             try {
                 await fetch(webhookURL, {
-                    method: 'POST',
-                    headers: {
+                        method: 'POST',
+                        headers: {
                         'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(headerPayload)
+                        },
+                        body: JSON.stringify(headerPayload)
                 });
                 
                 // Wait a bit before sending the rest to preserve message order
@@ -1297,8 +1309,8 @@
                 // Send this chunk of answers
                 try {
                     await fetch(webhookURL, {
-                        method: 'POST',
-                        headers: {
+                            method: 'POST',
+                            headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(chunkPayload)
@@ -1323,12 +1335,12 @@
                 
                 try {
                     await fetch(webhookURL, {
-                        method: 'POST',
-                        headers: {
+                            method: 'POST',
+                            headers: {
                             'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(drawingsHeaderPayload)
-                    });
+                            },
+                            body: JSON.stringify(drawingsHeaderPayload)
+                        });
                     
                     await new Promise(resolve => setTimeout(resolve, 500));
                 } catch (error) {
@@ -1434,12 +1446,42 @@
             return true;
         }
 
-        // Close modal if clicking outside
-        window.addEventListener('click', (event) => {
-            if (event.target === submissionModal) {
-                submissionModal.style.display = 'none';
-            }
-        });
+        // Function to handle zooming in on images when clicked
+        function zoomImage(img) {
+            // Create a modal for the zoomed image
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.cursor = 'pointer';
+            
+            // Create the zoomed image
+            const zoomedImg = document.createElement('img');
+            zoomedImg.src = img.src;
+            zoomedImg.style.maxWidth = '90%';
+            zoomedImg.style.maxHeight = '90%';
+            zoomedImg.style.objectFit = 'contain';
+            zoomedImg.style.border = '2px solid white';
+            
+            // Add click event to close the modal
+            modal.onclick = function() {
+                document.body.removeChild(modal);
+            };
+            
+            // Add the image to the modal and the modal to the body
+            modal.appendChild(zoomedImg);
+            document.body.appendChild(modal);
+        }
+        
+        // Add the zoomImage function to the window object for access from the HTML
+        window.zoomImage = zoomImage;
 
         // Test selection handling
         const testSelectionModal = document.getElementById('testSelectionModal');
@@ -1662,175 +1704,152 @@
                         }
                     });
             });
-            
-            document.getElementById('cancelPublish').addEventListener('click', function() {
-                document.body.removeChild(publishModal);
-            });
-            
-            // Close modal if clicking outside
-            publishModal.addEventListener('click', function(event) {
-                if (event.target === publishModal) {
-                    document.body.removeChild(publishModal);
-                }
-            });
         }
 
-        // Function to directly update the test-results.html file with the submission
-        async function updateTestResultsHTML(owner, repo, token, submission) {
-            try {
-                const filePath = 'test-results.html';
+        // Function to add a new subject category to the results page
+        function addSubjectCategory(content, subject, subjectDivId) {
+            console.log(`Adding new subject category for ${subject}`);
+            
+            // Look for the container that holds all test categories
+            const testCategoriesDiv = '<div class="test-categories">';
+            const insertPosition = content.indexOf(testCategoriesDiv) + testCategoriesDiv.length;
+            
+            if (insertPosition <= testCategoriesDiv.length) {
+                console.error("Could not find test categories container");
+                return content;
+            }
+            
+            // Create the new subject container
+            const newSubjectHTML = `
+                <!-- ${subject} category -->
+                <div class="test-category" id="${subjectDivId}">
+                    <h2>${subject}</h2>
+                    <div class="test-counters">
+                        <div class="test-counter">
+                            <span class="counter-label">FRQ Submissions:</span>
+                            <span class="counter-value" id="frq-count-${subjectDivId}">1</span>
+                        </div>
+                        <div class="test-counter">
+                            <span class="counter-label">MCQ Submissions:</span>
+                            <span class="counter-value" id="mcq-count-${subjectDivId}">0</span>
+                        </div>
+                    </div>
+                    <div class="test-tabs">
+                        <button class="tab-button active" onclick="openTab('${subjectDivId}', 'frq')">Free Response</button>
+                        <button class="tab-button" onclick="openTab('${subjectDivId}', 'mcq')">Multiple Choice</button>
+                    </div>
+                    <div class="submissions-container">
+                        <!-- FRQ submissions will be placed here -->
+                        <div class="submissions active" id="submissions-frq-${subjectDivId}">
+                            <!-- Newly added submission goes here -->
+                        </div>
+                        <!-- MCQ submissions will be placed here -->
+                        <div class="submissions" id="submissions-mcq-${subjectDivId}">
+                            <p class="no-submissions">No multiple-choice submissions yet.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Insert the new subject
+            return content.slice(0, insertPosition) + newSubjectHTML + content.slice(insertPosition);
+        }
+
+        // Function to update the counter for a subject
+        function updateSubjectCounter(content, subject, subjectDivId, testType) {
+            console.log(`Updating counter for ${subject}, test type: ${testType}`);
+            
+            // Determine which counter to update
+            const counterId = testType === 'FRQ' ? `frq-count-${subjectDivId}` : `mcq-count-${subjectDivId}`;
+            
+            // Find the current counter value
+            const counterRegex = new RegExp(`id="${counterId}">(\\d+)<`);
+            const match = content.match(counterRegex);
+            
+            if (!match) {
+                console.error(`Could not find counter with ID ${counterId}`);
+                return content;
+            }
+            
+            // Increment the counter
+            const currentCount = parseInt(match[1]);
+            const newCount = currentCount + 1;
+            
+            // Replace the counter value
+            return content.replace(counterRegex, `id="${counterId}">${newCount}<`);
+        }
+
+        // Function to add a new submission container
+        function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
+            console.log(`Adding new submission container for ${subject}, test type: ${testType}`);
+            
+            // Look for the submissions div
+            const submissionsRegex = new RegExp(`<div class="submissions[^"]*" id="submissions-${testType.toLowerCase()}-[^"]+">[\\s\\S]*?<\\/div>`);
+            const match = content.match(submissionsRegex);
+            
+            if (!match) {
+                console.error(`Could not find submissions container for ${testType}`);
+                return content;
+            }
+            
+            // Get the matched content
+            const submissionsDiv = match[0];
+            
+            // See if it has the "no submissions" placeholder
+            if (submissionsDiv.includes('no-submissions')) {
+                // Replace the entire div including the placeholder
+                const newDiv = `<div class="submissions${testType === 'FRQ' ? ' active' : ''}" id="${containerId}">
+                    ${submissionHTML}
+                        </div>`;
+                return content.replace(submissionsDiv, newDiv);
+            } else {
+                // Just add our submission to the existing container
+                const closingTag = '</div>';
+                const insertPosition = submissionsDiv.lastIndexOf(closingTag);
                 
-                // First, fetch the current content of the file
-                const getResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
+                const newContent = submissionsDiv.slice(0, insertPosition) + 
+                                   submissionHTML + 
+                                   submissionsDiv.slice(insertPosition);
                 
-                if (!getResponse.ok) {
-                    throw new Error(`Failed to fetch ${filePath}: ${getResponse.status}`);
-                }
-                
-                const fileData = await getResponse.json();
-                const content = atob(fileData.content);
-                const sha = fileData.sha;
-                
-                // Determine the subject based on the testId
-                let subject = "AP Physics 1";
-                if (submission.testId.includes('physics1')) {
-                    subject = "AP Physics 1";
-                }
-                // Add more subject mappings as needed for future tests
-                
-                // Determine if it's FRQ or MCQ
-                const testType = submission.testType;
-                
-                // Add logging to debug canvas data
-                console.log("Canvas data in submission:", 
-                    submission.answers.canvas_data ? 
-                    Object.keys(submission.answers.canvas_data).length : 
-                    "No canvas data");
-                
-                if (submission.answers.canvas_data) {
-                    // Log each canvas data URL (first 100 chars)
-                    Object.entries(submission.answers.canvas_data).forEach(([key, value]) => {
-                        console.log(`Canvas ${key} data type:`, typeof value);
-                        if (typeof value === 'string') {
-                            console.log(`Canvas ${key} is image:`, value.startsWith('data:image/'));
-                            console.log(`Canvas ${key} starts with:`, value.substring(0, 100) + '...');
-                        }
-                    });
-                }
-                
-                // Format the submission data for display
-                const submissionHTML = formatSubmissionHTML(submission);
-                console.log("Generated submission HTML length:", submissionHTML.length);
-                
-                // Update the JavaScript data structure
-                let updatedContent = updateJavaScriptData(content, subject, submission);
-                
-                // Update the display containers
-                const subjectDivId = subject.toLowerCase().replace(/\s+/g, '-');
-                
-                // Find or create the container for this subject
-                if (!updatedContent.includes(`id="${subjectDivId}"`)) {
-                    // Subject doesn't exist yet, add it to the test categories
-                    updatedContent = addSubjectCategory(updatedContent, subject, subjectDivId);
-                } else {
-                    // Update the counter for the subject
-                    updatedContent = updateSubjectCounter(updatedContent, subject, subjectDivId, testType);
-                }
-                
-                // Add the submission to the appropriate container
-                const containerId = `submissions-${testType.toLowerCase()}-${subjectDivId}`;
-                if (!updatedContent.includes(`id="${containerId}"`)) {
-                    // Container doesn't exist, create it
-                    updatedContent = addSubmissionContainer(updatedContent, containerId, submissionHTML, subject, testType);
-                } else {
-                    // Container exists, add to it
-                    updatedContent = addToSubmissionContainer(updatedContent, containerId, submissionHTML);
-                }
-                
-                // Update the file on GitHub
-                const updateResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `Add ${testType} submission from ${submission.name} for ${subject}`,
-                        content: utf8ToBase64(updatedContent),
-                        sha: sha,
-                        branch: 'main'
-                    })
-                });
-                
-                // Function to convert UTF-8 string to base64
-                function utf8ToBase64(str) {
-                    try {
-                        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-                            return String.fromCharCode('0x' + p1);
-                        }));
-                    } catch (e) {
-                        console.error("Encoding error:", e);
-                        // Fallback method if the above fails
-                        return btoa(unescape(encodeURIComponent(str)));
-                    }
-                }
-                
-                if (!updateResponse.ok) {
-                    const errorData = await updateResponse.json();
-                    throw new Error(`Failed to update ${filePath}: ${errorData.message}`);
-                }
-                
-                console.log(`Successfully updated test-results.html with ${testType} submission for ${subject}`);
-                return { success: true };
-            } catch (error) {
-                console.error('Error updating test-results.html:', error);
-                alert(`Error publishing to GitHub: ${error.message}`);
-                return { success: false, error: error.message };
+                return content.replace(submissionsDiv, newContent);
             }
         }
 
-        // Function to handle zooming in on images when clicked
-        function zoomImage(img) {
-            // Create a modal for the zoomed image
-            const modal = document.createElement('div');
-            modal.style.position = 'fixed';
-            modal.style.top = '0';
-            modal.style.left = '0';
-            modal.style.width = '100%';
-            modal.style.height = '100%';
-            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
-            modal.style.zIndex = '1000';
-            modal.style.display = 'flex';
-            modal.style.justifyContent = 'center';
-            modal.style.alignItems = 'center';
-            modal.style.cursor = 'pointer';
+        // Function to add a submission to an existing container
+        function addToSubmissionContainer(content, containerId, submissionHTML) {
+            console.log(`Adding submission to existing container ${containerId}`);
             
-            // Create the zoomed image
-            const zoomedImg = document.createElement('img');
-            zoomedImg.src = img.src;
-            zoomedImg.style.maxWidth = '90%';
-            zoomedImg.style.maxHeight = '90%';
-            zoomedImg.style.objectFit = 'contain';
-            zoomedImg.style.border = '2px solid white';
+            // Find the container
+            const regex = new RegExp(`<div class="submissions[^"]*" id="${containerId}">[\\s\\S]*?<\\/div>`);
+            const match = content.match(regex);
             
-            // Add click event to close the modal
-            modal.onclick = function() {
-                document.body.removeChild(modal);
-            };
+            if (!match) {
+                console.error(`Could not find container with ID ${containerId}`);
+                return content;
+            }
             
-            // Add the image to the modal and the modal to the body
-            modal.appendChild(zoomedImg);
-            document.body.appendChild(modal);
+            // Get the matched content
+            const containerDiv = match[0];
+            
+            // Check if it has the "no submissions" placeholder
+            if (containerDiv.includes('no-submissions')) {
+                // Replace the placeholder with our submission
+                const newContainerContent = containerDiv.replace(
+                    /<p class="no-submissions">.*?<\/p>/,
+                    submissionHTML
+                );
+                return content.replace(containerDiv, newContainerContent);
+                } else {
+                // Add our submission at the beginning of the container
+                const insertPosition = containerDiv.indexOf('>') + 1;
+                const newContainerContent = 
+                    containerDiv.slice(0, insertPosition) + 
+                    '\n            ' + submissionHTML + 
+                    containerDiv.slice(insertPosition);
+                
+                return content.replace(containerDiv, newContainerContent);
+            }
         }
-        
-        // Add the zoomImage function to the window object for access from the HTML
-        window.zoomImage = zoomImage;
 
         // Helper function to update the JavaScript data in the HTML
         function updateJavaScriptData(content, subject, submission) {
@@ -1861,6 +1880,145 @@
             
             return content.replace('displayTestCategories();', `displayTestCategories();\n        ${script}`);
         }
+
+        // Global function to format submission HTML for display on the results page
+        function formatSubmissionHTML(submission) {
+            try {
+                console.log("Formatting submission HTML for", submission.name);
+                
+                // Default values for MCQ vs FRQ
+                const isMCQ = submission.testType === 'MCQ';
+                const isAnonymous = submission.name.includes('Anonymous');
+                
+                // Start building the HTML for this submission
+                let html = `
+                    <div class="submission-card">
+                        <div class="submission-header">
+                            <h3>${submission.name}</h3>
+                            <span class="submission-time">${new Date(submission.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="submission-content">
+                `;
+                
+                // Handle multiple-choice questions differently
+                if (isMCQ) {
+                    html += `<h4>Multiple Choice Answers</h4><div class="mcq-answers">`;
+                    
+                    // Group by tens
+                    const mcqAnswers = [];
+                    const answers = submission.answers;
+                    for (let i = 1; i <= 50; i++) {
+                        const key = `q${i}`;
+                        const answer = answers[key] || "No answer provided";
+                        mcqAnswers.push({ number: i, answer });
+                    }
+                    
+                    // Create chunks of 10 questions
+                    for (let i = 0; i < mcqAnswers.length; i += 10) {
+                        const chunk = mcqAnswers.slice(i, i + 10);
+                        html += `<div class="mcq-group">`;
+                        html += `<h5>Questions ${i + 1}-${i + chunk.length}</h5>`;
+                        html += `<div class="mcq-group-answers">`;
+                        chunk.forEach(q => {
+                            html += `
+                                <div class="mcq-item">
+                                    <span class="mcq-number">${q.number}:</span> 
+                                    <span class="mcq-answer ${q.answer === 'No answer provided' ? 'no-answer' : ''}">${q.answer}</span>
+                                </div>
+                            `;
+                        });
+                        html += `</div></div>`;
+                    }
+                    
+                    html += `</div>`;
+                } else {
+                    // Handle free-response questions
+                    html += `<h4>Free Response Answers</h4><div class="frq-answers">`;
+                    
+                    // Sort the answers by their question numbers
+                    const textAnswers = Object.entries(submission.answers)
+                        .filter(([key]) => key !== 'canvas_data')
+                        .sort((a, b) => {
+                            // Extract numbers from keys to sort numerically
+                            const numA = parseInt(a[0].replace(/\D/g, '')) || 0;
+                            const numB = parseInt(b[0].replace(/\D/g, '')) || 0;
+                            return numA - numB;
+                        });
+                    
+                    textAnswers.forEach(([key, value]) => {
+                        const questionNum = key.replace(/\D/g, '');
+                        html += `
+                            <div class="frq-item">
+                                <div class="frq-number">Answer ${questionNum}</div>
+                                <div class="frq-answer ${value === 'No answer provided' ? 'no-answer' : ''}">
+                                    ${value.replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                }
+                
+                // Add canvas drawings if they exist
+                if (submission.answers.canvas_data && Object.keys(submission.answers.canvas_data).length > 0) {
+                    html += `<h4>Drawings</h4><div class="canvas-drawings">`;
+                    
+                    Object.entries(submission.answers.canvas_data).forEach(([name, dataUrl]) => {
+                        let displayName = name;
+                        switch(name) {
+                            case 'positionGraph': displayName = 'Position vs. Time Graph'; break;
+                            case 'velocityGraph': displayName = 'Velocity vs. Time Graph'; break;
+                            case 'gridGraph': displayName = 'Data Grid'; break;
+                            case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
+                            case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
+                            default: displayName = name.replace(/([A-Z])/g, ' $1').trim();
+                        }
+                        
+                        html += `<div class="canvas-item">
+                            <div class="canvas-name">${displayName}</div>`;
+                        
+                        if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
+                            // It's an actual image
+                            html += `<div class="canvas-image">
+                                <img src="${dataUrl}" alt="${displayName}" onclick="zoomImage(this)" />
+                            </div>`;
+                        } else {
+                            // It's a message
+                            html += `<div class="canvas-message">${dataUrl}</div>`;
+                        }
+                        
+                        html += `</div>`;
+                    });
+                    
+                    html += `</div>`;
+                }
+                
+                // Close the submission
+                html += `
+                        </div>
+                    </div>
+                `;
+                
+                console.log("Formatted HTML generated successfully");
+                return html;
+            } catch (error) {
+                console.error("Error formatting submission HTML:", error);
+                return `
+                    <div class="submission-card error">
+                        <div class="submission-header">
+                            <h3>${submission.name || 'Unknown User'}</h3>
+                            <span class="submission-time">${new Date(submission.timestamp || new Date()).toLocaleString()}</span>
+                        </div>
+                        <div class="submission-content">
+                            <p class="error-message">Error displaying submission: ${error.message}</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Test selection handling
     </script>
 </body>
 </html> 
