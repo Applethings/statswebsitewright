@@ -1054,7 +1054,7 @@
             
             // Add canvas data to answers object
             answers.canvas_data = canvasData;
-
+            
             return answers;
         }
 
@@ -1063,48 +1063,101 @@
             const ctx = canvas.getContext('2d');
             const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
             
-            // A basic threshold approach: If more than 5% of the pixels are non-transparent
-            // and have some color variation, we consider it drawn on
+            // More sophisticated approach to detect user drawings
             let nonTransparentCount = 0;
             let colorVariationCount = 0;
+            let blackPixelCount = 0;
+            let nonAxesPixelCount = 0;
             const totalPixels = canvas.width * canvas.height;
             
+            // For position/velocity graphs, identify the axes regions
+            let axesRegions = [];
+            if (canvas.id === 'positionGraph' || canvas.id === 'velocityGraph') {
+                // X-axis region (horizontal line + arrow)
+                axesRegions.push({
+                    x1: 40, y1: canvas.height/2 - 5, 
+                    x2: canvas.width - 20, y2: canvas.height/2 + 5
+                });
+                // Y-axis region (vertical line + arrow)
+                axesRegions.push({
+                    x1: 45, y1: 10, 
+                    x2: 55, y2: canvas.height - 10
+                });
+            }
+            
+            // For each pixel in the image data
             for (let i = 0; i < imgData.length; i += 4) {
+                const r = imgData[i];
+                const g = imgData[i + 1];
+                const b = imgData[i + 2];
+                const a = imgData[i + 3];
+                
+                // Calculate pixel position
+                const pixelIndex = i / 4;
+                const x = pixelIndex % canvas.width;
+                const y = Math.floor(pixelIndex / canvas.width);
+                
                 // Check if pixel is not transparent
-                if (imgData[i + 3] > 0) {
+                if (a > 0) {
                     nonTransparentCount++;
                     
-                    // Check if it's not just a white or black pixel (part of grid/axes)
-                    const r = imgData[i];
-                    const g = imgData[i + 1];
-                    const b = imgData[i + 2];
+                    // Check if it's a black pixel (likely part of the axes)
+                    if (r < 20 && g < 20 && b < 20) {
+                        blackPixelCount++;
+                        
+                        // Check if this black pixel is outside the axes regions
+                        let isInAxesRegion = false;
+                        for (const region of axesRegions) {
+                            if (x >= region.x1 && x <= region.x2 && 
+                                y >= region.y1 && y <= region.y2) {
+                                isInAxesRegion = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!isInAxesRegion) {
+                            nonAxesPixelCount++;
+                        }
+                    }
                     
-                    // If it's not grayscale, likely user drawn
+                    // Check if it's not grayscale (likely user drawn)
                     if (Math.abs(r - g) > 5 || Math.abs(r - b) > 5 || Math.abs(g - b) > 5) {
                         colorVariationCount++;
                     }
-                    // If it's not white/black/gray (grid lines & axes are usually these)
-                    else if (!((r > 240 && g > 240 && b > 240) || (r < 15 && g < 15 && b < 15) || (Math.abs(r - g) < 5 && Math.abs(r - b) < 5 && Math.abs(g - b) < 5))) {
+                    // Check if it's not white/black/gray (axes and grid lines are usually these)
+                    else if (!((r > 240 && g > 240 && b > 240) || (r < 15 && g < 15 && b < 15) || 
+                             (Math.abs(r - g) < 5 && Math.abs(r - b) < 5 && Math.abs(g - b) < 5))) {
                         colorVariationCount++;
                     }
                 }
             }
             
-            // Consider drawn if more than 5% of pixels are non-transparent
-            // or if there's significant color variation
+            // Calculate relevant ratios
             const nonTransparentRatio = nonTransparentCount / totalPixels;
             const colorVariationRatio = colorVariationCount / totalPixels;
+            const blackPixelRatio = blackPixelCount / totalPixels;
+            const nonAxesBlackPixelRatio = nonAxesPixelCount / totalPixels;
             
-            // Different thresholds for different canvas types
+            // Different thresholds based on canvas type
             if (canvas.id === 'gridGraph') {
-                // Grid already has many lines, so need more non-transparent pixels
-                return nonTransparentRatio > 0.15 || colorVariationRatio > 0.05;
+                // Grid has more default content, so need higher thresholds
+                return nonTransparentRatio > 0.12 || 
+                       colorVariationRatio > 0.03 || 
+                       nonAxesBlackPixelRatio > 0.02;
             } else if (canvas.id === 'positionGraph' || canvas.id === 'velocityGraph') {
-                // These have axes
-                return nonTransparentRatio > 0.1 || colorVariationRatio > 0.03;
+                // Position/velocity graphs have axes
+                return nonTransparentRatio > 0.08 || 
+                       colorVariationRatio > 0.02 || 
+                       nonAxesBlackPixelRatio > 0.01;
+            } else if (canvas.id === 'forceT1' || canvas.id === 'forceT2') {
+                // Force diagrams have the central dot but are otherwise empty
+                return nonTransparentRatio > 0.03 || 
+                       colorVariationRatio > 0.01 || 
+                       blackPixelRatio > 0.03;
             } else {
-                // Force diagrams start mostly empty
-                return nonTransparentRatio > 0.05 || colorVariationRatio > 0.02;
+                // Generic threshold for any other canvas
+                return nonTransparentRatio > 0.05 || 
+                       colorVariationRatio > 0.02;
             }
         }
         
@@ -1145,28 +1198,51 @@
                 const answers = collectAnswers();
                 
                 // Create submission object
-                                const submission = {
+                const submission = {
                     name: userName,
                     testId: 'physics1frq',
-                                    testType: 'FRQ',
-                                    timestamp: new Date().toISOString(),
-                                    answers: answers
-                                };
-                                
-                // Send to Discord webhook
-                await sendAnswersAsMultipleMessages(userName, answers, DISCORD_WEBHOOK_URL);
+                    testType: 'FRQ',
+                    timestamp: new Date().toISOString(),
+                    answers: answers
+                };
                 
-                // Store submission in local storage for GitHub publishing
-                storeSubmission(submission);
+                // Prompt for GitHub token instead of hardcoding it
+                const githubToken = prompt("Please enter the GitHub token to submit your test:", "");
+                
+                // Check if token was provided
+                if (!githubToken) {
+                    alert('GitHub token is required for submission. Please try again.');
+                    submitButton.disabled = false;
+                    anonymousButton.disabled = false;
+                    submitButton.textContent = 'Submit with Name';
+                    return;
+                }
+                
+                // Set repository details
+                const owner = 'Applethings';
+                const repo = 'statswebsitewright';
                 
                 // Hide the modal
                 document.querySelector('.modal').style.display = 'none';
                 
-                // Show success message and offer to publish to GitHub
-                if (confirm('Submission successfully sent to Discord! Would you like to publish it to GitHub as well?')) {
-                    publishToGitHub(submission);
-                                        } else {
-                    alert('Your submission has been saved. You can publish it to GitHub later if you want.');
+                // Store submission in local storage for immediate access
+                storeSubmission(submission);
+                
+                // Show processing message
+                alert('Processing your submission...');
+                
+                // Directly update the test-results.html file with the submission
+                const result = await updateTestResultsHTML(owner, repo, githubToken, submission);
+                
+                if (result.success) {
+                    alert('Your submission has been successfully published to GitHub! You can view it on the Results page.');
+                    
+                    // Optionally redirect to the test results page
+                    if (confirm('Would you like to view your submission on the results page?')) {
+                        window.location.href = 'test-results.html';
+                    }
+                } else {
+                    throw new Error(result.error || 'Failed to publish to GitHub');
                 }
             } catch (error) {
                 console.error('Error submitting test:', error);
@@ -1184,225 +1260,6 @@
             const submissions = JSON.parse(localStorage.getItem('testSubmissions') || '[]');
             submissions.push(submission);
             localStorage.setItem('testSubmissions', JSON.stringify(submissions));
-        }
-
-        // Function to send answers to Discord in multiple messages
-        async function sendAnswersAsMultipleMessages(userName, answers, webhookURL) {
-            // First send a header message with user details
-            const headerPayload = {
-                content: "",
-                embeds: [{
-                    title: `Complete FRQ Test Submission from ${userName}`,
-                    description: "This submission includes text answers and canvas drawings.",
-                    color: 3447003,
-                    fields: [
-                        {
-                            name: "Student",
-                            value: userName,
-                            inline: true
-                        },
-                        {
-                            name: "Test",
-                            value: "AP Physics 1 FRQ",
-                            inline: true
-                        },
-                        {
-                            name: "Timestamp",
-                            value: new Date().toISOString(),
-                            inline: true
-                        }
-                    ]
-                }]
-            };
-            
-            // Send the header
-            try {
-                await fetch(webhookURL, {
-                        method: 'POST',
-                        headers: {
-                        'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(headerPayload)
-                });
-                
-                // Wait a bit before sending the rest to preserve message order
-                await new Promise(resolve => setTimeout(resolve, 500));
-            } catch (error) {
-                console.error("Error sending header message:", error);
-                throw error;
-            }
-            
-            // Get text answers only (exclude the canvas data)
-            const textAnswers = Object.entries(answers)
-                .filter(([key]) => key !== 'canvas_data')
-                .sort((a, b) => {
-                    // Extract numbers from keys to sort numerically
-                    const numA = parseInt(a[0].replace('answer_', '')) || 0;
-                    const numB = parseInt(b[0].replace('answer_', '')) || 0;
-                    return numA - numB;
-                });
-            
-            // Create a map to track which questions we've already sent
-            const sentQuestions = new Set();
-            
-            // Split answers into chunks of 5 to avoid message limits
-            for (let i = 0; i < textAnswers.length; i += 5) {
-                const chunk = textAnswers.slice(i, i + 5);
-                
-                // Mark these questions as sent
-                chunk.forEach(([key]) => sentQuestions.add(key));
-                
-                // Create a message payload for this chunk
-                const chunkPayload = {
-                    content: "",
-                    embeds: [{
-                        title: `Answers ${i + 1}-${Math.min(i + 5, textAnswers.length)}`,
-                        color: 3447003,
-                        fields: chunk.map(([key, value]) => ({
-                            name: `Answer ${key.replace('answer_', '')}`,
-                            value: value || 'No answer provided'
-                        }))
-                    }]
-                };
-                
-                // Send this chunk of answers
-                try {
-                    await fetch(webhookURL, {
-                            method: 'POST',
-                            headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(chunkPayload)
-                    });
-                    
-                    // Add a small delay between messages
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                } catch (error) {
-                    console.error("Error sending answer chunk:", error);
-                    throw error;
-                }
-            }
-            
-            // Send canvas drawings if any exist
-            if (answers.canvas_data && Object.keys(answers.canvas_data).length > 0) {
-                const canvasDrawings = Object.entries(answers.canvas_data);
-                
-                // Send a header for the drawings
-                const drawingsHeaderPayload = {
-                    content: "**Canvas Drawings:**"
-                };
-                
-                try {
-                    await fetch(webhookURL, {
-                            method: 'POST',
-                            headers: {
-                            'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(drawingsHeaderPayload)
-                        });
-                    
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                } catch (error) {
-                    console.error("Error sending canvas header:", error);
-                    throw error;
-                }
-                
-                // Send each drawing as a separate message with image
-                for (const [name, dataUrl] of canvasDrawings) {
-                    let displayName = name;
-                    switch(name) {
-                        case 'positionGraph': displayName = 'Position vs. Time Graph'; break;
-                        case 'velocityGraph': displayName = 'Velocity vs. Time Graph'; break;
-                        case 'gridGraph': displayName = 'Data Grid'; break;
-                        case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
-                        case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
-                        default: displayName = name.replace(/([A-Z])/g, ' $1').trim();
-                    }
-                    
-                    // Handle both string messages and actual image data
-                    if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
-                        // It's an actual image
-                    const drawingPayload = {
-                            content: `**${displayName}:**`,
-                        embeds: [{
-                                title: displayName,
-                            image: {
-                                    url: dataUrl
-                                },
-                                color: 7506394
-                            }]
-                        };
-                        
-                        try {
-                            const response = await fetch(webhookURL, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(drawingPayload)
-                            });
-                            
-                            if (!response.ok) {
-                                console.error(`Failed to send ${displayName} drawing: ${response.status}`);
-                                // If image is too large, send a message about it
-                                await fetch(webhookURL, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        content: `**${displayName}:** Too large to send via Discord. The image will be available on GitHub.`
-                                    })
-                                });
-                            }
-                            
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                        } catch (error) {
-                            console.error(`Error sending canvas ${name}:`, error);
-                            // If sending fails, try to send a message about it
-                            try {
-                                await fetch(webhookURL, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        content: `**${displayName}:** Failed to send. The image will be available on GitHub.`
-                                    })
-                                });
-                            } catch (innerError) {
-                                console.error(`Failed to send error message for ${name}:`, innerError);
-                            }
-                        }
-                    } else {
-                        // It's a message like "No drawing provided"
-                        try {
-                            await fetch(webhookURL, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    content: `**${displayName}:** ${dataUrl}`
-                                })
-                            });
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                        } catch (error) {
-                            console.error(`Error sending message for ${name}:`, error);
-                        }
-                    }
-                }
-            } else {
-                // If no drawings exist, send a message about it
-                try {
-                    await fetch(webhookURL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            content: "**No drawings provided in this submission.**"
-                        })
-                    });
-                } catch (error) {
-                    console.error("Error sending no drawings message:", error);
-                }
-            }
-            
-            console.log("All messages sent successfully.");
-            return true;
         }
 
         submitAnonymous.addEventListener('click', () => {
@@ -1788,7 +1645,6 @@
                         <h4>Drawings:</h4>
                         <div class="canvas-grid">
                             ${Object.entries(submission.answers.canvas_data)
-                                .filter(([key, value]) => typeof value === 'string' && value.startsWith('data:image/'))
                                 .map(([key, value]) => {
                                     let displayName = key;
                                     switch(key) {
@@ -1799,12 +1655,25 @@
                                         case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
                                         default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
                                     }
-                                    return `
-                                        <div class="canvas-item">
-                                            <img src="${value}" alt="${displayName}" onclick="zoomImage(this)" style="max-width: 100%; border: 1px solid #ccc;">
-                                            <div class="canvas-label">${displayName}</div>
-                                        </div>
-                                    `;
+                                    
+                                    // Handle both image data and text messages
+                                    if (typeof value === 'string' && value.startsWith('data:image/')) {
+                                        return `
+                                            <div class="canvas-item">
+                                                <img src="${value}" alt="${displayName}" onclick="zoomImage(this)" style="max-width: 100%; border: 1px solid #ccc;">
+                                                <div class="canvas-label">${displayName}</div>
+                                            </div>
+                                        `;
+                                    } else {
+                                        return `
+                                            <div class="canvas-item">
+                                                <div style="padding: 30px; text-align: center; background-color: #f8f8f8; color: #666; border: 1px dashed #ccc;">
+                                                    ${value}
+                                                </div>
+                                                <div class="canvas-label">${displayName}</div>
+                                            </div>
+                                        `;
+                                    }
                                 }).join('')}
                         </div>
                     </div>
@@ -1830,27 +1699,79 @@
         function updateJavaScriptData(content, subject, submission) {
             // This just adds it to localStorage on load
             // Add this after the displayTestCategories() call
-            const script = `
-                // Add newest submission to localStorage
-                (function() {
-                    let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
-                    if (!allSubmissions['${subject}']) {
-                        allSubmissions['${subject}'] = [];
-                    }
-                    // Check if submission already exists
-                    const exists = allSubmissions['${subject}'].some(s => 
-                        s.name === '${submission.name}' && 
-                        s.timestamp === '${submission.timestamp}' &&
-                        s.testType === '${submission.testType}'
-                    );
-                    if (!exists) {
-                        allSubmissions['${subject}'].push(${JSON.stringify(submission)});
-                        localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
-                    }
-                })();
-            `;
             
-            return content.replace('displayTestCategories();', `displayTestCategories();\n        ${script}`);
+            // Create a safe copy of the submission for JSON stringification
+            const safeSubmission = {...submission};
+            
+            // Handle potential large canvas data that might cause JSON.stringify to fail
+            if (safeSubmission.answers && safeSubmission.answers.canvas_data) {
+                let canvasDataDescriptions = {};
+                
+                for (const [key, value] of Object.entries(safeSubmission.answers.canvas_data)) {
+                    // If it's a large data URL (image), replace with a description
+                    if (typeof value === 'string' && value.startsWith('data:image/') && value.length > 50000) {
+                        canvasDataDescriptions[key] = `[Image data for ${key} - size: ${Math.round(value.length/1024)}KB]`;
+                    } else {
+                        canvasDataDescriptions[key] = value;
+                    }
+                }
+                
+                // Replace the large canvas data with descriptions
+                safeSubmission.answers.canvas_data = canvasDataDescriptions;
+            }
+            
+            // Create the script with a safer JSON string
+            let scriptContent;
+            try {
+                scriptContent = `
+                    // Add newest submission to localStorage
+                    (function() {
+                        let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                        if (!allSubmissions['${subject}']) {
+                            allSubmissions['${subject}'] = [];
+                        }
+                        // Check if submission already exists
+                        const exists = allSubmissions['${subject}'].some(s => 
+                            s.name === '${submission.name}' && 
+                            s.timestamp === '${submission.timestamp}' &&
+                            s.testType === '${submission.testType}'
+                        );
+                        if (!exists) {
+                            allSubmissions['${subject}'].push(${JSON.stringify(safeSubmission)});
+                            localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                        }
+                    })();
+                `;
+            } catch (error) {
+                console.error('Error stringifying submission:', error);
+                scriptContent = `
+                    // Add newest submission to localStorage (metadata only due to size limits)
+                    (function() {
+                        let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                        if (!allSubmissions['${subject}']) {
+                            allSubmissions['${subject}'] = [];
+                        }
+                        // Add submission metadata only
+                        const exists = allSubmissions['${subject}'].some(s => 
+                            s.name === '${submission.name}' && 
+                            s.timestamp === '${submission.timestamp}' &&
+                            s.testType === '${submission.testType}'
+                        );
+                        if (!exists) {
+                            allSubmissions['${subject}'].push({
+                                name: '${submission.name}',
+                                testType: '${submission.testType}',
+                                timestamp: '${submission.timestamp}',
+                                testId: '${submission.testId}',
+                                note: 'Full submission data too large for localStorage'
+                            });
+                            localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                        }
+                    })();
+                `;
+            }
+            
+            return content.replace('displayTestCategories();', `displayTestCategories();\n        ${scriptContent}`);
         }
         
         // Helper function to add a new subject category
@@ -1914,6 +1835,35 @@
             }
             
             return content;
+        }
+
+        // Function to load environment variables from .env file
+        async function loadEnvVars() {
+            try {
+                const response = await fetch('.env');
+                if (!response.ok) {
+                    throw new Error(`Failed to load .env file: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                const envVars = {};
+                
+                // Parse the .env file content
+                text.split('\n').forEach(line => {
+                    line = line.trim();
+                    if (line && !line.startsWith('#')) {
+                        const [key, value] = line.split('=');
+                        if (key && value) {
+                            envVars[key.trim()] = value.trim();
+                        }
+                    }
+                });
+                
+                return envVars;
+            } catch (error) {
+                console.error('Error loading environment variables:', error);
+                return {};
+            }
         }
     </script>
 </body>

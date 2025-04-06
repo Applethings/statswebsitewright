@@ -284,3 +284,32 @@ function submitTest() {
 
 // Trigger the test message
 submitTest();
+
+// Function to load environment variables from .env file
+async function loadEnvVars() {
+    try {
+        const response = await fetch('.env');
+        if (!response.ok) {
+            throw new Error(`Failed to load .env file: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        const envVars = {};
+        
+        // Parse the .env file content
+        text.split('\n').forEach(line => {
+            line = line.trim();
+            if (line && !line.startsWith('#')) {
+                const [key, value] = line.split('=');
+                if (key && value) {
+                    envVars[key.trim()] = value.trim();
+                }
+            }
+        });
+        
+        return envVars;
+    } catch (error) {
+        console.error('Error loading environment variables:', error);
+        return {};
+    }
+}
