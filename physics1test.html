@@ -1578,11 +1578,24 @@
                     },
                     body: JSON.stringify({
                         message: `Add ${testType} submission from ${submission.name} for ${subject}`,
-                        content: btoa(updatedContent),
+                        content: utf8ToBase64(updatedContent),
                         sha: sha,
                         branch: 'main'
                     })
                 });
+                
+                // Function to convert UTF-8 string to base64
+                function utf8ToBase64(str) {
+                    try {
+                        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                            return String.fromCharCode('0x' + p1);
+                        }));
+                    } catch (e) {
+                        console.error("Encoding error:", e);
+                        // Fallback method if the above fails
+                        return btoa(unescape(encodeURIComponent(str)));
+                    }
+                }
                 
                 if (!updateResponse.ok) {
                     const errorData = await updateResponse.json();

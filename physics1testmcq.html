@@ -772,6 +772,10 @@
                     updatedContent = addToSubmissionContainer(updatedContent, containerId, submissionHTML);
                 }
                 
+                // Base64 encode the content properly for non-ASCII characters
+                // This fixes the "Failed to execute 'btoa' on 'Window'" error
+                const base64Content = utf8ToBase64(updatedContent);
+                
                 // Update the file on GitHub
                 const updateResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
                     method: 'PUT',
@@ -782,7 +786,7 @@
                     },
                     body: JSON.stringify({
                         message: `Add ${testType} submission from ${submission.name} for ${subject}`,
-                        content: btoa(updatedContent),
+                        content: base64Content,
                         sha: sha,
                         branch: 'main'
                     })
@@ -799,6 +803,19 @@
                 console.error('Error updating test-results.html:', error);
                 alert(`Error publishing to GitHub: ${error.message}`);
                 return { success: false, error: error.message };
+            }
+        }
+        
+        // Function to convert UTF-8 string to base64
+        function utf8ToBase64(str) {
+            try {
+                return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                    return String.fromCharCode('0x' + p1);
+                }));
+            } catch (e) {
+                console.error("Encoding error:", e);
+                // Fallback method if the above fails
+                return btoa(unescape(encodeURIComponent(str)));
             }
         }
         
@@ -887,23 +904,23 @@
             // This just adds it to localStorage on load
             // Add this after the displayTestCategories() call
             const script = `
-                // Add newest submission to localStorage
-                (function() {
-                    let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
-                    if (!allSubmissions['${subject}']) {
-                        allSubmissions['${subject}'] = [];
-                    }
-                    // Check if submission already exists
-                    const exists = allSubmissions['${subject}'].some(s => 
-                        s.name === '${submission.name}' && 
-                        s.timestamp === '${submission.timestamp}' &&
-                        s.testType === '${submission.testType}'
-                    );
-                    if (!exists) {
-                        allSubmissions['${subject}'].push(${JSON.stringify(submission)});
-                        localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
-                    }
-                })();
+            // Add newest submission to localStorage
+            (function() {
+                let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                if (!allSubmissions['${subject}']) {
+                    allSubmissions['${subject}'] = [];
+                }
+                // Check if submission already exists
+                const exists = allSubmissions['${subject}'].some(s => 
+                    s.name === '${submission.name}' && 
+                    s.timestamp === '${submission.timestamp}' &&
+                    s.testType === '${submission.testType}'
+                );
+                if (!exists) {
+                    allSubmissions['${subject}'].push(${JSON.stringify(submission)});
+                    localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                }
+            })();
             `;
             
             return content.replace('displayTestCategories();', `displayTestCategories();\n        ${script}`);
@@ -912,11 +929,11 @@
         // Helper function to add a new subject category
         function addSubjectCategory(content, subject, subjectDivId) {
             const categoryHTML = `
-                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
-                    <h2>${subject}</h2>
-                    <p>0 FRQ submissions, 0 MCQ submissions</p>
-                </div>`;
-                
+            <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
+                <h2>${subject}</h2>
+                <p>0 FRQ submissions, 0 MCQ submissions</p>
+            </div>`;
+            
             return content.replace('<div class="test-selection-container" id="testCategories">', 
                 `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
         }
@@ -948,10 +965,10 @@
         // Helper function to add a new submission container for a subject/type
         function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
             const containerHTML = `
-                <div id="${containerId}" class="submission-type-container">
-                    <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
-                    ${submissionHTML}
-                </div>`;
+            <div id="${containerId}" class="submission-type-container">
+                <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
+                ${submissionHTML}
+            </div>`;
             
             return content.replace('<div class="submissions-container" id="submissionsContainer">', 
                 `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
@@ -971,8 +988,6 @@
             
             return content;
         }
-
-        updatePage();
     </script>
 </body>
-</html> 
+</html>
