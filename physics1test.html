@@ -1124,13 +1124,12 @@
         }
 
         // Function to handle test submission
-        async function submitTest(isAnonymous = false) {
-            const nameInput = document.getElementById('studentName');
-            let userName = isAnonymous ? "Anonymous Student" : nameInput.value.trim();
+        async function submitTest(isAnonymous = false, providedName = null) {
+            // Use the provided name if available, otherwise get it from the submitterName field
+            let userName = isAnonymous ? "Anonymous Student" : (providedName || document.getElementById('submitterName').value.trim());
             
             if (!isAnonymous && (!userName || userName.length < 2)) {
                 alert("Please enter your name or choose to submit anonymously.");
-                nameInput.focus();
                 return;
             }
             
@@ -1416,7 +1415,7 @@
                 alert('Please enter your name or choose to submit anonymously.');
                 return;
             }
-            submitTest(false);
+            submitTest(false, name);
         });
 
         // Close modal if clicking outside
@@ -1766,45 +1765,31 @@
         function formatSubmissionHTML(submission) {
             const formattedDate = new Date(submission.timestamp).toLocaleString();
             
-            let answersHTML = '';
+            // Format text answers (everything except canvas_data)
+            const textAnswers = Object.entries(submission.answers)
+                .filter(([key]) => key !== 'canvas_data')
+                .sort((a, b) => {
+                    const numA = parseInt(a[0].replace('answer_', '')) || 0;
+                    const numB = parseInt(b[0].replace('answer_', '')) || 0;
+                    return numA - numB;
+                })
+                .map(([key, value]) => `
+                    <div class="answer">
+                        <strong>Answer ${key.replace('answer_', '')}:</strong>
+                        <p>${value || '(No answer provided)'}</p>
+                    </div>
+                `).join('');
             
-            if (submission.testType === 'MCQ') {
-                // Format MCQ answers
-                answersHTML = Object.entries(submission.answers)
-                    .sort((a, b) => {
-                        const numA = parseInt(a[0].replace('question_', '')) || 0;
-                        const numB = parseInt(b[0].replace('question_', '')) || 0;
-                        return numA - numB;
-                    })
-                    .map(([key, value]) => `
-                        <div class="answer">
-                            <strong>Question ${key.replace('question_', '')}:</strong>
-                            <p>${value || '(Not answered)'}</p>
-                        </div>
-                    `).join('');
-            } else {
-                // Format FRQ answers
-                const textAnswers = Object.entries(submission.answers)
-                    .filter(([key]) => key !== 'canvas_data')
-                    .sort((a, b) => {
-                        const numA = parseInt(a[0].replace('answer_', '')) || 0;
-                        const numB = parseInt(b[0].replace('answer_', '')) || 0;
-                        return numA - numB;
-                    })
-                    .map(([key, value]) => `
-                        <div class="answer">
-                            <strong>Answer ${key.replace('answer_', '')}:</strong>
-                            <p>${value || '(No answer provided)'}</p>
-                        </div>
-                    `).join('');
-                
-                let canvasHTML = '';
-                if (submission.answers.canvas_data) {
-                    canvasHTML = `
-                        <div class="canvas-container">
-                            <h4>Drawings:</h4>
-                            <div class="canvas-grid">
-                                ${Object.entries(submission.answers.canvas_data).map(([key, value]) => {
+            // Format canvas drawings if they exist
+            let canvasHTML = '';
+            if (submission.answers.canvas_data) {
+                canvasHTML = `
+                    <div class="canvas-container">
+                        <h4>Drawings:</h4>
+                        <div class="canvas-grid">
+                            ${Object.entries(submission.answers.canvas_data)
+                                .filter(([key, value]) => typeof value === 'string' && value.startsWith('data:image/'))
+                                .map(([key, value]) => {
                                     let displayName = key;
                                     switch(key) {
                                         case 'positionGraph': displayName = 'Position vs. Time'; break;
@@ -1816,19 +1801,17 @@
                                     }
                                     return `
                                         <div class="canvas-item">
-                                            <img src="${value}" alt="${displayName}" onclick="zoomImage(this)">
+                                            <img src="${value}" alt="${displayName}" onclick="zoomImage(this)" style="max-width: 100%; border: 1px solid #ccc;">
                                             <div class="canvas-label">${displayName}</div>
                                         </div>
                                     `;
                                 }).join('')}
-                            </div>
                         </div>
-                    `;
-                }
-                
-                answersHTML = textAnswers + canvasHTML;
+                    </div>
+                `;
             }
             
+            // Create the complete submission HTML
             return `
                 <div class="submission" data-timestamp="${submission.timestamp}">
                     <div class="submission-header">
@@ -1837,7 +1820,8 @@
                             <span class="timestamp">Date: ${formattedDate}</span>
                         </div>
                     </div>
-                    ${answersHTML}
+                    ${textAnswers}
+                    ${canvasHTML}
                 </div>
             `;
         }

@@ -414,7 +414,7 @@
                     alert('Please enter your name or choose to submit anonymously.');
                     return;
                 }
-                submitTest(false, answerData);
+                submitTest(false, answerData, name);
                 document.body.removeChild(submissionModal);
             });
             
@@ -423,9 +423,10 @@
             });
         });
 
-        function submitTest(isAnonymous, answers) {
+        function submitTest(isAnonymous, answers, providedName) {
             try {
-                const userName = isAnonymous ? 'Anonymous' : document.getElementById('submitterName').value.trim();
+                // Use the provided name if available, otherwise get it from the input field
+                const userName = isAnonymous ? 'Anonymous' : (providedName || document.getElementById('submitterName').value.trim());
                 
                 // Create a payload with minimal data first
                 const payload = {
@@ -881,23 +882,25 @@
                         <div class="canvas-container">
                             <h4>Drawings:</h4>
                             <div class="canvas-grid">
-                                ${Object.entries(submission.answers.canvas_data).map(([key, value]) => {
-                                    let displayName = key;
-                                    switch(key) {
-                                        case 'positionGraph': displayName = 'Position vs. Time'; break;
-                                        case 'velocityGraph': displayName = 'Velocity vs. Time'; break;
-                                        case 'gridGraph': displayName = 'Data Grid'; break;
-                                        case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
-                                        case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
-                                        default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
-                                    }
-                                    return `
-                                        <div class="canvas-item">
-                                            <img src="${value}" alt="${displayName}" onclick="zoomImage(this)">
-                                            <div class="canvas-label">${displayName}</div>
-                                        </div>
-                                    `;
-                                }).join('')}
+                                ${Object.entries(submission.answers.canvas_data)
+                                    .filter(([key, value]) => typeof value === 'string' && value.startsWith('data:image/'))
+                                    .map(([key, value]) => {
+                                        let displayName = key;
+                                        switch(key) {
+                                            case 'positionGraph': displayName = 'Position vs. Time'; break;
+                                            case 'velocityGraph': displayName = 'Velocity vs. Time'; break;
+                                            case 'gridGraph': displayName = 'Data Grid'; break;
+                                            case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
+                                            case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
+                                            default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
+                                        }
+                                        return `
+                                            <div class="canvas-item">
+                                                <img src="${value}" alt="${displayName}" onclick="zoomImage(this)" style="max-width: 100%; border: 1px solid #ccc;">
+                                                <div class="canvas-label">${displayName}</div>
+                                            </div>
+                                        `;
+                                    }).join('')}
                             </div>
                         </div>
                     `;
