@@ -1010,46 +1010,56 @@
             // Position graph
             const positionGraph = document.getElementById('positionGraph');
             if (positionGraph) {
-                // Check if canvas has actually been drawn on
-                const hasContent = canvasHasContent(positionGraph);
-                canvasData.positionGraph = hasContent ? 
-                    positionGraph.toDataURL('image/png') : 
-                    "No drawing provided";
+                try {
+                    // Always capture the canvas data URL regardless of content detection
+                    canvasData.positionGraph = positionGraph.toDataURL('image/png');
+                } catch (err) {
+                    console.error("Error capturing position graph:", err);
+                    canvasData.positionGraph = "Failed to capture drawing";
+                }
             }
             
             // Velocity graph
             const velocityGraph = document.getElementById('velocityGraph');
             if (velocityGraph) {
-                const hasContent = canvasHasContent(velocityGraph);
-                canvasData.velocityGraph = hasContent ? 
-                    velocityGraph.toDataURL('image/png') : 
-                    "No drawing provided";
+                try {
+                    canvasData.velocityGraph = velocityGraph.toDataURL('image/png');
+                } catch (err) {
+                    console.error("Error capturing velocity graph:", err);
+                    canvasData.velocityGraph = "Failed to capture drawing";
+                }
             }
             
             // Grid graph
             const gridGraph = document.getElementById('gridGraph');
             if (gridGraph) {
-                const hasContent = canvasHasContent(gridGraph);
-                canvasData.gridGraph = hasContent ? 
-                    gridGraph.toDataURL('image/png') : 
-                    "No drawing provided";
+                try {
+                    canvasData.gridGraph = gridGraph.toDataURL('image/png');
+                } catch (err) {
+                    console.error("Error capturing grid graph:", err);
+                    canvasData.gridGraph = "Failed to capture drawing";
+                }
             }
             
             // Force diagrams
             const forceT1 = document.getElementById('forceT1');
             if (forceT1) {
-                const hasContent = canvasHasContent(forceT1);
-                canvasData.forceT1 = hasContent ? 
-                    forceT1.toDataURL('image/png') : 
-                    "No drawing provided";
+                try {
+                    canvasData.forceT1 = forceT1.toDataURL('image/png');
+                } catch (err) {
+                    console.error("Error capturing force diagram T1:", err);
+                    canvasData.forceT1 = "Failed to capture drawing";
+                }
             }
             
             const forceT2 = document.getElementById('forceT2');
             if (forceT2) {
-                const hasContent = canvasHasContent(forceT2);
-                canvasData.forceT2 = hasContent ? 
-                    forceT2.toDataURL('image/png') : 
-                    "No drawing provided";
+                try {
+                    canvasData.forceT2 = forceT2.toDataURL('image/png');
+                } catch (err) {
+                    console.error("Error capturing force diagram T2:", err);
+                    canvasData.forceT2 = "Failed to capture drawing";
+                }
             }
             
             // Add canvas data to answers object
@@ -1058,56 +1068,12 @@
             return answers;
         }
         
-        // Helper function to check if a canvas has been drawn on
+        // Helper function to check if a canvas has been drawn on (legacy)
         function canvasHasContent(canvas) {
-            const ctx = canvas.getContext('2d');
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-            
-            // A basic threshold approach: If more than 5% of the pixels are non-transparent
-            // and have some color variation, we consider it drawn on
-            let nonTransparentCount = 0;
-            let colorVariationCount = 0;
-            const totalPixels = canvas.width * canvas.height;
-            
-            for (let i = 0; i < imgData.length; i += 4) {
-                // Check if pixel is not transparent
-                if (imgData[i + 3] > 0) {
-                    nonTransparentCount++;
-                    
-                    // Check if it's not just a white or black pixel (part of grid/axes)
-                    const r = imgData[i];
-                    const g = imgData[i + 1];
-                    const b = imgData[i + 2];
-                    
-                    // If it's not grayscale, likely user drawn
-                    if (Math.abs(r - g) > 5 || Math.abs(r - b) > 5 || Math.abs(g - b) > 5) {
-                        colorVariationCount++;
-                    }
-                    // If it's not white/black/gray (grid lines & axes are usually these)
-                    else if (!((r > 240 && g > 240 && b > 240) || (r < 15 && g < 15 && b < 15) || (Math.abs(r - g) < 5 && Math.abs(r - b) < 5 && Math.abs(g - b) < 5))) {
-                        colorVariationCount++;
-                    }
-                }
-            }
-            
-            // Consider drawn if more than 5% of pixels are non-transparent
-            // or if there's significant color variation
-            const nonTransparentRatio = nonTransparentCount / totalPixels;
-            const colorVariationRatio = colorVariationCount / totalPixels;
-            
-            // Different thresholds for different canvas types
-            if (canvas.id === 'gridGraph') {
-                // Grid already has many lines, so need more non-transparent pixels
-                return nonTransparentRatio > 0.15 || colorVariationRatio > 0.05;
-            } else if (canvas.id === 'positionGraph' || canvas.id === 'velocityGraph') {
-                // These have axes
-                return nonTransparentRatio > 0.1 || colorVariationRatio > 0.03;
-            } else {
-                // Force diagrams start mostly empty
-                return nonTransparentRatio > 0.05 || colorVariationRatio > 0.02;
-            }
+            // Always return true to ensure canvas data is included
+            return true;
         }
-        
+
         function countNonTransparentPixels(canvas) {
             const ctx = canvas.getContext('2d');
             const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -1405,19 +1371,6 @@
             return true;
         }
 
-        submitAnonymous.addEventListener('click', () => {
-            submitTest(true);
-        });
-
-        submitWithName.addEventListener('click', () => {
-            const name = submitterName.value.trim();
-            if (!name) {
-                alert('Please enter your name or choose to submit anonymously.');
-                return;
-            }
-            submitTest(false, name);
-        });
-
         // Close modal if clicking outside
         window.addEventListener('click', (event) => {
             if (event.target === submissionModal) {
@@ -1690,8 +1643,26 @@
                 // Determine if it's FRQ or MCQ
                 const testType = submission.testType;
                 
+                // Add logging to debug canvas data
+                console.log("Canvas data in submission:", 
+                    submission.answers.canvas_data ? 
+                    Object.keys(submission.answers.canvas_data).length : 
+                    "No canvas data");
+                
+                if (submission.answers.canvas_data) {
+                    // Log each canvas data URL (first 100 chars)
+                    Object.entries(submission.answers.canvas_data).forEach(([key, value]) => {
+                        console.log(`Canvas ${key} data type:`, typeof value);
+                        if (typeof value === 'string') {
+                            console.log(`Canvas ${key} is image:`, value.startsWith('data:image/'));
+                            console.log(`Canvas ${key} starts with:`, value.substring(0, 100) + '...');
+                        }
+                    });
+                }
+                
                 // Format the submission data for display
                 const submissionHTML = formatSubmissionHTML(submission);
+                console.log("Generated submission HTML length:", submissionHTML.length);
                 
                 // Update the JavaScript data structure
                 let updatedContent = updateJavaScriptData(content, subject, submission);
@@ -1760,74 +1731,49 @@
                 return { success: false, error: error.message };
             }
         }
-        
-        // Helper function to format a submission as HTML
-        function formatSubmissionHTML(submission) {
-            const formattedDate = new Date(submission.timestamp).toLocaleString();
+
+        // Function to handle zooming in on images when clicked
+        function zoomImage(img) {
+            // Create a modal for the zoomed image
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.cursor = 'pointer';
             
-            // Format text answers (everything except canvas_data)
-            const textAnswers = Object.entries(submission.answers)
-                .filter(([key]) => key !== 'canvas_data')
-                .sort((a, b) => {
-                    const numA = parseInt(a[0].replace('answer_', '')) || 0;
-                    const numB = parseInt(b[0].replace('answer_', '')) || 0;
-                    return numA - numB;
-                })
-                .map(([key, value]) => `
-                    <div class="answer">
-                        <strong>Answer ${key.replace('answer_', '')}:</strong>
-                        <p>${value || '(No answer provided)'}</p>
-                    </div>
-                `).join('');
+            // Create the zoomed image
+            const zoomedImg = document.createElement('img');
+            zoomedImg.src = img.src;
+            zoomedImg.style.maxWidth = '90%';
+            zoomedImg.style.maxHeight = '90%';
+            zoomedImg.style.objectFit = 'contain';
+            zoomedImg.style.border = '2px solid white';
             
-            // Format canvas drawings if they exist
-            let canvasHTML = '';
-            if (submission.answers.canvas_data) {
-                canvasHTML = `
-                    <div class="canvas-container">
-                        <h4>Drawings:</h4>
-                        <div class="canvas-grid">
-                            ${Object.entries(submission.answers.canvas_data)
-                                .filter(([key, value]) => typeof value === 'string' && value.startsWith('data:image/'))
-                                .map(([key, value]) => {
-                                    let displayName = key;
-                                    switch(key) {
-                                        case 'positionGraph': displayName = 'Position vs. Time'; break;
-                                        case 'velocityGraph': displayName = 'Velocity vs. Time'; break;
-                                        case 'gridGraph': displayName = 'Data Grid'; break;
-                                        case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
-                                        case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
-                                        default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
-                                    }
-                                    return `
-                                        <div class="canvas-item">
-                                            <img src="${value}" alt="${displayName}" onclick="zoomImage(this)" style="max-width: 100%; border: 1px solid #ccc;">
-                                            <div class="canvas-label">${displayName}</div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                        </div>
-                    </div>
-                `;
-            }
+            // Add click event to close the modal
+            modal.onclick = function() {
+                document.body.removeChild(modal);
+            };
             
-            // Create the complete submission HTML
-            return `
-                <div class="submission" data-timestamp="${submission.timestamp}">
-                    <div class="submission-header">
-                        <div class="submitter">Submitted by: ${submission.name}</div>
-                        <div>
-                            <span class="timestamp">Date: ${formattedDate}</span>
-                        </div>
-                    </div>
-                    ${textAnswers}
-                    ${canvasHTML}
-                </div>
-            `;
+            // Add the image to the modal and the modal to the body
+            modal.appendChild(zoomedImg);
+            document.body.appendChild(modal);
         }
         
+        // Add the zoomImage function to the window object for access from the HTML
+        window.zoomImage = zoomImage;
+
         // Helper function to update the JavaScript data in the HTML
         function updateJavaScriptData(content, subject, submission) {
+            // Create a copy of the submission that we can safely serialize
+            const serializableSubmission = JSON.parse(JSON.stringify(submission));
+            
             // This just adds it to localStorage on load
             // Add this after the displayTestCategories() call
             const script = `
@@ -1844,76 +1790,13 @@
                         s.testType === '${submission.testType}'
                     );
                     if (!exists) {
-                        allSubmissions['${subject}'].push(${JSON.stringify(submission)});
+                        allSubmissions['${subject}'].push(${JSON.stringify(serializableSubmission)});
                         localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
                     }
                 })();
             `;
             
             return content.replace('displayTestCategories();', `displayTestCategories();\n        ${script}`);
-        }
-        
-        // Helper function to add a new subject category
-        function addSubjectCategory(content, subject, subjectDivId) {
-            const categoryHTML = `
-                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
-                    <h2>${subject}</h2>
-                    <p>0 FRQ submissions, 0 MCQ submissions</p>
-                </div>`;
-                
-            return content.replace('<div class="test-selection-container" id="testCategories">', 
-                `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
-        }
-        
-        // Helper function to update the counter for a subject
-        function updateSubjectCounter(content, subject, subjectDivId, testType) {
-            const regex = new RegExp(`<div class="test-category" id="${subjectDivId}"[^>]*>[\\s\\S]*?<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
-            const match = content.match(regex);
-            
-            if (match) {
-                let frqCount = parseInt(match[1]);
-                let mcqCount = parseInt(match[2]);
-                
-                if (testType === 'FRQ') {
-                    frqCount++;
-                } else {
-                    mcqCount++;
-                }
-                
-                return content.replace(
-                    `<p>${match[1]} FRQ submissions, ${match[2]} MCQ submissions</p>`,
-                    `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
-                );
-            }
-            
-            return content;
-        }
-        
-        // Helper function to add a new submission container for a subject/type
-        function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
-            const containerHTML = `
-                <div id="${containerId}" class="submission-type-container">
-                    <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
-                    ${submissionHTML}
-                </div>`;
-            
-            return content.replace('<div class="submissions-container" id="submissionsContainer">', 
-                `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
-        }
-        
-        // Helper function to add a submission to an existing container
-        function addToSubmissionContainer(content, containerId, submissionHTML) {
-            const regex = new RegExp(`<div id="${containerId}" class="submission-type-container">[\\s\\S]*?<h3>[^<]*</h3>`);
-            const match = content.match(regex);
-            
-            if (match) {
-                return content.replace(
-                    match[0],
-                    `${match[0]}\n                    ${submissionHTML}`
-                );
-            }
-            
-            return content;
         }
     </script>
 </body>

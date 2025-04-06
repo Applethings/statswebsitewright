@@ -765,6 +765,28 @@
                 // Determine if it's FRQ or MCQ
                 const testType = submission.testType;
                 
+                // Debug canvas data if it exists
+                if (submission.answers && submission.answers.canvas_data) {
+                    console.log("Canvas data found, keys:", Object.keys(submission.answers.canvas_data));
+                    
+                    // Make a deep copy to avoid circular reference issues
+                    const submissionCopy = JSON.parse(JSON.stringify(submission));
+                    
+                    // Ensure canvas URLs are properly formatted
+                    if (submissionCopy.answers.canvas_data) {
+                        Object.keys(submissionCopy.answers.canvas_data).forEach(key => {
+                            const value = submissionCopy.answers.canvas_data[key];
+                            if (typeof value === 'string' && !value.startsWith('data:image/')) {
+                                // If it's not a proper data URL, remove it
+                                delete submissionCopy.answers.canvas_data[key];
+                            }
+                        });
+                    }
+                    
+                    // Use the sanitized copy instead
+                    submission = submissionCopy;
+                }
+                
                 // Format the submission data for display
                 const submissionHTML = formatSubmissionHTML(submission);
                 
@@ -849,6 +871,7 @@
             if (submission.testType === 'MCQ') {
                 // Format MCQ answers
                 answersHTML = Object.entries(submission.answers)
+                    .filter(([key]) => key !== 'canvas_data') // Ensure we don't include canvas data here
                     .sort((a, b) => {
                         const numA = parseInt(a[0].replace('question_', '')) || 0;
                         const numB = parseInt(b[0].replace('question_', '')) || 0;
@@ -876,6 +899,7 @@
                         </div>
                     `).join('');
                 
+                // Add canvas data processing
                 let canvasHTML = '';
                 if (submission.answers.canvas_data) {
                     canvasHTML = `
@@ -904,11 +928,14 @@
                             </div>
                         </div>
                     `;
+                    // Include canvas HTML if FRQ
+                    answersHTML = textAnswers + canvasHTML;
+                } else {
+                    answersHTML = textAnswers;
                 }
-                
-                answersHTML = textAnswers + canvasHTML;
             }
             
+            // Create the submission HTML
             return `
                 <div class="submission" data-timestamp="${submission.timestamp}">
                     <div class="submission-header">
@@ -1011,6 +1038,43 @@
             
             return content;
         }
+
+        // Function to handle zooming in on images when clicked
+        function zoomImage(img) {
+            // Create a modal for the zoomed image
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            modal.style.zIndex = '1000';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.cursor = 'pointer';
+            
+            // Create the zoomed image
+            const zoomedImg = document.createElement('img');
+            zoomedImg.src = img.src;
+            zoomedImg.style.maxWidth = '90%';
+            zoomedImg.style.maxHeight = '90%';
+            zoomedImg.style.objectFit = 'contain';
+            zoomedImg.style.border = '2px solid white';
+            
+            // Add click event to close the modal
+            modal.onclick = function() {
+                document.body.removeChild(modal);
+            };
+            
+            // Add the image to the modal and the modal to the body
+            modal.appendChild(zoomedImg);
+            document.body.appendChild(modal);
+        }
+        
+        // Add the zoomImage function to the window object for access from the HTML
+        window.zoomImage = zoomImage;
     </script>
 </body>
 </html>
