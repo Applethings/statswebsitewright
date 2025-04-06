@@ -512,11 +512,11 @@
         <div class="modal-content">
             <h3>Submit Your Test</h3>
             <p>Please enter your name or choose to submit anonymously:</p>
-            <input type="text" id="modalName" placeholder="Your Name" class="modal-input">
+            <input type="text" id="submitterName" placeholder="Your Name" class="modal-input">
             <div class="modal-buttons">
-                <button id="modalAnonymous" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #666; color: white;">Submit Anonymously</button>
-                <button id="modalWithName" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #004d00; color: white;">Submit with Name</button>
-                <button id="modalCancel" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #660000; color: white;">Cancel</button>
+                <button id="submitAnonymous" class="modal-button">Submit Anonymously</button>
+                <button id="submitWithName" class="modal-button">Submit with Name</button>
+                <button id="cancelSubmit" class="modal-button">Cancel</button>
             </div>
         </div>
     </div>
@@ -968,152 +968,21 @@
         });
 
         // Add submission handling
-        const submitBtn = document.getElementById('submitBtn');
         const submissionModal = document.getElementById('submissionModal');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitAnonymous = document.getElementById('submitAnonymous');
+        const submitWithName = document.getElementById('submitWithName');
+        const cancelSubmit = document.getElementById('cancelSubmit');
+        const submitterName = document.getElementById('submitterName');
 
-        submitBtn.addEventListener('click', function() {
-            console.log("Submit button clicked, showing modal");
-            
-            // Display the already-existing modal instead of creating a dynamic one
+        submitBtn.addEventListener('click', () => {
             submissionModal.style.display = 'block';
-            
-            // Clear any previous name input
-            const nameInput = document.getElementById('modalName'); // Changed from 'submitterName' to 'modalName'
-            if (nameInput) nameInput.value = '';
-            if (nameInput) nameInput.focus();
-            
-            // Make sure we have each button properly attached
-            // Submit anonymously
-            const submitAnonymous = document.getElementById('modalAnonymous'); // Changed from 'submitAnonymous' to 'modalAnonymous'
-            if (submitAnonymous) {
-                // Remove any existing click handlers
-                const newSubmitAnonymous = submitAnonymous.cloneNode(true);
-                submitAnonymous.parentNode.replaceChild(newSubmitAnonymous, submitAnonymous);
-                
-                // Add click handler
-                newSubmitAnonymous.addEventListener('click', function() {
-                    console.log("Anonymous submit clicked");
-                    submissionModal.style.display = 'none';
-                    submitTest(true);
-                });
-            } else {
-                console.error("Anonymous submit button not found!");
-            }
-            
-            // Submit with name
-            const submitWithName = document.getElementById('modalWithName'); // Changed from 'submitWithName' to 'modalWithName'
-            if (submitWithName) {
-                // Remove any existing click handlers
-                const newSubmitWithName = submitWithName.cloneNode(true);
-                submitWithName.parentNode.replaceChild(newSubmitWithName, submitWithName);
-                
-                // Add click handler
-                newSubmitWithName.addEventListener('click', function() {
-                    console.log("Named submit clicked");
-                    const name = document.getElementById('modalName').value.trim(); // Changed from 'submitterName' to 'modalName'
-                    if (!name) {
-                        alert('Please enter your name or choose to submit anonymously.');
-                        return;
-                    }
-                    submissionModal.style.display = 'none';
-                    submitTest(false, name);
-                });
-            } else {
-                console.error("Named submit button not found!");
-            }
-            
-            // Cancel button
-            const cancelSubmit = document.getElementById('modalCancel'); // Changed from 'cancelSubmit' to 'modalCancel'
-            if (cancelSubmit) {
-                // Remove any existing click handlers
-                const newCancelSubmit = cancelSubmit.cloneNode(true);
-                cancelSubmit.parentNode.replaceChild(newCancelSubmit, cancelSubmit);
-                
-                // Add click handler
-                newCancelSubmit.addEventListener('click', function() {
-                    console.log("Cancel button clicked");
-                    submissionModal.style.display = 'none';
-                });
-            } else {
-                console.error("Cancel button not found!");
-            }
         });
 
-        // Close modal if clicking outside
-        window.addEventListener('click', function(event) {
-            if (event.target === submissionModal) {
-                console.log("Clicked outside modal, closing");
-                submissionModal.style.display = 'none';
-            }
+        cancelSubmit.addEventListener('click', () => {
+            submissionModal.style.display = 'none';
         });
 
-        // Function to handle test submission
-        async function submitTest(isAnonymous = false, providedName = null) {
-            console.log("Starting test submission process");
-            
-            // Use the provided name if available, otherwise get it from the modalName field
-            let userName = isAnonymous ? "Anonymous Student" : (providedName || document.getElementById('modalName')?.value?.trim() || "Unknown User");
-            
-            console.log("Submitting test for user:", userName);
-            
-            if (!isAnonymous && (!userName || userName.length < 2)) {
-                alert("Please enter your name or choose to submit anonymously.");
-                return;
-            }
-            
-            // Show loading state
-            const submitButton = document.querySelector('#modalWithName');
-            const anonymousButton = document.querySelector('#modalAnonymous');
-            if (submitButton) submitButton.disabled = true;
-            if (anonymousButton) anonymousButton.disabled = true;
-            if (submitButton) submitButton.textContent = 'Submitting...';
-            
-            try {
-                // Collect all answers
-                console.log("Collecting answers...");
-                const answers = collectAnswers();
-                console.log("Collected", Object.keys(answers).length - 1, "text answers and", 
-                          Object.keys(answers.canvas_data).length, "canvas drawings");
-                
-                // Create submission object
-                const submission = {
-                    name: userName,
-                    testId: 'physics1frq',
-                    testType: 'FRQ',
-                    timestamp: new Date().toISOString(),
-                    answers: answers
-                };
-                
-                // Send to Discord webhook
-                console.log("Sending to Discord webhook...");
-                await sendAnswersAsMultipleMessages(userName, answers, DISCORD_WEBHOOK_URL);
-                console.log("Successfully sent to Discord!");
-                
-                // Store submission in local storage for GitHub publishing
-                storeSubmission(submission);
-                console.log("Submission stored locally");
-                
-                // Show success message and offer to publish to GitHub
-                if (confirm('Submission successfully sent to Discord! Would you like to publish it to GitHub as well?')) {
-                    publishToGitHub(submission);
-                } else {
-                    alert('Your submission has been saved. You can publish it to GitHub later if you want.');
-                }
-            } catch (error) {
-                console.error('Error submitting test:', error);
-                alert(`Error submitting test: ${error.message || 'An unknown error occurred'}`);
-            } finally {
-                // Reset the buttons if they still exist
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Submit with Name';
-                }
-                if (anonymousButton) {
-                    anonymousButton.disabled = false;
-                }
-            }
-        }
-        
         // Function to collect all the answers from the document
         function collectAnswers() {
             const answers = {};
@@ -1141,70 +1010,104 @@
             // Position graph
             const positionGraph = document.getElementById('positionGraph');
             if (positionGraph) {
-                try {
-                    // Always capture the canvas data URL regardless of content detection
-                    canvasData.positionGraph = positionGraph.toDataURL('image/png');
-                } catch (err) {
-                    console.error("Error capturing position graph:", err);
-                    canvasData.positionGraph = "Failed to capture drawing";
-                }
+                // Check if canvas has actually been drawn on
+                const hasContent = canvasHasContent(positionGraph);
+                canvasData.positionGraph = hasContent ? 
+                    positionGraph.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             // Velocity graph
             const velocityGraph = document.getElementById('velocityGraph');
             if (velocityGraph) {
-                try {
-                    canvasData.velocityGraph = velocityGraph.toDataURL('image/png');
-                } catch (err) {
-                    console.error("Error capturing velocity graph:", err);
-                    canvasData.velocityGraph = "Failed to capture drawing";
-                }
+                const hasContent = canvasHasContent(velocityGraph);
+                canvasData.velocityGraph = hasContent ? 
+                    velocityGraph.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             // Grid graph
             const gridGraph = document.getElementById('gridGraph');
             if (gridGraph) {
-                try {
-                    canvasData.gridGraph = gridGraph.toDataURL('image/png');
-                } catch (err) {
-                    console.error("Error capturing grid graph:", err);
-                    canvasData.gridGraph = "Failed to capture drawing";
-                }
+                const hasContent = canvasHasContent(gridGraph);
+                canvasData.gridGraph = hasContent ? 
+                    gridGraph.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             // Force diagrams
             const forceT1 = document.getElementById('forceT1');
             if (forceT1) {
-                try {
-                    canvasData.forceT1 = forceT1.toDataURL('image/png');
-                } catch (err) {
-                    console.error("Error capturing force diagram T1:", err);
-                    canvasData.forceT1 = "Failed to capture drawing";
-                }
+                const hasContent = canvasHasContent(forceT1);
+                canvasData.forceT1 = hasContent ? 
+                    forceT1.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             const forceT2 = document.getElementById('forceT2');
             if (forceT2) {
-                try {
-                    canvasData.forceT2 = forceT2.toDataURL('image/png');
-                } catch (err) {
-                    console.error("Error capturing force diagram T2:", err);
-                    canvasData.forceT2 = "Failed to capture drawing";
-                }
+                const hasContent = canvasHasContent(forceT2);
+                canvasData.forceT2 = hasContent ? 
+                    forceT2.toDataURL('image/png') : 
+                    "No drawing provided";
             }
             
             // Add canvas data to answers object
             answers.canvas_data = canvasData;
-            
+
             return answers;
         }
-        
-        // Helper function to check if a canvas has been drawn on (legacy)
-        function canvasHasContent(canvas) {
-            // Always return true to ensure canvas data is included
-            return true;
-        }
 
+        // Helper function to check if a canvas has been drawn on
+        function canvasHasContent(canvas) {
+            const ctx = canvas.getContext('2d');
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            
+            // A basic threshold approach: If more than 5% of the pixels are non-transparent
+            // and have some color variation, we consider it drawn on
+            let nonTransparentCount = 0;
+            let colorVariationCount = 0;
+            const totalPixels = canvas.width * canvas.height;
+            
+            for (let i = 0; i < imgData.length; i += 4) {
+                // Check if pixel is not transparent
+                if (imgData[i + 3] > 0) {
+                    nonTransparentCount++;
+                    
+                    // Check if it's not just a white or black pixel (part of grid/axes)
+                    const r = imgData[i];
+                    const g = imgData[i + 1];
+                    const b = imgData[i + 2];
+                    
+                    // If it's not grayscale, likely user drawn
+                    if (Math.abs(r - g) > 5 || Math.abs(r - b) > 5 || Math.abs(g - b) > 5) {
+                        colorVariationCount++;
+                    }
+                    // If it's not white/black/gray (grid lines & axes are usually these)
+                    else if (!((r > 240 && g > 240 && b > 240) || (r < 15 && g < 15 && b < 15) || (Math.abs(r - g) < 5 && Math.abs(r - b) < 5 && Math.abs(g - b) < 5))) {
+                        colorVariationCount++;
+                    }
+                }
+            }
+            
+            // Consider drawn if more than 5% of pixels are non-transparent
+            // or if there's significant color variation
+            const nonTransparentRatio = nonTransparentCount / totalPixels;
+            const colorVariationRatio = colorVariationCount / totalPixels;
+            
+            // Different thresholds for different canvas types
+            if (canvas.id === 'gridGraph') {
+                // Grid already has many lines, so need more non-transparent pixels
+                return nonTransparentRatio > 0.15 || colorVariationRatio > 0.05;
+            } else if (canvas.id === 'positionGraph' || canvas.id === 'velocityGraph') {
+                // These have axes
+                return nonTransparentRatio > 0.1 || colorVariationRatio > 0.03;
+            } else {
+                // Force diagrams start mostly empty
+                return nonTransparentRatio > 0.05 || colorVariationRatio > 0.02;
+            }
+        }
+        
         function countNonTransparentPixels(canvas) {
             const ctx = canvas.getContext('2d');
             const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -1220,6 +1123,62 @@
             return count;
         }
 
+        // Function to handle test submission
+        async function submitTest(isAnonymous = false, providedName = null) {
+            // Use the provided name if available, otherwise get it from the submitterName field
+            let userName = isAnonymous ? "Anonymous Student" : (providedName || document.getElementById('submitterName').value.trim());
+            
+            if (!isAnonymous && (!userName || userName.length < 2)) {
+                alert("Please enter your name or choose to submit anonymously.");
+                return;
+            }
+            
+            // Show loading state
+            const submitButton = document.querySelector('#submitWithName');
+            const anonymousButton = document.querySelector('#submitAnonymous');
+            submitButton.disabled = true;
+            anonymousButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+            
+            try {
+                // Collect all answers
+                const answers = collectAnswers();
+                
+                // Create submission object
+                                const submission = {
+                    name: userName,
+                    testId: 'physics1frq',
+                                    testType: 'FRQ',
+                                    timestamp: new Date().toISOString(),
+                                    answers: answers
+                                };
+                                
+                // Send to Discord webhook
+                await sendAnswersAsMultipleMessages(userName, answers, DISCORD_WEBHOOK_URL);
+                
+                // Store submission in local storage for GitHub publishing
+                storeSubmission(submission);
+                
+                // Hide the modal
+                document.querySelector('.modal').style.display = 'none';
+                
+                // Show success message and offer to publish to GitHub
+                if (confirm('Submission successfully sent to Discord! Would you like to publish it to GitHub as well?')) {
+                    publishToGitHub(submission);
+                                        } else {
+                    alert('Your submission has been saved. You can publish it to GitHub later if you want.');
+                }
+            } catch (error) {
+                console.error('Error submitting test:', error);
+                alert(`Error submitting test: ${error.message}`);
+            } finally {
+                // Reset the buttons
+                submitButton.disabled = false;
+                anonymousButton.disabled = false;
+                submitButton.textContent = 'Submit with Name';
+            }
+        }
+        
         // Function to store a submission in local storage
         function storeSubmission(submission) {
             const submissions = JSON.parse(localStorage.getItem('testSubmissions') || '[]');
@@ -1363,11 +1322,11 @@
                     // Handle both string messages and actual image data
                     if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
                         // It's an actual image
-                        const drawingPayload = {
+                    const drawingPayload = {
                             content: `**${displayName}:**`,
-                            embeds: [{
+                        embeds: [{
                                 title: displayName,
-                                image: {
+                            image: {
                                     url: dataUrl
                                 },
                                 color: 7506394
@@ -1446,42 +1405,25 @@
             return true;
         }
 
-        // Function to handle zooming in on images when clicked
-        function zoomImage(img) {
-            // Create a modal for the zoomed image
-            const modal = document.createElement('div');
-            modal.style.position = 'fixed';
-            modal.style.top = '0';
-            modal.style.left = '0';
-            modal.style.width = '100%';
-            modal.style.height = '100%';
-            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
-            modal.style.zIndex = '1000';
-            modal.style.display = 'flex';
-            modal.style.justifyContent = 'center';
-            modal.style.alignItems = 'center';
-            modal.style.cursor = 'pointer';
-            
-            // Create the zoomed image
-            const zoomedImg = document.createElement('img');
-            zoomedImg.src = img.src;
-            zoomedImg.style.maxWidth = '90%';
-            zoomedImg.style.maxHeight = '90%';
-            zoomedImg.style.objectFit = 'contain';
-            zoomedImg.style.border = '2px solid white';
-            
-            // Add click event to close the modal
-            modal.onclick = function() {
-                document.body.removeChild(modal);
-            };
-            
-            // Add the image to the modal and the modal to the body
-            modal.appendChild(zoomedImg);
-            document.body.appendChild(modal);
-        }
-        
-        // Add the zoomImage function to the window object for access from the HTML
-        window.zoomImage = zoomImage;
+        submitAnonymous.addEventListener('click', () => {
+            submitTest(true);
+        });
+
+        submitWithName.addEventListener('click', () => {
+            const name = submitterName.value.trim();
+            if (!name) {
+                alert('Please enter your name or choose to submit anonymously.');
+                return;
+            }
+            submitTest(false, name);
+        });
+
+        // Close modal if clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === submissionModal) {
+                submissionModal.style.display = 'none';
+            }
+        });
 
         // Test selection handling
         const testSelectionModal = document.getElementById('testSelectionModal');
@@ -1704,158 +1646,188 @@
                         }
                     });
             });
+            
+            document.getElementById('cancelPublish').addEventListener('click', function() {
+                document.body.removeChild(publishModal);
+            });
+            
+            // Close modal if clicking outside
+            publishModal.addEventListener('click', function(event) {
+                if (event.target === publishModal) {
+                    document.body.removeChild(publishModal);
+                }
+            });
         }
 
-        // Function to add a new subject category to the results page
-        function addSubjectCategory(content, subject, subjectDivId) {
-            console.log(`Adding new subject category for ${subject}`);
+        // Function to directly update the test-results.html file with the submission
+        async function updateTestResultsHTML(owner, repo, token, submission) {
+            try {
+                const filePath = 'test-results.html';
+                
+                // First, fetch the current content of the file
+                const getResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!getResponse.ok) {
+                    throw new Error(`Failed to fetch ${filePath}: ${getResponse.status}`);
+                }
+                
+                const fileData = await getResponse.json();
+                const content = atob(fileData.content);
+                const sha = fileData.sha;
+                
+                // Determine the subject based on the testId
+                let subject = "AP Physics 1";
+                if (submission.testId.includes('physics1')) {
+                    subject = "AP Physics 1";
+                }
+                // Add more subject mappings as needed for future tests
+                
+                // Determine if it's FRQ or MCQ
+                const testType = submission.testType;
+                
+                // Format the submission data for display
+                const submissionHTML = formatSubmissionHTML(submission);
+                
+                // Update the JavaScript data structure
+                let updatedContent = updateJavaScriptData(content, subject, submission);
+                
+                // Update the display containers
+                const subjectDivId = subject.toLowerCase().replace(/\s+/g, '-');
+                
+                // Find or create the container for this subject
+                if (!updatedContent.includes(`id="${subjectDivId}"`)) {
+                    // Subject doesn't exist yet, add it to the test categories
+                    updatedContent = addSubjectCategory(updatedContent, subject, subjectDivId);
+                } else {
+                    // Update the counter for the subject
+                    updatedContent = updateSubjectCounter(updatedContent, subject, subjectDivId, testType);
+                }
+                
+                // Add the submission to the appropriate container
+                const containerId = `submissions-${testType.toLowerCase()}-${subjectDivId}`;
+                if (!updatedContent.includes(`id="${containerId}"`)) {
+                    // Container doesn't exist, create it
+                    updatedContent = addSubmissionContainer(updatedContent, containerId, submissionHTML, subject, testType);
+                } else {
+                    // Container exists, add to it
+                    updatedContent = addToSubmissionContainer(updatedContent, containerId, submissionHTML);
+                }
+                
+                // Update the file on GitHub
+                const updateResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Add ${testType} submission from ${submission.name} for ${subject}`,
+                        content: utf8ToBase64(updatedContent),
+                        sha: sha,
+                        branch: 'main'
+                    })
+                });
+                
+                // Function to convert UTF-8 string to base64
+                function utf8ToBase64(str) {
+                    try {
+                        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                            return String.fromCharCode('0x' + p1);
+                        }));
+                    } catch (e) {
+                        console.error("Encoding error:", e);
+                        // Fallback method if the above fails
+                        return btoa(unescape(encodeURIComponent(str)));
+                    }
+                }
+                
+                if (!updateResponse.ok) {
+                    const errorData = await updateResponse.json();
+                    throw new Error(`Failed to update ${filePath}: ${errorData.message}`);
+                }
+                
+                console.log(`Successfully updated test-results.html with ${testType} submission for ${subject}`);
+                return { success: true };
+            } catch (error) {
+                console.error('Error updating test-results.html:', error);
+                alert(`Error publishing to GitHub: ${error.message}`);
+                return { success: false, error: error.message };
+            }
+        }
+        
+        // Helper function to format a submission as HTML
+        function formatSubmissionHTML(submission) {
+            const formattedDate = new Date(submission.timestamp).toLocaleString();
             
-            // Look for the container that holds all test categories
-            const testCategoriesDiv = '<div class="test-categories">';
-            const insertPosition = content.indexOf(testCategoriesDiv) + testCategoriesDiv.length;
+            // Format text answers (everything except canvas_data)
+            const textAnswers = Object.entries(submission.answers)
+                .filter(([key]) => key !== 'canvas_data')
+                .sort((a, b) => {
+                    const numA = parseInt(a[0].replace('answer_', '')) || 0;
+                    const numB = parseInt(b[0].replace('answer_', '')) || 0;
+                    return numA - numB;
+                })
+                .map(([key, value]) => `
+                    <div class="answer">
+                        <strong>Answer ${key.replace('answer_', '')}:</strong>
+                        <p>${value || '(No answer provided)'}</p>
+                    </div>
+                `).join('');
             
-            if (insertPosition <= testCategoriesDiv.length) {
-                console.error("Could not find test categories container");
-                return content;
+            // Format canvas drawings if they exist
+            let canvasHTML = '';
+            if (submission.answers.canvas_data) {
+                canvasHTML = `
+                    <div class="canvas-container">
+                        <h4>Drawings:</h4>
+                        <div class="canvas-grid">
+                            ${Object.entries(submission.answers.canvas_data)
+                                .filter(([key, value]) => typeof value === 'string' && value.startsWith('data:image/'))
+                                .map(([key, value]) => {
+                                    let displayName = key;
+                                    switch(key) {
+                                        case 'positionGraph': displayName = 'Position vs. Time'; break;
+                                        case 'velocityGraph': displayName = 'Velocity vs. Time'; break;
+                                        case 'gridGraph': displayName = 'Data Grid'; break;
+                                        case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
+                                        case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
+                                        default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
+                                    }
+                                    return `
+                                        <div class="canvas-item">
+                                            <img src="${value}" alt="${displayName}" onclick="zoomImage(this)" style="max-width: 100%; border: 1px solid #ccc;">
+                                            <div class="canvas-label">${displayName}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                        </div>
+                    </div>
+                `;
             }
             
-            // Create the new subject container
-            const newSubjectHTML = `
-                <!-- ${subject} category -->
-                <div class="test-category" id="${subjectDivId}">
-                    <h2>${subject}</h2>
-                    <div class="test-counters">
-                        <div class="test-counter">
-                            <span class="counter-label">FRQ Submissions:</span>
-                            <span class="counter-value" id="frq-count-${subjectDivId}">1</span>
-                        </div>
-                        <div class="test-counter">
-                            <span class="counter-label">MCQ Submissions:</span>
-                            <span class="counter-value" id="mcq-count-${subjectDivId}">0</span>
+            // Create the complete submission HTML
+            return `
+                <div class="submission" data-timestamp="${submission.timestamp}">
+                    <div class="submission-header">
+                        <div class="submitter">Submitted by: ${submission.name}</div>
+                        <div>
+                            <span class="timestamp">Date: ${formattedDate}</span>
                         </div>
                     </div>
-                    <div class="test-tabs">
-                        <button class="tab-button active" onclick="openTab('${subjectDivId}', 'frq')">Free Response</button>
-                        <button class="tab-button" onclick="openTab('${subjectDivId}', 'mcq')">Multiple Choice</button>
-                    </div>
-                    <div class="submissions-container">
-                        <!-- FRQ submissions will be placed here -->
-                        <div class="submissions active" id="submissions-frq-${subjectDivId}">
-                            <!-- Newly added submission goes here -->
-                        </div>
-                        <!-- MCQ submissions will be placed here -->
-                        <div class="submissions" id="submissions-mcq-${subjectDivId}">
-                            <p class="no-submissions">No multiple-choice submissions yet.</p>
-                        </div>
-                    </div>
+                    ${textAnswers}
+                    ${canvasHTML}
                 </div>
             `;
-            
-            // Insert the new subject
-            return content.slice(0, insertPosition) + newSubjectHTML + content.slice(insertPosition);
         }
-
-        // Function to update the counter for a subject
-        function updateSubjectCounter(content, subject, subjectDivId, testType) {
-            console.log(`Updating counter for ${subject}, test type: ${testType}`);
-            
-            // Determine which counter to update
-            const counterId = testType === 'FRQ' ? `frq-count-${subjectDivId}` : `mcq-count-${subjectDivId}`;
-            
-            // Find the current counter value
-            const counterRegex = new RegExp(`id="${counterId}">(\\d+)<`);
-            const match = content.match(counterRegex);
-            
-            if (!match) {
-                console.error(`Could not find counter with ID ${counterId}`);
-                return content;
-            }
-            
-            // Increment the counter
-            const currentCount = parseInt(match[1]);
-            const newCount = currentCount + 1;
-            
-            // Replace the counter value
-            return content.replace(counterRegex, `id="${counterId}">${newCount}<`);
-        }
-
-        // Function to add a new submission container
-        function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
-            console.log(`Adding new submission container for ${subject}, test type: ${testType}`);
-            
-            // Look for the submissions div
-            const submissionsRegex = new RegExp(`<div class="submissions[^"]*" id="submissions-${testType.toLowerCase()}-[^"]+">[\\s\\S]*?<\\/div>`);
-            const match = content.match(submissionsRegex);
-            
-            if (!match) {
-                console.error(`Could not find submissions container for ${testType}`);
-                return content;
-            }
-            
-            // Get the matched content
-            const submissionsDiv = match[0];
-            
-            // See if it has the "no submissions" placeholder
-            if (submissionsDiv.includes('no-submissions')) {
-                // Replace the entire div including the placeholder
-                const newDiv = `<div class="submissions${testType === 'FRQ' ? ' active' : ''}" id="${containerId}">
-                    ${submissionHTML}
-                        </div>`;
-                return content.replace(submissionsDiv, newDiv);
-            } else {
-                // Just add our submission to the existing container
-                const closingTag = '</div>';
-                const insertPosition = submissionsDiv.lastIndexOf(closingTag);
-                
-                const newContent = submissionsDiv.slice(0, insertPosition) + 
-                                   submissionHTML + 
-                                   submissionsDiv.slice(insertPosition);
-                
-                return content.replace(submissionsDiv, newContent);
-            }
-        }
-
-        // Function to add a submission to an existing container
-        function addToSubmissionContainer(content, containerId, submissionHTML) {
-            console.log(`Adding submission to existing container ${containerId}`);
-            
-            // Find the container
-            const regex = new RegExp(`<div class="submissions[^"]*" id="${containerId}">[\\s\\S]*?<\\/div>`);
-            const match = content.match(regex);
-            
-            if (!match) {
-                console.error(`Could not find container with ID ${containerId}`);
-                return content;
-            }
-            
-            // Get the matched content
-            const containerDiv = match[0];
-            
-            // Check if it has the "no submissions" placeholder
-            if (containerDiv.includes('no-submissions')) {
-                // Replace the placeholder with our submission
-                const newContainerContent = containerDiv.replace(
-                    /<p class="no-submissions">.*?<\/p>/,
-                    submissionHTML
-                );
-                return content.replace(containerDiv, newContainerContent);
-                } else {
-                // Add our submission at the beginning of the container
-                const insertPosition = containerDiv.indexOf('>') + 1;
-                const newContainerContent = 
-                    containerDiv.slice(0, insertPosition) + 
-                    '\n            ' + submissionHTML + 
-                    containerDiv.slice(insertPosition);
-                
-                return content.replace(containerDiv, newContainerContent);
-            }
-        }
-
+        
         // Helper function to update the JavaScript data in the HTML
         function updateJavaScriptData(content, subject, submission) {
-            // Create a copy of the submission that we can safely serialize
-            const serializableSubmission = JSON.parse(JSON.stringify(submission));
-            
             // This just adds it to localStorage on load
             // Add this after the displayTestCategories() call
             const script = `
@@ -1872,7 +1844,7 @@
                         s.testType === '${submission.testType}'
                     );
                     if (!exists) {
-                        allSubmissions['${subject}'].push(${JSON.stringify(serializableSubmission)});
+                        allSubmissions['${subject}'].push(${JSON.stringify(submission)});
                         localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
                     }
                 })();
@@ -1880,145 +1852,69 @@
             
             return content.replace('displayTestCategories();', `displayTestCategories();\n        ${script}`);
         }
-
-        // Global function to format submission HTML for display on the results page
-        function formatSubmissionHTML(submission) {
-            try {
-                console.log("Formatting submission HTML for", submission.name);
+        
+        // Helper function to add a new subject category
+        function addSubjectCategory(content, subject, subjectDivId) {
+            const categoryHTML = `
+                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
+                    <h2>${subject}</h2>
+                    <p>0 FRQ submissions, 0 MCQ submissions</p>
+                </div>`;
                 
-                // Default values for MCQ vs FRQ
-                const isMCQ = submission.testType === 'MCQ';
-                const isAnonymous = submission.name.includes('Anonymous');
-                
-                // Start building the HTML for this submission
-                let html = `
-                    <div class="submission-card">
-                        <div class="submission-header">
-                            <h3>${submission.name}</h3>
-                            <span class="submission-time">${new Date(submission.timestamp).toLocaleString()}</span>
-                        </div>
-                        <div class="submission-content">
-                `;
-                
-                // Handle multiple-choice questions differently
-                if (isMCQ) {
-                    html += `<h4>Multiple Choice Answers</h4><div class="mcq-answers">`;
-                    
-                    // Group by tens
-                    const mcqAnswers = [];
-                    const answers = submission.answers;
-                    for (let i = 1; i <= 50; i++) {
-                        const key = `q${i}`;
-                        const answer = answers[key] || "No answer provided";
-                        mcqAnswers.push({ number: i, answer });
-                    }
-                    
-                    // Create chunks of 10 questions
-                    for (let i = 0; i < mcqAnswers.length; i += 10) {
-                        const chunk = mcqAnswers.slice(i, i + 10);
-                        html += `<div class="mcq-group">`;
-                        html += `<h5>Questions ${i + 1}-${i + chunk.length}</h5>`;
-                        html += `<div class="mcq-group-answers">`;
-                        chunk.forEach(q => {
-                            html += `
-                                <div class="mcq-item">
-                                    <span class="mcq-number">${q.number}:</span> 
-                                    <span class="mcq-answer ${q.answer === 'No answer provided' ? 'no-answer' : ''}">${q.answer}</span>
-                                </div>
-                            `;
-                        });
-                        html += `</div></div>`;
-                    }
-                    
-                    html += `</div>`;
-                } else {
-                    // Handle free-response questions
-                    html += `<h4>Free Response Answers</h4><div class="frq-answers">`;
-                    
-                    // Sort the answers by their question numbers
-                    const textAnswers = Object.entries(submission.answers)
-                        .filter(([key]) => key !== 'canvas_data')
-                        .sort((a, b) => {
-                            // Extract numbers from keys to sort numerically
-                            const numA = parseInt(a[0].replace(/\D/g, '')) || 0;
-                            const numB = parseInt(b[0].replace(/\D/g, '')) || 0;
-                            return numA - numB;
-                        });
-                    
-                    textAnswers.forEach(([key, value]) => {
-                        const questionNum = key.replace(/\D/g, '');
-                        html += `
-                            <div class="frq-item">
-                                <div class="frq-number">Answer ${questionNum}</div>
-                                <div class="frq-answer ${value === 'No answer provided' ? 'no-answer' : ''}">
-                                    ${value.replace(/\n/g, '<br>')}
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += `</div>`;
-                }
-                
-                // Add canvas drawings if they exist
-                if (submission.answers.canvas_data && Object.keys(submission.answers.canvas_data).length > 0) {
-                    html += `<h4>Drawings</h4><div class="canvas-drawings">`;
-                    
-                    Object.entries(submission.answers.canvas_data).forEach(([name, dataUrl]) => {
-                        let displayName = name;
-                        switch(name) {
-                            case 'positionGraph': displayName = 'Position vs. Time Graph'; break;
-                            case 'velocityGraph': displayName = 'Velocity vs. Time Graph'; break;
-                            case 'gridGraph': displayName = 'Data Grid'; break;
-                            case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
-                            case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
-                            default: displayName = name.replace(/([A-Z])/g, ' $1').trim();
-                        }
-                        
-                        html += `<div class="canvas-item">
-                            <div class="canvas-name">${displayName}</div>`;
-                        
-                        if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
-                            // It's an actual image
-                            html += `<div class="canvas-image">
-                                <img src="${dataUrl}" alt="${displayName}" onclick="zoomImage(this)" />
-                            </div>`;
-                        } else {
-                            // It's a message
-                            html += `<div class="canvas-message">${dataUrl}</div>`;
-                        }
-                        
-                        html += `</div>`;
-                    });
-                    
-                    html += `</div>`;
-                }
-                
-                // Close the submission
-                html += `
-                        </div>
-                    </div>
-                `;
-                
-                console.log("Formatted HTML generated successfully");
-                return html;
-            } catch (error) {
-                console.error("Error formatting submission HTML:", error);
-                return `
-                    <div class="submission-card error">
-                        <div class="submission-header">
-                            <h3>${submission.name || 'Unknown User'}</h3>
-                            <span class="submission-time">${new Date(submission.timestamp || new Date()).toLocaleString()}</span>
-                        </div>
-                        <div class="submission-content">
-                            <p class="error-message">Error displaying submission: ${error.message}</p>
-                        </div>
-                    </div>
-                `;
-            }
+            return content.replace('<div class="test-selection-container" id="testCategories">', 
+                `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
         }
-
-        // Test selection handling
+        
+        // Helper function to update the counter for a subject
+        function updateSubjectCounter(content, subject, subjectDivId, testType) {
+            const regex = new RegExp(`<div class="test-category" id="${subjectDivId}"[^>]*>[\\s\\S]*?<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                let frqCount = parseInt(match[1]);
+                let mcqCount = parseInt(match[2]);
+                
+                if (testType === 'FRQ') {
+                    frqCount++;
+                } else {
+                    mcqCount++;
+                }
+                
+                return content.replace(
+                    `<p>${match[1]} FRQ submissions, ${match[2]} MCQ submissions</p>`,
+                    `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
+                );
+            }
+            
+            return content;
+        }
+        
+        // Helper function to add a new submission container for a subject/type
+        function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
+            const containerHTML = `
+                <div id="${containerId}" class="submission-type-container">
+                    <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
+                    ${submissionHTML}
+                </div>`;
+            
+            return content.replace('<div class="submissions-container" id="submissionsContainer">', 
+                `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
+        }
+        
+        // Helper function to add a submission to an existing container
+        function addToSubmissionContainer(content, containerId, submissionHTML) {
+            const regex = new RegExp(`<div id="${containerId}" class="submission-type-container">[\\s\\S]*?<h3>[^<]*</h3>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                return content.replace(
+                    match[0],
+                    `${match[0]}\n                    ${submissionHTML}`
+                );
+            }
+            
+            return content;
+        }
     </script>
 </body>
 </html> 

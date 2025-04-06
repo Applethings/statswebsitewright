@@ -349,7 +349,7 @@
             }
         });
 
-        document.getElementById('submitBtn').addEventListener('click', function() {
+        document.getElementById('submitBtn').addEventListener('click', () => {
             const answerData = {};
             
             // Collect all answers including unanswered questions
@@ -368,79 +368,65 @@
                 }
             }
             
-            // Create a modal directly in the DOM rather than creating it dynamically
-            const modalDiv = document.createElement('div');
-            modalDiv.style.position = 'fixed';
-            modalDiv.style.top = '0';
-            modalDiv.style.left = '0';
-            modalDiv.style.width = '100%';
-            modalDiv.style.height = '100%';
-            modalDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-            modalDiv.style.zIndex = '1000';
-            modalDiv.style.display = 'flex';
-            modalDiv.style.justifyContent = 'center';
-            modalDiv.style.alignItems = 'center';
+            const submissionModal = document.createElement('div');
+            submissionModal.className = 'modal';
+            submissionModal.style.display = 'block';
+            submissionModal.style.position = 'fixed';
+            submissionModal.style.top = '0';
+            submissionModal.style.left = '0';
+            submissionModal.style.width = '100%';
+            submissionModal.style.height = '100%';
+            submissionModal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            submissionModal.style.zIndex = '1000';
             
             const modalContent = document.createElement('div');
             modalContent.style.backgroundColor = 'rgba(0, 0, 32, 0.95)';
+            modalContent.style.margin = '15% auto';
             modalContent.style.padding = '20px';
-            modalContent.style.borderRadius = '10px';
+            modalContent.style.border = '1px solid #888';
             modalContent.style.width = '80%';
             modalContent.style.maxWidth = '500px';
+            modalContent.style.borderRadius = '10px';
             modalContent.style.color = 'white';
             
             modalContent.innerHTML = `
                 <h3>Submit Your Test</h3>
                 <p>Please enter your name or choose to submit anonymously:</p>
-                <input type="text" id="modalName" placeholder="Your Name" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; background-color: rgba(255, 255, 255, 0.1); color: white;">
+                <input type="text" id="submitterName" placeholder="Your Name" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; background-color: rgba(255, 255, 255, 0.1); color: white;">
                 <div style="display: flex; justify-content: space-between; margin-top: 20px; gap: 10px;">
-                    <button id="modalAnonymous" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #666; color: white;">Submit Anonymously</button>
-                    <button id="modalWithName" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #004d00; color: white;">Submit with Name</button>
-                    <button id="modalCancel" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #660000; color: white;">Cancel</button>
+                    <button id="submitAnonymous" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #666; color: white;">Submit Anonymously</button>
+                    <button id="submitWithName" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #004d00; color: white;">Submit with Name</button>
+                    <button id="cancelSubmit" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #660000; color: white;">Cancel</button>
                 </div>
             `;
             
-            modalDiv.appendChild(modalContent);
-            document.body.appendChild(modalDiv);
+            document.body.appendChild(submissionModal);
             
-            // Get references to elements after they're in the DOM
-            const modalName = document.getElementById('modalName');
-            const modalAnonymous = document.getElementById('modalAnonymous');
-            const modalWithName = document.getElementById('modalWithName');
-            const modalCancel = document.getElementById('modalCancel');
-            
-            // Handle anonymous submission
-            modalAnonymous.addEventListener('click', function() {
+            // Handle submission buttons
+            document.getElementById('submitAnonymous').addEventListener('click', () => {
                 submitTest(true, answerData);
-                document.body.removeChild(modalDiv);
+                document.body.removeChild(submissionModal);
             });
             
-            // Handle named submission
-            modalWithName.addEventListener('click', function() {
-                const name = modalName.value.trim();
+            document.getElementById('submitWithName').addEventListener('click', () => {
+                const name = document.getElementById('submitterName').value.trim();
                 if (!name) {
                     alert('Please enter your name or choose to submit anonymously.');
                     return;
                 }
                 submitTest(false, answerData, name);
-                document.body.removeChild(modalDiv);
+                document.body.removeChild(submissionModal);
             });
             
-            // Handle cancel
-            modalCancel.addEventListener('click', function() {
-                document.body.removeChild(modalDiv);
+            document.getElementById('cancelSubmit').addEventListener('click', () => {
+                document.body.removeChild(submissionModal);
             });
         });
 
         function submitTest(isAnonymous, answers, providedName) {
             try {
-                console.log("Starting test submission process");
-                
                 // Use the provided name if available, otherwise get it from the input field
-                const userName = isAnonymous ? 'Anonymous' : (providedName || document.getElementById('modalName')?.value?.trim() || "Unknown User");
-                
-                console.log("Submitting test for user:", userName);
-                console.log("Answers:", Object.keys(answers).length, "items");
+                const userName = isAnonymous ? 'Anonymous' : (providedName || document.getElementById('submitterName').value.trim());
                 
                 // Create a payload with minimal data first
                 const payload = {
@@ -472,8 +458,6 @@
                 // The webhook URL
                 const webhookURL = "https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa";
                 
-                console.log("Sending initial payload to Discord webhook");
-                
                 // Use fetch with plain JSON payload
                 fetch(webhookURL, {
                     method: 'POST',
@@ -486,65 +470,63 @@
                     console.log("Webhook response status:", response.status);
                     
                     if (response.ok) {
-                        console.log("Initial payload sent successfully, sending answers");
                         // Send the answers as additional messages
-                        return sendMCQAnswers(userName, answers, webhookURL);
-                    } else {
-                        return response.text().then(text => {
-                            console.error("Error response:", text);
-                            throw new Error('There was an error submitting your test. Please try again.');
-                        });
-                    }
-                })
-                .then(() => {
-                    console.log("All messages sent successfully, creating submission object");
-                    // Store the submission locally for possible GitHub publishing
+                        sendMCQAnswers(userName, answers, webhookURL)
+                            .then(() => {
+                                // Store the submission locally for possible GitHub publishing
             const submission = {
                 testType: 'MCQ',
-                        testId: 'physics1testmcq',
+                                    testId: 'physics1testmcq',
                 timestamp: new Date().toISOString(),
-                        name: userName,
+                                    name: userName,
                 answers: answers
-                    };
-                    
-                    // Store the current submission temporarily
-                    sessionStorage.setItem('lastSubmission', JSON.stringify(submission));
-                    
-                    alert('Your test has been submitted successfully! You can now publish it to GitHub if you wish.');
-                    
-                    // Show a button to publish to GitHub
-                    if (!document.getElementById('publishBtn')) {
-                        const publishButton = document.createElement('button');
-                        publishButton.className = 'nav-button';
-                        publishButton.id = 'publishBtn';
-                        publishButton.textContent = 'Publish to GitHub';
-                        publishButton.style.backgroundColor = '#004d00';
-                        publishButton.style.marginLeft = '20px';
-                        
-                        publishButton.addEventListener('click', function() {
-                            const lastSubmission = JSON.parse(sessionStorage.getItem('lastSubmission'));
-                            if (lastSubmission) {
-                                publishToGitHub(lastSubmission);
-                            } else {
-                                alert('No submission available to publish.');
-                            }
-                        });
-                        
-                        // Add the button to the navigation section
-                        document.querySelector('.navigation').appendChild(publishButton);
+                                };
+                                
+                                // Store the current submission temporarily
+                                sessionStorage.setItem('lastSubmission', JSON.stringify(submission));
+                                
+                                alert('Your test has been submitted successfully! You can now publish it to GitHub if you wish.');
+                                
+                                // Show a button to publish to GitHub
+                                if (!document.getElementById('publishBtn')) {
+                                    const publishButton = document.createElement('button');
+                                    publishButton.className = 'nav-button';
+                                    publishButton.id = 'publishBtn';
+                                    publishButton.textContent = 'Publish to GitHub';
+                                    publishButton.style.backgroundColor = '#004d00';
+                                    publishButton.style.marginLeft = '20px';
+                                    
+                                    publishButton.addEventListener('click', function() {
+                                        const lastSubmission = JSON.parse(sessionStorage.getItem('lastSubmission'));
+                                        if (lastSubmission) {
+                                            publishToGitHub(lastSubmission);
+                                        } else {
+                                            alert('No submission available to publish.');
+                                        }
+                                    });
+                                    
+                                    // Add the button to the navigation section
+                                    document.querySelector('.navigation').appendChild(publishButton);
+                                } else {
+                                    // If button exists, make sure it's visible
+                                    document.getElementById('publishBtn').style.display = 'inline-block';
+                                }
+                            });
                     } else {
-                        // If button exists, make sure it's visible
-                        document.getElementById('publishBtn').style.display = 'inline-block';
+                        response.text().then(text => {
+                            console.error("Error response:", text);
+                            alert('There was an error submitting your test. Please try again.');
+                        });
                     }
                 })
                 .catch(error => {
-                    console.error('Error during submission process:', error);
-                    alert(`Error: ${error.message || 'There was an error submitting your test. Please try again.'}`);
+                    console.error('Error submitting test:', error);
+                    alert('There was an error submitting your test. Please try again.');
                 });
                 
             } catch (error) {
                 console.error("Unexpected error in submission process:", error);
-                alert(`An unexpected error occurred: ${error.message || 'Please try again.'}`);
+                alert('An unexpected error occurred. Please try again.');
             }
         }
 
@@ -725,40 +707,19 @@
                 allSubmissions[subject].push(submission);
             localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
 
-                console.log("Starting GitHub publication process");
-                console.log("Submission details:", {
-                    type: submission.testType,
-                    id: submission.testId,
-                    name: submission.name,
-                    answerCount: Object.keys(submission.answers || {}).length
-                });
-
-                try {
-                    // Directly update the test-results.html file
-                    updateTestResultsHTML(owner, repo, token, submission)
-                        .then(result => {
-                            if (result.success) {
-                                alert('Your submission has been published and can now be viewed on the Results page!');
-                                document.body.removeChild(publishModal);
-                                
-                                // Optionally redirect to the test results page
-                                if (confirm('Would you like to view your submission on the results page?')) {
+                // Directly update the test-results.html file
+                updateTestResultsHTML(owner, repo, token, submission)
+                    .then(result => {
+                        if (result.success) {
+                            alert('Your submission has been published and can now be viewed on the Results page!');
+                            document.body.removeChild(publishModal);
+                            
+                            // Optionally redirect to the test results page
+                            if (confirm('Would you like to view your submission on the results page?')) {
             window.location.href = 'test-results.html';
-                                }
                             }
-                        })
-                        .catch(error => {
-                            console.error("GitHub publishing error:", error);
-                            alert(`Error publishing to GitHub: ${error.message}`);
-                            document.getElementById('confirmPublish').textContent = 'Publish Submission';
-                            document.getElementById('confirmPublish').disabled = false;
-                        });
-                } catch (error) {
-                    console.error("Unexpected error in publication process:", error);
-                    alert(`An unexpected error occurred: ${error.message}`);
-                    document.getElementById('confirmPublish').textContent = 'Publish Submission';
-                    document.getElementById('confirmPublish').disabled = false;
-                }
+                        }
+                    });
             });
             
             document.getElementById('cancelPublish').addEventListener('click', function() {
@@ -773,47 +734,9 @@
             });
         }
 
-        // Function to handle zooming in on images when clicked
-        function zoomImage(img) {
-            // Create a modal for the zoomed image
-            const modal = document.createElement('div');
-            modal.style.position = 'fixed';
-            modal.style.top = '0';
-            modal.style.left = '0';
-            modal.style.width = '100%';
-            modal.style.height = '100%';
-            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
-            modal.style.zIndex = '1000';
-            modal.style.display = 'flex';
-            modal.style.justifyContent = 'center';
-            modal.style.alignItems = 'center';
-            modal.style.cursor = 'pointer';
-            
-            // Create the zoomed image
-            const zoomedImg = document.createElement('img');
-            zoomedImg.src = img.src;
-            zoomedImg.style.maxWidth = '90%';
-            zoomedImg.style.maxHeight = '90%';
-            zoomedImg.style.objectFit = 'contain';
-            zoomedImg.style.border = '2px solid white';
-            
-            // Add click event to close the modal
-            modal.onclick = function() {
-                document.body.removeChild(modal);
-            };
-            
-            // Add the image to the modal and the modal to the body
-            modal.appendChild(zoomedImg);
-            document.body.appendChild(modal);
-        }
-        
-        // Add the zoomImage function to the window object for access from the HTML
-        window.zoomImage = zoomImage;
-
         // Function to directly update the test-results.html file with the submission
         async function updateTestResultsHTML(owner, repo, token, submission) {
             try {
-                console.log("Starting updateTestResultsHTML process");
                 const filePath = 'test-results.html';
                 
                 // First, fetch the current content of the file
@@ -842,35 +765,10 @@
                 // Determine if it's FRQ or MCQ
                 const testType = submission.testType;
                 
-                // Debug canvas data if it exists
-                if (submission.answers && submission.answers.canvas_data) {
-                    console.log("Canvas data found, keys:", Object.keys(submission.answers.canvas_data));
-                    
-                    // Make a deep copy to avoid circular reference issues
-                    const submissionCopy = JSON.parse(JSON.stringify(submission));
-                    
-                    // Ensure canvas URLs are properly formatted
-                    if (submissionCopy.answers.canvas_data) {
-                        Object.keys(submissionCopy.answers.canvas_data).forEach(key => {
-                            const value = submissionCopy.answers.canvas_data[key];
-                            if (typeof value === 'string' && !value.startsWith('data:image/')) {
-                                // If it's not a proper data URL, remove it
-                                delete submissionCopy.answers.canvas_data[key];
-                            }
-                        });
-                    }
-                    
-                    // Use the sanitized copy instead
-                    submission = submissionCopy;
-                }
-                
                 // Format the submission data for display
-                console.log("Calling formatSubmissionHTML from updateTestResultsHTML");
-                const submissionHTML = window.formatSubmissionHTML(submission);
-                console.log("Got submission HTML:", submissionHTML.substring(0, 100) + "...");
+                const submissionHTML = formatSubmissionHTML(submission);
                 
                 // Update the JavaScript data structure
-                console.log("Updating JavaScript data");
                 let updatedContent = updateJavaScriptData(content, subject, submission);
                 
                 // Update the display containers
@@ -879,11 +777,9 @@
                 // Find or create the container for this subject
                 if (!updatedContent.includes(`id="${subjectDivId}"`)) {
                     // Subject doesn't exist yet, add it to the test categories
-                    console.log(`Adding subject category: ${subject}`);
                     updatedContent = addSubjectCategory(updatedContent, subject, subjectDivId);
                 } else {
                     // Update the counter for the subject
-                    console.log(`Updating counter for: ${subject}`);
                     updatedContent = updateSubjectCounter(updatedContent, subject, subjectDivId, testType);
                 }
                 
@@ -891,11 +787,9 @@
                 const containerId = `submissions-${testType.toLowerCase()}-${subjectDivId}`;
                 if (!updatedContent.includes(`id="${containerId}"`)) {
                     // Container doesn't exist, create it
-                    console.log(`Creating submission container: ${containerId}`);
                     updatedContent = addSubmissionContainer(updatedContent, containerId, submissionHTML, subject, testType);
                 } else {
                     // Container exists, add to it
-                    console.log(`Adding to submission container: ${containerId}`);
                     updatedContent = addToSubmissionContainer(updatedContent, containerId, submissionHTML);
                 }
                 
@@ -928,7 +822,8 @@
                 return { success: true };
             } catch (error) {
                 console.error('Error updating test-results.html:', error);
-                throw new Error(`Error publishing to GitHub: ${error.message}`);
+                alert(`Error publishing to GitHub: ${error.message}`);
+                return { success: false, error: error.message };
             }
         }
         
@@ -945,119 +840,176 @@
             }
         }
         
+        // Helper function to format a submission as HTML
+        function formatSubmissionHTML(submission) {
+            const formattedDate = new Date(submission.timestamp).toLocaleString();
+            
+            let answersHTML = '';
+            
+            if (submission.testType === 'MCQ') {
+                // Format MCQ answers
+                answersHTML = Object.entries(submission.answers)
+                    .sort((a, b) => {
+                        const numA = parseInt(a[0].replace('question_', '')) || 0;
+                        const numB = parseInt(b[0].replace('question_', '')) || 0;
+                        return numA - numB;
+                    })
+                    .map(([key, value]) => `
+                        <div class="answer">
+                            <strong>Question ${key.replace('question_', '')}:</strong>
+                            <p>${value || '(Not answered)'}</p>
+                        </div>
+                    `).join('');
+            } else {
+                // Format FRQ answers
+                const textAnswers = Object.entries(submission.answers)
+                    .filter(([key]) => key !== 'canvas_data')
+                    .sort((a, b) => {
+                        const numA = parseInt(a[0].replace('answer_', '')) || 0;
+                        const numB = parseInt(b[0].replace('answer_', '')) || 0;
+                        return numA - numB;
+                    })
+                    .map(([key, value]) => `
+                        <div class="answer">
+                            <strong>Answer ${key.replace('answer_', '')}:</strong>
+                            <p>${value || '(No answer provided)'}</p>
+                        </div>
+                    `).join('');
+                
+                let canvasHTML = '';
+                if (submission.answers.canvas_data) {
+                    canvasHTML = `
+                        <div class="canvas-container">
+                            <h4>Drawings:</h4>
+                            <div class="canvas-grid">
+                                ${Object.entries(submission.answers.canvas_data)
+                                    .filter(([key, value]) => typeof value === 'string' && value.startsWith('data:image/'))
+                                    .map(([key, value]) => {
+                                        let displayName = key;
+                                        switch(key) {
+                                            case 'positionGraph': displayName = 'Position vs. Time'; break;
+                                            case 'velocityGraph': displayName = 'Velocity vs. Time'; break;
+                                            case 'gridGraph': displayName = 'Data Grid'; break;
+                                            case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
+                                            case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
+                                            default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
+                                        }
+                                        return `
+                                            <div class="canvas-item">
+                                                <img src="${value}" alt="${displayName}" onclick="zoomImage(this)" style="max-width: 100%; border: 1px solid #ccc;">
+                                                <div class="canvas-label">${displayName}</div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                answersHTML = textAnswers + canvasHTML;
+            }
+            
+            return `
+                <div class="submission" data-timestamp="${submission.timestamp}">
+                    <div class="submission-header">
+                        <div class="submitter">Submitted by: ${submission.name}</div>
+                        <div>
+                            <span class="timestamp">Date: ${formattedDate}</span>
+                        </div>
+                    </div>
+                    ${answersHTML}
+                </div>
+            `;
+        }
+        
         // Helper function to update the JavaScript data in the HTML
         function updateJavaScriptData(content, subject, submission) {
-            try {
-                // This just adds it to localStorage on load
-                // Add this after the displayTestCategories() call
-                const script = `
-                // Add newest submission to localStorage
-                (function() {
-                    let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
-                    if (!allSubmissions['${subject}']) {
-                        allSubmissions['${subject}'] = [];
-                    }
-                    // Check if submission already exists
-                    const exists = allSubmissions['${subject}'].some(s => 
-                        s.name === '${submission.name}' && 
-                        s.timestamp === '${submission.timestamp}' &&
-                        s.testType === '${submission.testType}'
-                    );
-                    if (!exists) {
-                        allSubmissions['${subject}'].push(${JSON.stringify(submission)});
-                        localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
-                    }
-                })();
-                `;
-                
-                return content.replace('displayTestCategories();', `displayTestCategories();\n        ${script}`);
-            } catch (err) {
-                console.error("Error in updateJavaScriptData:", err);
-                throw new Error(`Failed to update JavaScript data: ${err.message}`);
-            }
+            // This just adds it to localStorage on load
+            // Add this after the displayTestCategories() call
+            const script = `
+            // Add newest submission to localStorage
+            (function() {
+                let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                if (!allSubmissions['${subject}']) {
+                    allSubmissions['${subject}'] = [];
+                }
+                // Check if submission already exists
+                const exists = allSubmissions['${subject}'].some(s => 
+                    s.name === '${submission.name}' && 
+                    s.timestamp === '${submission.timestamp}' &&
+                    s.testType === '${submission.testType}'
+                );
+                if (!exists) {
+                    allSubmissions['${subject}'].push(${JSON.stringify(submission)});
+                    localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                }
+            })();
+            `;
+            
+            return content.replace('displayTestCategories();', `displayTestCategories();\n        ${script}`);
         }
         
         // Helper function to add a new subject category
         function addSubjectCategory(content, subject, subjectDivId) {
-            try {
-                const categoryHTML = `
-                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
-                    <h2>${subject}</h2>
-                    <p>0 FRQ submissions, 0 MCQ submissions</p>
-                </div>`;
-                
-                return content.replace('<div class="test-selection-container" id="testCategories">', 
-                    `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
-            } catch (err) {
-                console.error("Error in addSubjectCategory:", err);
-                throw new Error(`Failed to add subject category: ${err.message}`);
-            }
+            const categoryHTML = `
+            <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
+                <h2>${subject}</h2>
+                <p>0 FRQ submissions, 0 MCQ submissions</p>
+            </div>`;
+            
+            return content.replace('<div class="test-selection-container" id="testCategories">', 
+                `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
         }
         
         // Helper function to update the counter for a subject
         function updateSubjectCounter(content, subject, subjectDivId, testType) {
-            try {
-                const regex = new RegExp(`<div class="test-category" id="${subjectDivId}"[^>]*>[\\s\\S]*?<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
-                const match = content.match(regex);
+            const regex = new RegExp(`<div class="test-category" id="${subjectDivId}"[^>]*>[\\s\\S]*?<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                let frqCount = parseInt(match[1]);
+                let mcqCount = parseInt(match[2]);
                 
-                if (match) {
-                    let frqCount = parseInt(match[1]);
-                    let mcqCount = parseInt(match[2]);
-                    
-                    if (testType === 'FRQ') {
-                        frqCount++;
-                    } else {
-                        mcqCount++;
-                    }
-                    
-                    return content.replace(
-                        `<p>${match[1]} FRQ submissions, ${match[2]} MCQ submissions</p>`,
-                        `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
-                    );
+                if (testType === 'FRQ') {
+                    frqCount++;
+                } else {
+                    mcqCount++;
                 }
                 
-                return content;
-            } catch (err) {
-                console.error("Error in updateSubjectCounter:", err);
-                throw new Error(`Failed to update subject counter: ${err.message}`);
+                return content.replace(
+                    `<p>${match[1]} FRQ submissions, ${match[2]} MCQ submissions</p>`,
+                    `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
+                );
             }
+            
+            return content;
         }
         
         // Helper function to add a new submission container for a subject/type
         function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
-            try {
-                const containerHTML = `
-                <div id="${containerId}" class="submission-type-container">
-                    <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
-                    ${submissionHTML}
-                </div>`;
-                
-                return content.replace('<div class="submissions-container" id="submissionsContainer">', 
-                    `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
-            } catch (err) {
-                console.error("Error in addSubmissionContainer:", err);
-                throw new Error(`Failed to add submission container: ${err.message}`);
-            }
+            const containerHTML = `
+            <div id="${containerId}" class="submission-type-container">
+                <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
+                ${submissionHTML}
+            </div>`;
+            
+            return content.replace('<div class="submissions-container" id="submissionsContainer">', 
+                `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
         }
         
         // Helper function to add a submission to an existing container
         function addToSubmissionContainer(content, containerId, submissionHTML) {
-            try {
-                const regex = new RegExp(`<div id="${containerId}" class="submission-type-container">[\\s\\S]*?<h3>[^<]*</h3>`);
-                const match = content.match(regex);
-                
-                if (match) {
-                    return content.replace(
-                        match[0],
-                        `${match[0]}\n                    ${submissionHTML}`
-                    );
-                }
-                
-                return content;
-            } catch (err) {
-                console.error("Error in addToSubmissionContainer:", err);
-                throw new Error(`Failed to add to submission container: ${err.message}`);
+            const regex = new RegExp(`<div id="${containerId}" class="submission-type-container">[\\s\\S]*?<h3>[^<]*</h3>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                return content.replace(
+                    match[0],
+                    `${match[0]}\n                    ${submissionHTML}`
+                );
             }
+            
+            return content;
         }
     </script>
 </body>
