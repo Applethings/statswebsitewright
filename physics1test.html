@@ -36,19 +36,15 @@
         .navigation {
             position: fixed;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
             display: flex;
             gap: 20px;
-            background-color: rgba(0, 0, 32, 0.8);
+            background-color: rgba(0, 0, 32, 0.4);
             padding: 10px 20px;
             border-radius: 5px;
             backdrop-filter: blur(5px);
-            z-index: 999;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         .nav-button {
-            background-color: rgba(0, 0, 128, 0.7);
+            background-color: rgba(0, 0, 128, 0.3);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -56,11 +52,9 @@
             font-size: 16px;
             border-radius: 5px;
             transition: background-color 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .nav-button:hover {
-            background-color: rgba(0, 0, 128, 0.9);
-            transform: translateY(-2px);
+            background-color: rgba(0, 0, 128, 0.5);
         }
         .back-button {
             position: fixed;
@@ -86,7 +80,6 @@
         .page-number {
             color: white;
             margin: 0 20px;
-            font-weight: bold;
         }
         .question-image {
             max-width: 100%;
@@ -228,67 +221,52 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.7);
             z-index: 1000;
-            /* Flex properties for centering when displayed */
-            justify-content: center;
-            align-items: center;
         }
         .modal-content {
             background-color: rgba(0, 0, 32, 0.95);
-            padding: 25px;
+            margin: 15% auto;
+            padding: 20px;
             border: 1px solid #888;
-            width: 90%;
+            width: 80%;
             max-width: 500px;
             border-radius: 10px;
             color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .modal-input {
             width: 100%;
-            padding: 12px;
-            margin: 15px 0;
-            border: 1px solid #444;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
             border-radius: 5px;
             background-color: rgba(255, 255, 255, 0.1);
             color: white;
-            font-size: 16px;
         }
         .modal-buttons {
             display: flex;
             justify-content: space-between;
-            margin-top: 25px;
-            gap: 15px;
+            margin-top: 20px;
+            gap: 10px;
         }
         .modal-button {
-            padding: 12px 20px;
+            padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            background-color: rgba(0, 0, 128, 0.7);
+            background-color: rgba(0, 0, 128, 0.5);
             color: white;
             transition: background-color 0.3s;
-            font-size: 16px;
-            flex: 1;
         }
         .modal-button:hover {
-            background-color: rgba(0, 0, 128, 1);
+            background-color: rgba(0, 0, 128, 0.8);
         }
         #submitAnonymous {
-            background-color: #555;
-        }
-        #submitAnonymous:hover {
-            background-color: #777;
+            background-color: #666;
         }
         #submitWithName {
-            background-color: #085;
-        }
-        #submitWithName:hover {
-            background-color: #0a7;
+            background-color: #004d00;
         }
         #cancelSubmit {
-            background-color: #900;
-        }
-        #cancelSubmit:hover {
-            background-color: #b00;
+            background-color: #660000;
         }
         .test-list {
             max-height: 400px;
@@ -316,19 +294,17 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-button">← Back to Home</a>
-    <div class="content test-container">
+    <a href="physics1.html" class="back-button">Back</a>
+    
+    <div class="content">
         <div class="page active" id="page1">
-            <h1>AP Physics 1 2023 Free Response Questions</h1>
+            <h1>AP Physics 1 2023 Free-Response Questions</h1>
             <h2>Section II</h2>
             <h3>Time—1 hour and 30 minutes</h3>
-            <p>No calculators allowed.</p>
+            <h3>5 Questions</h3>
+            <br>
+            <h3>Directions:</h3>
             <p>Questions 1, 4, and 5 are short free-response questions that require about 13 minutes each to answer and are worth 7 points each. Questions 2 and 3 are long free-response questions that require about 25 minutes each to answer and are worth 12 points each. Show your work for each part in the space provided after that part.</p>
-            <p>This section contains two long free-response questions and three short free-response questions.</p>
-            <p>The questions are organized into pages. Use the navigation buttons at the bottom of the screen to move between pages.</p>
-            <p>When you are ready to submit your answers, click the "Submit Test" button.</p>
-            <p>For questions with multiple parts, make sure to answer all parts. All diagrams are not necessarily drawn to scale.</p>
-            <p>Press the "Next" button below to begin the test.</p>
         </div>
         
         <div class="page" id="page2">
@@ -339,26 +315,22 @@
             <img src="images/image1.png" alt="Physics problem diagram" class="question-image">
             <div class="sub-question">
                 <p>(a) On the graph of kinetic energy <span class="math">K</span> versus potential energy <span class="math">U</span> shown in Figure 2, the values for the <span class="math">x</span>-intercept and <span class="math">y</span>-intercept are the same. Briefly explain why this is true, using physics principles.</p>
-                <textarea class="answer-space" data-id="answer_1a" placeholder="Enter your answer here..."></textarea>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
             </div>
             <div class="sub-question">
                 <p>(b) When the cart is at <span class="math">+L</span> and momentarily at rest, a block is dropped onto the cart, as shown in Figure 3. The block sticks to the cart, and the block-cart-spring system continues to oscillate between <span class="math">-L</span> and <span class="math">+L</span>. The masses of the cart and the block are <span class="math">m₀</span> and <span class="math">3m₀</span>, respectively. The frequency of oscillation before the block is dropped onto the cart is <span class="math">f₁</span>. The frequency of oscillation after the block is dropped onto the cart is <span class="math">f₂</span>. Calculate the numerical value of the ratio <span class="math">f₂/f₁</span>.</p>
-                <textarea class="answer-space long-answer-space" data-id="answer_1b" placeholder="Enter your answer here..."></textarea>
+                <textarea class="answer-space long-answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(c) The dashed line in Figure 4 shows the kinetic energy <span class="math">K</span> versus potential energy <span class="math">U</span> of the block-cart-spring system after the block is dropped onto the cart. This graph is identical to the graph shown in Figure 2 for the cart-spring system before the block is dropped onto the cart.</p>
+                <p>i. Briefly explain why the two graphs must be the same, using physics principles.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. After the block is dropped onto the cart, consider a system that consists only of the cart and the spring. On Figure 4, sketch a solid line that shows the kinetic energy of the system that consists of the cart and the spring but not the block after the block is dropped onto the cart.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
             </div>
         </div>
 
         <div class="page" id="page3">
-            <h2>Question 1 (continued)</h2>
-            <div class="sub-question">
-                <p>(c) The dashed line in Figure 4 shows the kinetic energy <span class="math">K</span> versus potential energy <span class="math">U</span> of the block-cart-spring system after the block is dropped onto the cart. This graph is identical to the graph shown in Figure 2 for the cart-spring system before the block is dropped onto the cart.</p>
-                <p>i. Briefly explain why the two graphs must be the same, using physics principles.</p>
-                <textarea class="answer-space" data-id="answer_1ci" placeholder="Enter your answer here..."></textarea>
-                <p>ii. After the block is dropped onto the cart, consider a system that consists only of the cart and the spring. On Figure 4, sketch a solid line that shows the kinetic energy of the system that consists of the cart and the spring but not the block after the block is dropped onto the cart.</p>
-                <textarea class="answer-space" data-id="answer_1cii" placeholder="Enter your answer here..."></textarea>
-            </div>
-        </div>
-
-        <div class="page" id="page4">
             <h2>Question 2 (12 points)</h2>
             <div class="question-text">
                 <p>Students conduct an experiment to determine the acceleration <span class="math">a</span> of a cart. The cart is released from rest at the top of the ramp at time <span class="math">t = 0</span> and moves down the ramp. The <span class="math">x</span>-axis is defined to be parallel to the ramp with its origin at the top, as shown in the figure. The students collect the data shown in the following table.</p>
@@ -380,7 +352,8 @@
             <div class="sub-question">
                 <p>(a)</p>
                 <p>i. Indicate which quantities could be graphed to yield a straight line whose slope could be used to determine the acceleration <span class="math">a</span> of the cart. You may use the remaining columns in the table, as needed, to record any quantities (including units) that are not already in the table.</p>
-                <textarea class="answer-space short-answer-space" data-id="answer_2ai" placeholder="Enter your answer here..."></textarea>
+                <p>Vertical axis: Horizontal axis: </p>
+                <textarea class="answer-space short-answer-space" placeholder="Enter your answer here..."></textarea>
                 <p>ii. On the following grid, plot the appropriate quantities to create a graph that can be used to determine the acceleration <span class="math">a</span> of the cart as it rolls down the ramp. Clearly scale and label all axes (including units), as appropriate. Draw a straight line that best represents the data.</p>
                 <div class="grid-graph-container">
                     <canvas id="gridGraph" width="500" height="400" class="grid-canvas"></canvas>
@@ -389,34 +362,23 @@
                         <button class="graph-button" onclick="undoGridStroke()">Undo</button>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="page" id="page5">
-            <h2>Question 2 (continued)</h2>
-            <div class="sub-question">
                 <p>iii. Using the line you drew in part (a)(ii), calculate an experimental value for the acceleration <span class="math">a</span> of the cart as it rolls down the ramp.</p>
-                <textarea class="answer-space" data-id="answer_2aiii" placeholder="Enter your answer here..."></textarea>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
             </div>
             <div class="sub-question">
                 <p>(b) The students are asked to determine an experimental value for the acceleration due to gravity <span class="math">g<sub>exp</sub></span> using their data.</p>
                 <p>i. What additional quantities do the students need to measure in order to calculate <span class="math">g<sub>exp</sub></span> from <span class="math">a</span>?</p>
-                <textarea class="answer-space" data-id="answer_2bi" placeholder="Enter your answer here..."></textarea>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
                 <p>ii. Write an expression for the value of <span class="math">g<sub>exp</sub></span> in terms of <span class="math">a</span>.</p>
-                <textarea class="answer-space short-answer-space" data-id="answer_2bii" placeholder="Enter your answer here..."></textarea>
+                <textarea class="answer-space short-answer-space" placeholder="Enter your answer here..."></textarea>
             </div>
             <div class="sub-question">
                 <p>(c) The students calculate the value of <span class="math">g<sub>exp</sub></span> to be significantly lower than the accepted value of 9.8 m/s².</p>
                 <p>i. What is a physical reason, other than friction or air resistance, that could lead to a significant difference in the experimentally determined value of <span class="math">g<sub>exp</sub></span>?</p>
-                <textarea class="answer-space" data-id="answer_2ci" placeholder="Enter your answer here..."></textarea>
-            </div>
-        </div>
-
-        <div class="page" id="page6">
-            <h2>Question 2 (continued)</h2>
-            <div class="sub-question">
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
                 <p>ii. Briefly explain how the physical reason you identified in part (c)(i) would lead to the decrease in the experimentally determined value of <span class="math">g<sub>exp</sub></span>.</p>
-                <textarea class="answer-space" data-id="answer_2cii" placeholder="Enter your answer here..."></textarea>
+                <img src="images/image3.png" alt="Physics problem diagram" class="question-image">
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
             </div>
             <div class="sub-question">
                 <p>(d) The students want to confirm that the acceleration is the same whether the cart rolls up or down the ramp. The students start the cart at the bottom and give the cart a quick push so that it rolls up the ramp and momentarily comes to rest. The <span class="math">x</span>-axis is still defined to be parallel to the ramp with the origin at the top.</p>
@@ -441,152 +403,178 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Add this input field right before the navigation div -->
-    <input type="hidden" id="name" name="name">
-    <input type="hidden" id="student-name" name="student-name">
+        <div class="page" id="page4">
+            <h2>Question 3 (12 points)</h2>
+            <img src="images/image6.png" alt="Physics problem diagram" class="question-image">
+            <div class="question-text">
+                <p>A small block of mass <span class="math">m₀</span> is attached to the end of a spring of spring constant <span class="math">k₀</span> that is attached to a rod on a horizontal table. The rod is attached to a motor so that the rod can rotate at various speeds about its axis. When the rod is not rotating, the block is at rest and the spring is at its unstretched length <span class="math">L</span>, as shown. All frictional forces are negligible.</p>
+            </div>
+            <img src="images/image7.png" alt="Physics problem diagram showing Figure 1 and Figure 2" class="question-image">
+            <div class="sub-question">
+                <p>(a) At time <span class="math">t = t₁</span>, the rod is spinning such that the block moves in a circular path with a constant tangential speed <span class="math">v₁</span> and the spring is stretched a distance <span class="math">d₁</span> from the spring's unstretched length, as shown in Figure 1. At time <span class="math">t = t₂</span>, the rod is spinning such that the block moves in a circular path with a constant tangential speed <span class="math">v₂</span> and the spring is stretched a distance <span class="math">d₂</span> from the spring's unstretched length, where <span class="math">d₂ > d₁</span>, as shown in Figure 2.</p>
+                <p>i. On the following dots, which represent the block at the locations shown in Figure 1 and Figure 2, draw the force that is exerted on the block by the spring at times <span class="math">t = t₁</span> and <span class="math">t = t₂</span>. The spring force must be represented by a distinct arrow starting on, and pointing away from, the dot.</p>
+                <p><em>Note: Draw the relative lengths of the vectors to reflect the relative magnitudes of the forces exerted by the spring at both times.</em></p>
+                <div class="force-diagram-container">
+                    <div>
+                        <canvas id="forceT1" width="200" height="200" class="force-diagram"></canvas>
+                        <div class="diagram-label">t = t₁</div>
+                        <div class="graph-controls">
+                            <button class="graph-button" onclick="clearForceDiagram('forceT1')">Clear</button>
+                            <button class="graph-button" onclick="undoForceStroke('forceT1')">Undo</button>
+                        </div>
+                    </div>
+                    <div>
+                        <canvas id="forceT2" width="200" height="200" class="force-diagram"></canvas>
+                        <div class="diagram-label">t = t₂</div>
+                        <div class="graph-controls">
+                            <button class="graph-button" onclick="clearForceDiagram('forceT2')">Clear</button>
+                            <button class="graph-button" onclick="undoForceStroke('forceT2')">Undo</button>
+                        </div>
+                    </div>
+                </div>
+                <p>ii. Referencing <span class="math">d₁</span> and <span class="math">d₂</span>, describe your reasoning for drawing the arrows the length that you did in part (a)(i).</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <img src="images/image10.png" alt="Physics problem diagram showing Figure 3" class="question-image">
+                <p>iii. Is the tangential speed <span class="math">v₁</span> of the block at time <span class="math">t = t₁</span> greater than, less than, or equal to the tangential speed <span class="math">v₂</span> of the block at time <span class="math">t = t₂</span>?</p>
+                <p>Justify your answer without using equations.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(b) Consider a scenario where the block travels in a circular path where the spring is stretched a distance <span class="math">d</span> from its unstretched length <span class="math">L</span>.</p>
+                <p>i. Determine an expression for the magnitude of the net force <span class="math">F<sub>net</sub></span> exerted on the block. Express your answer in terms of <span class="math">m₀</span>, <span class="math">k₀</span>, <span class="math">L</span>, <span class="math">d</span>, and fundamental constants, as appropriate.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. Derive an equation for the tangential speed <span class="math">v</span> of the block. Express your answer in terms of <span class="math">m₀</span>, <span class="math">k₀</span>, <span class="math">L</span>, <span class="math">d</span>, and fundamental constants, as appropriate.</p>
+                <textarea class="answer-space long-answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <div class="sub-question">
+                <p>(c) Does your equation for the tangential speed <span class="math">v</span> of the block from part (b)(ii) agree with your reasoning from part (a)?</p>
+                <p>Explain your reasoning.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+        </div>
 
-    <!-- Fixed navigation bar that will always be visible -->
-    <div class="fixed-nav" style="position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000;">
-        <div style="background-color: #1a237e; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 15px;">
-            <button onclick="goToPrevPage()" id="prevBtnAlt" style="background-color: #3949ab; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Previous</button>
-            <span style="color: white; font-weight: bold;">Page <span id="currentPageAlt">1</span> of 6</span>
-            <button onclick="goToNextPage()" id="nextBtnAlt" style="background-color: #3949ab; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Next</button>
-            <button onclick="openSubmissionModal()" id="submitBtnAlt" style="background-color: #00c853; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px;">Submit Test</button>
+        <div class="page" id="page5">
+            <h2>Question 4 (7 points)</h2>
+            <div class="question-text">
+                <img src="images/image4.png" alt="Physics problem diagram" class="question-image">
+                <p>A block of unknown mass is attached to a long, lightweight string that is wrapped several turns around a pulley mounted on a horizontal axis through its center, as shown. The pulley is a uniform solid disk of mass \(M\) and radius \(R\). The rotational inertia of the pulley is described by the equation \(I = \frac{1}{2}MR^2\). The pulley can rotate about its center with negligible friction. The string does not slip on the pulley as the block falls.</p>
+                <p>When the block is released from rest and as the block travels toward the ground, the magnitude of the tension exerted on the block by the string is \(F_T\).</p>
+            </div>
+            <div class="sub-question">
+                <p>(a) Determine an expression for the magnitude of the angular acceleration \(\alpha_D\) of the disk as the block travels downward. Express your answer in terms of \(M\), \(R\), \(F_T\), and physical constants as appropriate.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <img src="images/image5.png" alt="Physics problem diagram" class="question-image">
+            </div>
+            <div class="sub-question">
+                <p>(b) Scenarios 1 and 2 show two different pulleys. In Scenario 1, the pulley is the same solid disk referenced in part (a). In Scenario 2, the pulley is a hoop that has the same mass \(M\) and radius \(R\) as the disk. Each pulley has a lightweight string wrapped around it several turns and is mounted on a horizontal axle, as shown. Each pulley is free to rotate about its center with negligible friction.</p>
+                <p>In both scenarios, the pulleys begin at rest. Then both strings are pulled with the same constant force \(F_A\) for the same time interval \(\Delta t\), causing the pulleys to rotate without the string slipping. After time interval \(\Delta t\), the change in angular momentum of the disk is equal to the change in angular momentum of the hoop, but the change in rotational kinetic energy for the disk is greater than that of the hoop.</p>
+                <p>In a clear, coherent paragraph-length response that may also contain equations and drawings, explain why the change in angular momentum of both pulleys is the same but the change in rotational kinetic energy is greater for the disk.</p>
+                <textarea class="answer-space long-answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+        </div>
+
+        <div class="page" id="page6">
+            <h2>Question 5 (7 points)</h2>
+            <img src="images/image8.png" alt="Physics problem diagram showing rod-sphere system" class="question-image">
+            <div class="question-text">
+                <p>A rod with a sphere attached to the end is connected to a horizontal mounted axle and carefully balanced so that it rests in a position vertically upward from the axle. The center of mass of the rod-sphere system is indicated with a \(\otimes\), as shown in Figure 1. The sphere is lightly tapped, and the rod-sphere system rotates clockwise with negligible friction about the axle due to the gravitational force.</p>
+                <p>A student takes a video of the rod rotating from the vertically upward position to the vertically downward position. Figure 2 shows five frames (still shots) that the student selected from the video. <em>Note: these frames are not equally spaced apart in time.</em></p>
+            </div>
+            <img src="images/image9.png" alt="Physics problem diagram showing video frames" class="question-image">
+            <div class="sub-question">
+                <p>(a) Use the frames of the video shown in Figure 2 to answer the following questions.</p>
+                <p>i. In which frame is the angular acceleration of the rod-sphere system the greatest? Justify your answer.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. In which frame is the rotational kinetic energy of the rod-sphere system the greatest? Briefly justify your answer.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
+            <img src="images/image10.png" alt="Physics problem diagram showing Figure 3" class="question-image">
+            <div class="sub-question">
+                <p>(b) The rod-sphere system has mass \(M\) and length \(L\), and the center of mass is located a distance \(\frac{3}{4}L\) from the axle, shown in Figure 3.</p>
+                <p>i. Derive an expression for the change in kinetic energy of the rod-sphere-Earth system from the moment shown in Frame A to the moment shown in Frame E. Express your answer in terms of \(M\), \(L\), and fundamental constants, as appropriate.</p>
+                <textarea class="answer-space long-answer-space" placeholder="Enter your answer here..."></textarea>
+                <p>ii. Briefly explain why the rod and sphere gain kinetic energy, even if Earth is not included in the system.</p>
+                <textarea class="answer-space" placeholder="Enter your answer here..."></textarea>
+            </div>
         </div>
     </div>
 
     <div class="navigation">
-        <button class="nav-button" id="prevBtn" onclick="goToPrevPage()">←</button>
+        <button class="nav-button" id="prevBtn">←</button>
         <span class="page-number">Page <span id="currentPage">1</span></span>
-        <button class="nav-button" id="nextBtn" onclick="goToNextPage()">→</button>
-        <button class="nav-button" id="submitBtn" style="background-color: #0a6; color: white; font-weight: bold; padding: 10px 25px; border-radius: 5px;" onclick="openSubmissionModal()">Submit Test</button>
+        <button class="nav-button" id="nextBtn">→</button>
+        <button class="nav-button" id="submitBtn" style="background-color: #004d00;">Submit Test</button>
     </div>
 
     <!-- Submission Modal -->
-    <div id="submissionModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
-        <div class="modal-content" style="background-color: #fff; color: #333; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%;">
+    <div id="submissionModal" class="modal">
+        <div class="modal-content">
             <h3>Submit Your Test</h3>
             <p>Please enter your name or choose to submit anonymously:</p>
-            <input type="text" id="submitterName" placeholder="Your Name" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;">
-            <div class="modal-buttons" style="display: flex; justify-content: space-between; margin-top: 15px;">
-                <button id="anonymousSubmit" class="modal-button" onclick="handleAnonymousSubmit()" style="background-color: #555; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Submit Anonymously</button>
-                <button id="namedSubmit" class="modal-button" onclick="handleNamedSubmit()" style="background-color: #2980b9; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Submit with Name</button>
-                <button id="closeModal" class="modal-button" onclick="closeSubmissionModal()" style="background-color: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Cancel</button>
+            <input type="text" id="submitterName" placeholder="Your Name" class="modal-input">
+            <div class="modal-buttons">
+                <button id="submitAnonymous" class="modal-button">Submit Anonymously</button>
+                <button id="submitWithName" class="modal-button">Submit with Name</button>
+                <button id="cancelSubmit" class="modal-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Selection Modal -->
+    <div id="testSelectionModal" class="modal">
+        <div class="modal-content">
+            <h3>Select a Test</h3>
+            <div class="test-list">
+                <div class="test-item" data-test="physics1test">
+                    <h4>AP Physics 1 - 2023 FRQ</h4>
+                    <p>Free Response Questions from the 2023 AP Physics 1 exam</p>
+                </div>
+                <!-- More tests can be added here -->
             </div>
         </div>
     </div>
 
     <script>
-        // Add a secret admin verification token
-        // This should be put at the top of your script section
-        // The token is intentionally obfuscated to prevent easy discovery
-        const ADMIN_VERIFICATION_TOKEN = atob("YXBwbGU="); // Base64 encoded "apple"
-        
-        // Initialize variables for page navigation
         let currentPageIndex = 1;
         const totalPages = 6;
-        
-        // Initialize canvas state holders
-        const positionGraphCanvasState = [];
-        const velocityGraphCanvasState = [];
-        const gridGraphCanvasState = [];
-        const forceDiagram1CanvasState = [];
-        const forceDiagram2CanvasState = [];
-        
-        // Initialize everything when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM content loaded - initializing test page');
-            
-            // Initialize all canvas elements
-            initCanvas('velocityGraph', velocityGraphCanvasState);
-            initCanvas('positionGraph', positionGraphCanvasState);
-            initGridGraph();
-            
-            // Initialize event listeners and navigation
-            initializeEventListeners();
-            
-            // Initialize page
-            updatePage();
-            
-            // Check URL parameters
-            checkUrlParameters();
-            
-            console.log('Test page initialization complete');
-        });
 
-        // Page navigation functions
         function updatePage() {
-            console.log(`Updating page to ${currentPageIndex}`);
-            
-            // Hide all pages
             document.querySelectorAll('.page').forEach(page => {
                 page.classList.remove('active');
             });
             
-            // Show the current page
-            const currentPage = document.getElementById(`page${currentPageIndex}`);
-            if (currentPage) {
-                currentPage.classList.add('active');
-                console.log(`Page ${currentPageIndex} activated`);
-            } else {
-                console.error(`Could not find page element: page${currentPageIndex}`);
-            }
+            document.getElementById(`page${currentPageIndex}`).classList.add('active');
             
-            // Update the page number displays (both original and alternate)
-            const pageNumberElement = document.getElementById('currentPage');
-            if (pageNumberElement) {
-                pageNumberElement.textContent = currentPageIndex;
-            }
+            document.getElementById('currentPage').textContent = currentPageIndex;
             
-            // Also update the alternate page number display
-            const pageNumberAltElement = document.getElementById('currentPageAlt');
-            if (pageNumberAltElement) {
-                pageNumberAltElement.textContent = currentPageIndex;
-            }
-            
-            // Update button states for both nav bars
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const prevBtnAlt = document.getElementById('prevBtnAlt');
-            const nextBtnAlt = document.getElementById('nextBtnAlt');
-            
-            // Update original buttons
-            if (prevBtn) prevBtn.disabled = currentPageIndex === 1;
-            if (nextBtn) nextBtn.disabled = currentPageIndex === totalPages;
-            
-            // Update alternate buttons
-            if (prevBtnAlt) prevBtnAlt.disabled = currentPageIndex === 1;
-            if (nextBtnAlt) nextBtnAlt.disabled = currentPageIndex === totalPages;
+            document.getElementById('prevBtn').disabled = currentPageIndex === 1;
+            document.getElementById('nextBtn').disabled = currentPageIndex === totalPages;
         }
 
-        function goToNextPage() {
-            console.log('Next button clicked');
-            if (currentPageIndex < totalPages) {
-                currentPageIndex++;
-                updatePage();
-            }
-        }
-
-        function goToPrevPage() {
-            console.log('Previous button clicked');
+        document.getElementById('prevBtn').addEventListener('click', () => {
             if (currentPageIndex > 1) {
                 currentPageIndex--;
                 updatePage();
             }
-        }
+        });
 
-        // Canvas functions
-        function initCanvas(canvasId, stateHolder) {
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) {
-                console.error(`Canvas not found: ${canvasId}`);
-                return;
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentPageIndex < totalPages) {
+                currentPageIndex++;
+                updatePage();
             }
-            
-            console.log(`Initializing canvas: ${canvasId}`);
-            
+        });
+
+        updatePage();
+
+        const canvasStates = {
+            positionGraph: [],
+            velocityGraph: []
+        };
+        
+        function initCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
             
             // Draw axes
@@ -623,16 +611,11 @@
             ctx.font = '14px Arial';
             ctx.fillStyle = '#000';
             ctx.fillText('t', canvas.width - 20, canvas.height/2 + 20);
-            ctx.fillText(canvasId.includes('position') ? 'x' : 'v', 30, 30);
+            ctx.fillText(canvasId === 'positionGraph' ? 'x' : 'v', 30, 30);
             ctx.fillText('O', 35, canvas.height/2 + 15);
             
-            // Initialize state holder if needed
-            if (!window[`${canvasId}State`]) {
-                window[`${canvasId}State`] = [];
-            }
-            
             // Save initial state
-            window[`${canvasId}State`].push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            canvasStates[canvasId] = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
             
             let isDrawing = false;
             let lastX = 0;
@@ -666,11 +649,11 @@
             function stopDrawing() {
                 if (isDrawing) {
                     isDrawing = false;
-                    window[`${canvasId}State`].push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                    canvasStates[canvasId].push(ctx.getImageData(0, 0, canvas.width, canvas.height));
                 }
             }
         }
-
+        
         function getMousePos(canvas, e) {
             const rect = canvas.getBoundingClientRect();
             return [
@@ -678,54 +661,34 @@
                 e.clientY - rect.top
             ];
         }
-
+        
         function clearCanvas(canvasId) {
             const canvas = document.getElementById(canvasId);
-            if (!canvas) {
-                console.error(`Cannot clear canvas: ${canvasId} not found`);
-                return;
-            }
-            
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Reset state holder
-            window[`${canvasId}State`] = [];
-            
-            // Reinitialize the canvas
+            canvasStates[canvasId] = [];
             initCanvas(canvasId);
-            
-            console.log(`Canvas ${canvasId} cleared`);
         }
-
+        
         function undoLastStroke(canvasId) {
-            const stateHolder = window[`${canvasId}State`];
-            
-            if (stateHolder && stateHolder.length > 1) {
-                stateHolder.pop(); // Remove the last state
-                
+            if (canvasStates[canvasId].length > 1) {
+                canvasStates[canvasId].pop();
                 const canvas = document.getElementById(canvasId);
-                if (!canvas) {
-                    console.error(`Cannot undo: Canvas ${canvasId} not found`);
-                    return;
-                }
-                
                 const ctx = canvas.getContext('2d');
-                ctx.putImageData(stateHolder[stateHolder.length - 1], 0, 0);
-                console.log(`Undid last stroke on canvas ${canvasId}`);
-            } else {
-                console.log(`Nothing to undo on canvas ${canvasId}`);
+                ctx.putImageData(canvasStates[canvasId][canvasStates[canvasId].length - 1], 0, 0);
             }
         }
+        
+        // Initialize both canvases when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas('positionGraph');
+            initCanvas('velocityGraph');
+        });
 
-        // Grid Graph Functions
+        const gridCanvasStates = [];
+        
         function initGridGraph() {
             const canvas = document.getElementById('gridGraph');
-            if (!canvas) {
-                console.error('Grid graph canvas not found');
-                return;
-            }
-            
             const ctx = canvas.getContext('2d');
             
             // Draw grid
@@ -792,7 +755,7 @@
             ctx.fill();
             
             // Save initial state
-            gridGraphCanvasState.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            gridCanvasStates.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
             
             let isDrawing = false;
             let lastX = 0;
@@ -826,450 +789,975 @@
             function stopDrawing() {
                 if (isDrawing) {
                     isDrawing = false;
-                    gridGraphCanvasState.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                    gridCanvasStates.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
                 }
             }
         }
-
+        
         function clearGridCanvas() {
             const canvas = document.getElementById('gridGraph');
-            if (!canvas) return;
-            
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            gridGraphCanvasState.length = 0;
+            gridCanvasStates.length = 0;
             initGridGraph();
         }
-
+        
         function undoGridStroke() {
-            if (gridGraphCanvasState.length > 1) {
-                gridGraphCanvasState.pop();
+            if (gridCanvasStates.length > 1) {
+                gridCanvasStates.pop();
                 const canvas = document.getElementById('gridGraph');
-                if (!canvas) return;
-                
                 const ctx = canvas.getContext('2d');
-                ctx.putImageData(gridGraphCanvasState[gridGraphCanvasState.length - 1], 0, 0);
+                ctx.putImageData(gridCanvasStates[gridCanvasStates.length - 1], 0, 0);
             }
         }
+        
+        // Initialize grid graph when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas('positionGraph');
+            initCanvas('velocityGraph');
+            initGridGraph();
+        });
 
-        // Submission modal functions
-        function openSubmissionModal() {
-            const modal = document.getElementById('submissionModal');
-            if (modal) {
-                modal.style.display = 'flex';
-                console.log('Modal opened');
-            }
-        }
-
-        function closeSubmissionModal() {
-            const modal = document.getElementById('submissionModal');
-            if (modal) {
-                modal.style.display = 'none';
-                console.log('Modal closed');
-            }
-        }
-
-        function handleAnonymousSubmit() {
-            document.getElementById('submitterName').value = "Anonymous";
-            document.getElementById('name').value = "Anonymous";
-            document.getElementById('student-name').value = "Anonymous";
-            closeSubmissionModal();
-            submitTest();
-            console.log('Anonymous submission triggered');
-        }
-
-        function handleNamedSubmit() {
-            const submitterName = document.getElementById('submitterName');
-            const nameValue = submitterName.value.trim();
-            if (!nameValue) {
-                alert('Please enter your name or choose to submit anonymously.');
-                return;
-            }
-            document.getElementById('name').value = nameValue;
-            document.getElementById('student-name').value = nameValue;
-            closeSubmissionModal();
-            submitTest();
-            console.log('Named submission triggered with: ' + nameValue);
-        }
-
-        // Function to check URL parameters
-        function checkUrlParameters() {
-            // Check if the URL contains a publish parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const publishKey = urlParams.get('publish');
+        const forceDiagramStates = {
+            forceT1: [],
+            forceT2: []
+        };
+        
+        function initForceDiagram(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
             
-            if (publishKey) {
-                console.log("Found publish key in URL:", publishKey);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            
+            for (let x = 0; x <= canvas.width; x += 20) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y <= canvas.height; y += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            ctx.setLineDash([]);
+            
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'black';
+            ctx.fill();
+            
+            forceDiagramStates[canvasId] = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
+            
+            let isDrawing = false;
+            let startX = canvas.width/2;
+            let startY = canvas.height/2;
+            let currentArrow = null;
+            
+            function drawArrow(fromX, fromY, toX, toY) {
+                ctx.putImageData(forceDiagramStates[canvasId][forceDiagramStates[canvasId].length - 1], 0, 0);
                 
-                // Remove the publish parameter from the URL to prevent modal from showing again on refresh
-                const newUrl = window.location.pathname + window.location.search.replace(/[?&]publish=[^&]+/, '');
-                window.history.replaceState({}, document.title, newUrl);
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
                 
-                // Show the publish modal with a slight delay to ensure the page is fully loaded
-                setTimeout(() => {
-                    // Check if the submission exists in sessionStorage
-                    const submission = sessionStorage.getItem(`submission_${publishKey}`);
-                    if (submission) {
-                        alert("This submission is ready for approval. Please review it on admin-approve.html page.");
-                    } else {
-                        alert("Submission not found or has expired.");
-                    }
-                }, 500);
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+                const arrowLength = 15;
+                
+                ctx.beginPath();
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(
+                    toX - arrowLength * Math.cos(angle - Math.PI/6),
+                    toY - arrowLength * Math.sin(angle - Math.PI/6)
+                );
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(
+                    toX - arrowLength * Math.cos(angle + Math.PI/6),
+                    toY - arrowLength * Math.sin(angle + Math.PI/6)
+                );
+                ctx.stroke();
+            }
+            
+            canvas.addEventListener('mousedown', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const distFromCenter = Math.sqrt(
+                    Math.pow(x - startX, 2) + 
+                    Math.pow(y - startY, 2)
+                );
+                
+                if (distFromCenter <= 15) {
+                    isDrawing = true;
+                    currentArrow = { fromX: startX, fromY: startY };
+                }
+            });
+            
+            canvas.addEventListener('mousemove', function(e) {
+                if (!isDrawing) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                drawArrow(currentArrow.fromX, currentArrow.fromY, x, y);
+            });
+            
+            canvas.addEventListener('mouseup', function(e) {
+                if (!isDrawing) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                drawArrow(currentArrow.fromX, currentArrow.fromY, x, y);
+                forceDiagramStates[canvasId].push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                
+                isDrawing = false;
+                currentArrow = null;
+            });
+            
+            canvas.addEventListener('mouseleave', function() {
+                if (!isDrawing) return;
+                
+                ctx.putImageData(forceDiagramStates[canvasId][forceDiagramStates[canvasId].length - 1], 0, 0);
+                isDrawing = false;
+                currentArrow = null;
+            });
+        }
+        
+        function clearForceDiagram(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            forceDiagramStates[canvasId] = [];
+            initForceDiagram(canvasId);
+        }
+        
+        function undoForceStroke(canvasId) {
+            if (forceDiagramStates[canvasId].length > 1) {
+                forceDiagramStates[canvasId].pop();
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                ctx.putImageData(forceDiagramStates[canvasId][forceDiagramStates[canvasId].length - 1], 0, 0);
             }
         }
+        
+        // Initialize force diagrams when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas('positionGraph');
+            initCanvas('velocityGraph');
+            initGridGraph();
+            initForceDiagram('forceT1');
+            initForceDiagram('forceT2');
+        });
 
-        // Collect answers from form fields and canvases
+        // Add submission handling
+        const submissionModal = document.getElementById('submissionModal');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitAnonymous = document.getElementById('submitAnonymous');
+        const submitWithName = document.getElementById('submitWithName');
+        const cancelSubmit = document.getElementById('cancelSubmit');
+        const submitterName = document.getElementById('submitterName');
+
+        submitBtn.addEventListener('click', () => {
+            submissionModal.style.display = 'block';
+        });
+
+        cancelSubmit.addEventListener('click', () => {
+            submissionModal.style.display = 'none';
+        });
+
         function collectAnswers() {
-            console.log("Collecting answers...");
+            const answers = {};
             
             // Collect text answers
-            const answers = {};
-            const textAnswers = document.querySelectorAll('.answer-space');
-            textAnswers.forEach(el => {
-                const id = el.id || el.getAttribute('data-id');
-                if (id) {
-                    answers[id] = el.value || el.innerText || '';
-                    console.log(`Collected text answer for ${id}: ${answers[id].substring(0, 30)}${answers[id].length > 30 ? '...' : ''}`);
-                }
+            document.querySelectorAll('.answer-space').forEach((textarea, index) => {
+                answers[`answer_${index + 1}`] = textarea.value;
             });
-            
-            // Helper function to get canvas image
-            function getCanvasImage(canvasId) {
-                try {
-                    const canvas = document.getElementById(canvasId);
-                    if (!canvas) {
-                        console.warn(`Canvas ${canvasId} not found`);
-                        return null;
-                    }
-                    
-                    console.log(`Getting image from canvas ${canvasId}, dimensions: ${canvas.width}x${canvas.height}`);
-                    return canvas.toDataURL('image/png', 1.0);
-                } catch (error) {
-                    console.error(`Error getting image from canvas ${canvasId}:`, error);
-                    return null;
-                }
-            }
-            
+
             // Collect canvas drawings
-            const canvasIds = ['positionGraph', 'velocityGraph', 'gridGraph'];
-            const canvasData = {};
-            let canvasCount = 0;
-            
-            canvasIds.forEach(id => {
-                try {
-                    console.log(`Processing canvas ${id}...`);
-                    const imageData = getCanvasImage(id);
-                    
-                    if (imageData) {
-                        canvasData[id] = imageData;
-                        canvasCount++;
-                        console.log(`Successfully collected drawing from ${id}, data length: ${imageData.length} chars`);
-                    } else {
-                        console.warn(`No drawing data found for ${id}`);
-                    }
-                } catch (error) {
-                    console.error(`Error processing canvas ${id}:`, error);
-                }
-            });
-            
-            // Add canvas data to answers object
-            answers.canvas_data = canvasData;
-            console.log(`Total canvas drawings collected: ${canvasCount}`);
-            
+            const canvasData = {
+                positionGraph: document.getElementById('positionGraph').toDataURL(),
+                velocityGraph: document.getElementById('velocityGraph').toDataURL(),
+                gridGraph: document.getElementById('gridGraph').toDataURL(),
+                forceT1: document.getElementById('forceT1').toDataURL(),
+                forceT2: document.getElementById('forceT2').toDataURL()
+            };
+
+            // Add canvas data to answers
+            answers['canvas_data'] = canvasData;
+
             return answers;
         }
 
-        // Send submission to Discord webhook
-        async function sendToDiscord(submission, publishKey) {
-            const webhookUrl = 'https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa';
-            
-            if (!webhookUrl) {
-                console.warn("Discord webhook URL not provided");
-                return;
-            }
-            
+        function submitTest(isAnonymous) {
             try {
-                // Create a message for Discord with the text answers
-                const discordMessage = {
-                    content: `New ${submission.testType} submission from ${submission.name}!`,
+                console.log("Starting submission process...");
+                const answers = collectAnswers();
+                const userName = isAnonymous ? 'Anonymous' : submitterName.value;
+                
+                // Create a payload with minimal data first
+                const payload = {
+                    content: `Test submission from ${userName}`,
                     embeds: [{
-                        title: `${submission.testType} Submission`,
-                        description: `Submitted by: ${submission.name}\nTime: ${new Date(submission.timestamp).toLocaleString()}`,
-                        color: 5793266, // Blue color
-                        fields: []
-                    }]
-                };
-                
-                // Add text answers to fields
-                Object.entries(submission.answers)
-                    .filter(([key]) => key !== 'canvas_data')
-                    .forEach(([key, value]) => {
-                        discordMessage.embeds[0].fields.push({
-                            name: `Question ${key.replace('answer_', '')}`,
-                            value: value || "(No answer provided)",
-                            inline: false
-                        });
-                    });
-                
-                // Send the submission to Discord
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(discordMessage)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Discord API error: ${response.status}`);
-                }
-                
-                console.log("Submission sent to Discord successfully!");
-                
-                // Send a follow-up message about drawings and approval
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                const publishMessage = {
-                    embeds: [{
-                        title: "🔐 Approval Required",
-                        description: `**Submission from ${submission.name} requires approval**\n\nThis submission includes ${submission.answers.canvas_data ? Object.keys(submission.answers.canvas_data).length : 0} drawing(s).\n\nUse the buttons below to approve or reject this submission, or manually approve with this link:\n[Manual Approval Link](${window.location.origin}/admin-approve.html?key=${publishKey}&token=${ADMIN_VERIFICATION_TOKEN})`,
-                        color: 16750848, // Orange color for pending approval
+                        title: "AP Physics 1 FRQ Submission",
+                        description: `Submitted at ${new Date().toLocaleString()}`,
+                        color: 5814783, // Blue color
                         fields: [
                             {
                                 name: "Student",
-                                value: submission.name,
+                                value: userName,
                                 inline: true
                             },
                             {
                                 name: "Test Type",
-                                value: submission.testType,
+                                value: "AP Physics 1 FRQ",
                                 inline: true
                             },
                             {
                                 name: "Submitted",
-                                value: new Date(submission.timestamp).toLocaleString(),
+                                value: new Date().toISOString(),
                                 inline: true
-                            },
-                            {
-                                name: "Admin Verification",
-                                value: `||${ADMIN_VERIFICATION_TOKEN}||`, // Discord spoiler format to hide token
-                                inline: false
                             }
                         ]
-                    }],
-                    components: [
-                        {
-                            type: 1,
-                            components: [
-                                {
-                                    type: 2,
-                                    style: 3, // Success/Green button
-                                    label: "Approve & Publish",
-                                    custom_id: `approve_${publishKey}`
-                                },
-                                {
-                                    type: 2,
-                                    style: 4, // Danger/Red button
-                                    label: "Reject",
-                                    custom_id: `reject_${publishKey}`
-                                }
-                            ]
-                        }
-                    ]
+                    }]
                 };
                 
-                const publishResponse = await fetch(webhookUrl, {
+                // The webhook URL
+                const webhookURL = "https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa";
+                
+                // Use fetch with plain JSON payload - this is the simplest approach
+                fetch(webhookURL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(publishMessage)
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    console.log("Webhook response status:", response.status);
+                    
+                    if (response.ok) {
+                        // If the first message sent successfully, create a second message with the answers
+                        return sendAnswersAsMultipleMessages(userName, answers, webhookURL)
+                            .then(() => {
+                                // Store the submission locally for possible GitHub publishing
+                                const submission = {
+                                    testType: 'FRQ',
+                                    testId: 'physics1test',
+                                    timestamp: new Date().toISOString(),
+                                    name: userName,
+                                    answers: answers
+                                };
+                                
+                                // Store the current submission temporarily
+                                sessionStorage.setItem('lastSubmission', JSON.stringify(submission));
+                                
+                                alert('Your test has been submitted successfully! You can now publish it to GitHub if you wish.');
+                                
+                                // Close modal first
+                                submissionModal.style.display = 'none';
+                                
+                                // Show a button to publish to GitHub
+                                // First, check if button already exists
+                                if (!document.getElementById('publishBtn')) {
+                                    const publishButton = document.createElement('button');
+                                    publishButton.className = 'nav-button';
+                                    publishButton.id = 'publishBtn';
+                                    publishButton.textContent = 'Publish to GitHub';
+                                    publishButton.style.backgroundColor = '#004d00';
+                                    publishButton.style.marginLeft = '20px';
+                                    
+                                    publishButton.addEventListener('click', function() {
+                                        const lastSubmission = JSON.parse(sessionStorage.getItem('lastSubmission'));
+                                        if (lastSubmission) {
+                                            publishToGitHub(lastSubmission);
+                                        } else {
+                                            alert('No submission available to publish.');
+                                        }
+                                    });
+                                    
+                                    // Add the button to the navigation section
+                                    document.querySelector('.navigation').appendChild(publishButton);
+                                } else {
+                                    // If button exists, make sure it's visible
+                                    document.getElementById('publishBtn').style.display = 'inline-block';
+                                }
+                            });
+                    } else {
+                        response.text().then(text => {
+                            console.error("Error response:", text);
+                            alert('There was an error submitting your test. Please try again.');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting test:', error);
+                    alert('There was an error submitting your test. Please try again.');
+                });
+
+                // Close modal
+                submissionModal.style.display = 'none';
+            } catch (error) {
+                console.error("Unexpected error in submission process:", error);
+                alert('An unexpected error occurred. Please try again.');
+            }
+        }
+
+        function sendAnswersAsMultipleMessages(userName, answers, webhookURL) {
+            // Create a promise chain to ensure sequential message delivery
+            let messagePromise = Promise.resolve();
+            
+            // First send header message
+            const headerPayload = {
+                embeds: [{
+                    title: `Complete Test Submission from ${userName}`,
+                    description: "This submission includes text answers and drawings",
+                    color: 5814783, // Blue color
+                    fields: [
+                        {
+                            name: "Test Type",
+                            value: "AP Physics 1 FRQ",
+                            inline: true
+                        },
+                        {
+                            name: "Timestamp",
+                            value: new Date().toISOString(),
+                            inline: true
+                        }
+                    ]
+                }]
+            };
+            
+            // Start the promise chain with the header
+            messagePromise = messagePromise
+                .then(() => {
+                    console.log("Sending header message");
+                    return fetch(webhookURL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(headerPayload)
+                    });
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        console.error("Failed to send header message:", response.status);
+                    }
+                    return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                });
+            
+            // Get text answers only (not canvas data)
+            const textAnswers = {};
+            for (const [key, value] of Object.entries(answers)) {
+                if (key !== 'canvas_data') {
+                    textAnswers[key] = value || "(No answer provided)";
+                }
+            }
+            
+            // Sort answer keys numerically
+            const answerEntries = Object.entries(textAnswers)
+                .sort((a, b) => {
+                    const numA = parseInt(a[0].replace('answer_', '')) || 0;
+                    const numB = parseInt(b[0].replace('answer_', '')) || 0;
+                    return numA - numB;
+                });
+            
+            // Break up the answers into smaller chunks to stay within Discord's message limits
+            const chunkSize = 5; // Send 5 answers per message
+            
+            for (let i = 0; i < answerEntries.length; i += chunkSize) {
+                const chunk = answerEntries.slice(i, i + chunkSize);
+                const fields = chunk.map(([key, value]) => ({
+                    name: `Question ${key.replace('answer_', '')}`,
+                    value: value.substring(0, 1000) || "(No answer provided)",
+                    inline: false
+                }));
+                
+                const payload = {
+                    embeds: [{
+                        title: `Answers from ${userName} (Part ${Math.floor(i/chunkSize) + 1})`,
+                        color: 5814783,
+                        fields: fields
+                    }]
+                };
+                
+                // Add each answer chunk to the promise chain
+                messagePromise = messagePromise
+                    .then(() => {
+                        console.log(`Sending answers part ${Math.floor(i/chunkSize) + 1}`);
+                        return fetch(webhookURL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(`Failed to send answers part ${Math.floor(i/chunkSize) + 1}:`, response.status);
+                        }
+                        return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                    });
+            }
+            
+            // Then send all canvas drawings as separate messages with images
+            if (answers.canvas_data && Object.keys(answers.canvas_data).length > 0) {
+                // Add drawings header to the chain
+                const drawingsHeaderPayload = {
+                    embeds: [{
+                        title: `Drawings from ${userName}`,
+                        description: "The following messages contain the student's drawings",
+                        color: 3447003, // Blue color
+                    }]
+                };
+                
+                messagePromise = messagePromise
+                    .then(() => {
+                        console.log("Sending drawings header");
+                        return fetch(webhookURL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(drawingsHeaderPayload)
+                        });
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error("Failed to send drawings header:", response.status);
+                        }
+                        return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                    });
+                
+                // Send each drawing sequentially
+                const drawingPromises = Object.entries(answers.canvas_data).map(([canvasKey, canvasValue]) => {
+                    return () => {
+                        // Map canvas keys to more readable names
+                        let drawingName = canvasKey;
+                        switch(canvasKey) {
+                            case 'positionGraph':
+                                drawingName = 'Position vs. Time Graph';
+                                break;
+                            case 'velocityGraph':
+                                drawingName = 'Velocity vs. Time Graph';
+                                break;
+                            case 'gridGraph':
+                                drawingName = 'Data Grid Graph';
+                                break;
+                            case 'forceT1':
+                                drawingName = 'Force Diagram (t₁)';
+                                break;
+                            case 'forceT2':
+                                drawingName = 'Force Diagram (t₂)';
+                                break;
+                            default:
+                                drawingName = canvasKey.replace(/([A-Z])/g, ' $1').trim();
+                        }
+                        
+                        const drawingPayload = {
+                            embeds: [{
+                                title: drawingName,
+                                image: {
+                                    url: canvasValue
+                                },
+                                color: 3447003
+                            }]
+                        };
+                        
+                        console.log(`Sending ${drawingName} drawing`);
+                        return fetch(webhookURL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(drawingPayload)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                console.error(`Failed to send ${drawingName} drawing:`, response.status);
+                            }
+                            return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                        });
+                    };
                 });
                 
-                if (!publishResponse.ok) {
-                    console.warn("Failed to send publish message to Discord:", publishResponse.status);
-                }
-                
-                return true;
-            } catch (error) {
-                console.error("Error sending to Discord:", error);
-                throw new Error("Failed to send submission to Discord: " + error.message);
-            }
-        }
-
-        // Display success message after submission
-        function showPublishUI(publishKey) {
-            // Get references to container elements
-            const testContainer = document.querySelector('.test-container');
-            const publishContainer = document.createElement('div');
-            
-            publishContainer.className = 'publish-container';
-            publishContainer.style.backgroundColor = '#f5f5f5';
-            publishContainer.style.padding = '20px';
-            publishContainer.style.borderRadius = '8px';
-            publishContainer.style.marginTop = '20px';
-            publishContainer.style.textAlign = 'center';
-            publishContainer.style.color = '#000';
-            
-            // Create header
-            const header = document.createElement('h2');
-            header.textContent = 'Submission Sent for Approval';
-            header.style.color = '#2c3e50';
-            
-            // Create message
-            const message = document.createElement('p');
-            message.innerHTML = `
-                Your submission has been sent for approval.<br>
-                An administrator will review your submission on Discord.<br>
-                <strong>Thank you for your submission!</strong>
-            `;
-            message.style.fontSize = '16px';
-            message.style.lineHeight = '1.6';
-            message.style.marginBottom = '20px';
-            
-            // Add icon
-            const icon = document.createElement('div');
-            icon.innerHTML = '✅';
-            icon.style.fontSize = '48px';
-            icon.style.marginBottom = '20px';
-            
-            // Append elements
-            publishContainer.appendChild(icon);
-            publishContainer.appendChild(header);
-            publishContainer.appendChild(message);
-            
-            // Handle different container options
-            if (testContainer) {
-                // Replace test container content with publish container
-                testContainer.innerHTML = '';
-                testContainer.appendChild(publishContainer);
-            } else {
-                // Try to find a content container or body as fallback
-                const contentContainer = document.querySelector('.content') || document.body;
-                contentContainer.appendChild(publishContainer);
+                // Chain all drawing promises sequentially
+                drawingPromises.forEach(promiseFn => {
+                    messagePromise = messagePromise.then(promiseFn);
+                });
             }
             
-            // Disable submit buttons (try multiple possible IDs)
-            const submitBtn = document.getElementById('submit-button') || document.getElementById('submitBtn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Submitted';
-            }
-            
-            // Also disable any buttons with submit-related classes
-            document.querySelectorAll('.submit-btn, .submit-button').forEach(btn => {
-                btn.disabled = true;
-                if (btn.textContent.toLowerCase().includes('submit')) {
-                    btn.textContent = 'Submitted';
-                }
+            // Handle any errors in the promise chain
+            messagePromise.catch(error => {
+                console.error("Error in message chain:", error);
             });
             
-            return true;
+            return messagePromise;
         }
 
-        async function submitTest() {
-            // Get student name from either input field
-            let name = document.getElementById("student-name")?.value?.trim() || 
-                       document.getElementById("submitterName")?.value?.trim() || 
-                       document.getElementById("name")?.value?.trim() || 
-                       "Anonymous";
-            
-            try {
-                console.log("Submitting test with name:", name);
-                
-                // Disable submit button to prevent multiple submissions
-                const submitBtn = document.getElementById("submit-button") || document.getElementById("submitBtn");
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = "Submitting...";
-                }
-                
-                // Collect answers from the DOM
-                const answers = collectAnswers();
-                
-                // Create a submission object
-                const submission = {
-                    name: name,
-                    testType: "AP Physics 1 FRQ",
-                    testId: "physics1-" + new Date().toISOString().split('T')[0],
-                    timestamp: new Date().toISOString(),
-                    answers: answers
-                };
+        submitAnonymous.addEventListener('click', () => {
+            submitTest(true);
+        });
 
-                console.log("Preparing submission:", submission);
-                
-                // Generate a unique publish key
-                const publishKey = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                
-                // Store submission in sessionStorage for later approval
-                sessionStorage.setItem(`submission_${publishKey}`, JSON.stringify(submission));
-                
-                console.log("Submission stored with key:", publishKey);
-                
-                // Send to Discord webhook
-                await sendToDiscord(submission, publishKey);
-                
-                // Show success UI
-                showPublishUI(publishKey);
-                
-            } catch (error) {
-                console.error("Error submitting test:", error);
-                alert("Failed to submit the test. Please try again.");
-                
-                // Re-enable submit button if there's an error
-                const submitBtn = document.getElementById("submit-button") || document.getElementById("submitBtn");
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = "Submit Test";
+        submitWithName.addEventListener('click', () => {
+            if (!submitterName.value.trim()) {
+                alert('Please enter your name or choose to submit anonymously.');
+                return;
+            }
+            submitTest(false);
+        });
+
+        // Close modal if clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === submissionModal) {
+                submissionModal.style.display = 'none';
+            }
+        });
+
+        // Test selection handling
+        const testSelectionModal = document.getElementById('testSelectionModal');
+        
+        document.querySelectorAll('.test-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const testId = item.dataset.test;
+                window.location.href = `${testId}.html`;
+            });
+        });
+
+        // Add redo states for each canvas
+        const canvasRedoStates = {
+            positionGraph: [],
+            velocityGraph: [],
+            gridGraph: [],
+            forceT1: [],
+            forceT2: []
+        };
+
+        // Add keyboard shortcut handling for the entire document
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey) {
+                switch(event.key) {
+                    case 'z':
+                        event.preventDefault();
+                        const activeCanvas = document.activeElement;
+                        if (activeCanvas && activeCanvas.tagName === 'CANVAS') {
+                            undoLastStroke(activeCanvas.id);
+                        }
+                        break;
+                    case 'y':
+                        event.preventDefault();
+                        const activeCanvasForRedo = document.activeElement;
+                        if (activeCanvasForRedo && activeCanvasForRedo.tagName === 'CANVAS') {
+                            redoLastStroke(activeCanvasForRedo.id);
+                        }
+                        break;
                 }
+            }
+        });
+
+        function undoLastStroke(canvasId) {
+            let states, redoStates;
+            
+            if (canvasId === 'gridGraph') {
+                states = gridCanvasStates;
+                redoStates = canvasRedoStates.gridGraph;
+            } else if (canvasId === 'forceT1' || canvasId === 'forceT2') {
+                states = forceDiagramStates[canvasId];
+                redoStates = canvasRedoStates[canvasId];
+            } else {
+                states = canvasStates[canvasId];
+                redoStates = canvasRedoStates[canvasId];
+            }
+
+            if (states && states.length > 1) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                redoStates.push(states.pop());
+                ctx.putImageData(states[states.length - 1], 0, 0);
             }
         }
 
-        function initializeEventListeners() {
-            console.log("Initializing event listeners");
+        function redoLastStroke(canvasId) {
+            let states, redoStates;
             
-            // Navigation button event listeners
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const submitBtn = document.getElementById('submitBtn');
+            if (canvasId === 'gridGraph') {
+                states = gridCanvasStates;
+                redoStates = canvasRedoStates.gridGraph;
+            } else if (canvasId === 'forceT1' || canvasId === 'forceT2') {
+                states = forceDiagramStates[canvasId];
+                redoStates = canvasRedoStates[canvasId];
+            } else {
+                states = canvasStates[canvasId];
+                redoStates = canvasRedoStates[canvasId];
+            }
+
+            if (redoStates && redoStates.length > 0) {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const redoState = redoStates.pop();
+                ctx.putImageData(redoState, 0, 0);
+                states.push(redoState);
+            }
+        }
+
+        function clearCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvasStates[canvasId] = [];
+            canvasRedoStates[canvasId] = [];
+            initCanvas(canvasId);
+        }
+
+        function clearGridCanvas() {
+            const canvas = document.getElementById('gridGraph');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            gridCanvasStates.length = 0;
+            canvasRedoStates.gridGraph = [];
+            initGridGraph();
+        }
+
+        function clearForceDiagram(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            forceDiagramStates[canvasId] = [];
+            canvasRedoStates[canvasId] = [];
+            initForceDiagram(canvasId);
+        }
+
+        function makeCanvasFocusable() {
+            const canvases = document.querySelectorAll('canvas');
+            canvases.forEach(canvas => {
+                canvas.tabIndex = 0;
+                canvas.addEventListener('mousedown', () => canvas.focus());
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initCanvas('positionGraph');
+            initCanvas('velocityGraph');
+            initGridGraph();
+            initForceDiagram('forceT1');
+            initForceDiagram('forceT2');
+            makeCanvasFocusable();
+        });
+
+        // Add this function to handle GitHub publishing
+        function publishToGitHub(submission) {
+            // Display a confirmation dialog
+            const publishModal = document.createElement('div');
+            publishModal.className = 'modal';
+            publishModal.style.display = 'block';
             
-            // Alternate navigation buttons
-            const prevBtnAlt = document.getElementById('prevBtnAlt');
-            const nextBtnAlt = document.getElementById('nextBtnAlt');
-            const submitBtnAlt = document.getElementById('submitBtnAlt');
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
             
-            console.log("Navigation buttons:", 
-                { prevBtn: !!prevBtn, nextBtn: !!nextBtn, submitBtn: !!submitBtn,
-                  prevBtnAlt: !!prevBtnAlt, nextBtnAlt: !!nextBtnAlt, submitBtnAlt: !!submitBtnAlt });
+            modalContent.innerHTML = `
+                <h3>Publish to GitHub</h3>
+                <p>This will publish your submission to the GitHub repository so everyone can see it.</p>
+                <div class="form-group" style="margin: 15px 0;">
+                    <label for="githubToken" style="display: block; margin-bottom: 5px;">GitHub Personal Access Token:</label>
+                    <input type="password" id="githubToken" class="modal-input" placeholder="Enter your GitHub token">
+                    <small style="display: block; color: #aaa; margin-top: 5px;">Required to publish to GitHub. 
+                        <a href="https://github.com/settings/tokens" target="_blank" style="color: #88f;">Generate a token here</a> 
+                        with 'repo' scope access.
+                    </small>
+                </div>
+                <div class="form-group" style="margin: 15px 0;">
+                    <p style="font-size: 14px; color: #ddd;">
+                        Your submission will be published to:<br>
+                        <span style="color: #fff; font-weight: bold;">Applethings/statswebsitewright</span>
+                    </p>
+                </div>
+                <div class="modal-buttons">
+                    <button id="confirmPublish" class="modal-button" style="background-color: #004d00;">Publish Submission</button>
+                    <button id="cancelPublish" class="modal-button" style="background-color: #660000;">Cancel</button>
+                </div>
+            `;
             
-            if (prevBtn) prevBtn.addEventListener('click', goToPrevPage);
-            if (nextBtn) nextBtn.addEventListener('click', goToNextPage);
-            if (submitBtn) submitBtn.addEventListener('click', openSubmissionModal);
+            publishModal.appendChild(modalContent);
+            document.body.appendChild(publishModal);
             
-            // Add event listeners to alternate buttons
-            if (prevBtnAlt) prevBtnAlt.addEventListener('click', goToPrevPage);
-            if (nextBtnAlt) nextBtnAlt.addEventListener('click', goToNextPage);
-            if (submitBtnAlt) submitBtnAlt.addEventListener('click', openSubmissionModal);
+            // Handle button clicks
+            document.getElementById('confirmPublish').addEventListener('click', function() {
+                const token = document.getElementById('githubToken').value.trim();
+                
+                if (!token) {
+                    alert('GitHub token is required to publish submissions. Please generate one at https://github.com/settings/tokens with "repo" scope.');
+                    return;
+                }
+                
+                // Set repository details
+                const owner = 'Applethings';
+                const repo = 'statswebsitewright';
+                
+                // Create a folder path based on test type and date
+                const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                const folderPath = `submissions/${dateStr}`;
+                const fileName = `${submission.testId}_${submission.name.replace(/\s+/g, '_')}_${new Date().getTime()}.json`;
+                const path = `${folderPath}/${fileName}`;
+                
+                const message = `Test submission from ${submission.name}`;
+                const content = btoa(JSON.stringify(submission, null, 2)); // Convert to base64
+                
+                // Show loading state
+                document.getElementById('confirmPublish').textContent = 'Publishing...';
+                document.getElementById('confirmPublish').disabled = true;
+                
+                // Create the submission file in the GitHub repository
+                createFileInGitHub(owner, repo, path, message, content, token)
+                    .then(result => {
+                        if (result.success) {
+                            document.body.removeChild(publishModal);
+                        }
+                    });
+            });
             
-            // Canvas buttons event listeners
-            const positionClearBtn = document.querySelector('.graph-box:nth-child(1) .graph-button:nth-child(1)');
-            const positionUndoBtn = document.querySelector('.graph-box:nth-child(1) .graph-button:nth-child(2)');
-            const velocityClearBtn = document.querySelector('.graph-box:nth-child(2) .graph-button:nth-child(1)');
-            const velocityUndoBtn = document.querySelector('.graph-box:nth-child(2) .graph-button:nth-child(2)');
+            document.getElementById('cancelPublish').addEventListener('click', function() {
+                document.body.removeChild(publishModal);
+            });
             
-            if (positionClearBtn) positionClearBtn.addEventListener('click', () => clearCanvas('positionGraph'));
-            if (positionUndoBtn) positionUndoBtn.addEventListener('click', () => undoLastStroke('positionGraph'));
-            if (velocityClearBtn) velocityClearBtn.addEventListener('click', () => clearCanvas('velocityGraph'));
-            if (velocityUndoBtn) velocityUndoBtn.addEventListener('click', () => undoLastStroke('velocityGraph'));
+            // Close modal if clicking outside
+            publishModal.addEventListener('click', function(event) {
+                if (event.target === publishModal) {
+                    document.body.removeChild(publishModal);
+                }
+            });
+        }
+
+        // Function to create a file in GitHub repository
+        async function createFileInGitHub(owner, repo, path, message, content, token) {
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
             
-            // Submission modal event listeners
-            const anonymousSubmitBtn = document.getElementById('anonymousSubmit') || document.getElementById('submitAnonymous');
-            const namedSubmitBtn = document.getElementById('namedSubmit') || document.getElementById('submitWithName');
-            const closeModalBtn = document.getElementById('closeModal') || document.getElementById('cancelSubmit');
-            
-            if (anonymousSubmitBtn) anonymousSubmitBtn.addEventListener('click', handleAnonymousSubmit);
-            if (namedSubmitBtn) namedSubmitBtn.addEventListener('click', handleNamedSubmit);
-            if (closeModalBtn) closeModalBtn.addEventListener('click', closeSubmissionModal);
+            try {
+                // Prepare request headers
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                };
+                
+                // Check if we need to create the directory first by trying to get its contents
+                const dirPath = path.split('/').slice(0, -1).join('/');
+                
+                if (dirPath) {
+                    try {
+                        // Try to fetch the directory to see if it exists
+                        const dirCheckResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}`, {
+                            headers: {
+                                'Authorization': `token ${token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        });
+                        
+                        // If directory doesn't exist (404), create it with a README
+                        if (dirCheckResponse.status === 404) {
+                            console.log(`Creating directory: ${dirPath}`);
+                            const readmeResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}/README.md`, {
+                                method: 'PUT',
+                                headers: headers,
+                                body: JSON.stringify({
+                                    message: `Creating submissions directory`,
+                                    content: btoa('# Test Submissions\nThis directory contains test submissions from users.'),
+                                    branch: 'main'
+                                })
+                            });
+                            
+                            if (!readmeResponse.ok) {
+                                throw new Error(`Failed to create directory: ${await readmeResponse.text()}`);
+                            }
+                        }
+                    } catch (dirError) {
+                        console.error('Error checking/creating directory:', dirError);
+                    }
+                }
+                
+                // Now create the actual file
+                const response = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify({
+                        message: message,
+                        content: content,
+                        branch: 'main'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Unknown error');
+                }
+                
+                if (data.content) {
+                    alert(`Submission successfully published to GitHub!\nView it at: ${data.content.html_url}`);
+                    
+                    // Update test-results.html to show this submission
+                    try {
+                        await updateTestResultsFile(owner, repo, token, {
+                            name: submission.name,
+                            testId: submission.testId,
+                            timestamp: submission.timestamp,
+                            fileUrl: data.content.html_url
+                        });
+                    } catch (updateError) {
+                        console.error('Failed to update test-results.html:', updateError);
+                        // Continue even if this fails, as the submission was already published
+                    }
+                    
+                    return { success: true, url: data.content.html_url };
+                } else {
+                    throw new Error('No content returned from GitHub API');
+                }
+            } catch (error) {
+                console.error('Error publishing to GitHub:', error);
+                alert(`Error publishing to GitHub: ${error.message}\n\nPlease check your token has the correct permissions.`);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Function to update the test-results.html file to include the new submission
+        async function updateTestResultsFile(owner, repo, token, submissionInfo) {
+            try {
+                const filePath = 'test-results.html';
+                
+                // First, fetch the current content of the file
+                const getResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!getResponse.ok) {
+                    throw new Error(`Failed to fetch ${filePath}: ${getResponse.status}`);
+                }
+                
+                const fileData = await getResponse.json();
+                const content = atob(fileData.content);
+                const sha = fileData.sha;
+                
+                // Determine the subject based on the testId
+                let subject = "AP Physics 1";
+                if (submissionInfo.testId.includes('physics1')) {
+                    subject = "AP Physics 1";
+                }
+                // Add more subject mappings as needed
+                
+                // Determine if it's FRQ or MCQ
+                const testType = submissionInfo.testId.includes('mcq') ? 'MCQ' : 'FRQ';
+                
+                // Find where to insert the new submission
+                // Look for subject div first
+                let updatedContent = content;
+                const subjectDivId = subject.toLowerCase().replace(/\s+/g, '-');
+                
+                if (!content.includes(`id="${subjectDivId}"`)) {
+                    // Subject doesn't exist yet, add it at the end of the test-selection-container
+                    const subjectDiv = `
+                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
+                    <h2>${subject}</h2>
+                    <p>0 FRQ submissions, 0 MCQ submissions</p>
+                </div>`;
+                    
+                    updatedContent = updatedContent.replace(
+                        `<div class="test-selection-container" id="testCategories">`,
+                        `<div class="test-selection-container" id="testCategories">${subjectDiv}`
+                    );
+                }
+                
+                // Add this specific submission to the appropriate section
+                const submissionEntry = `
+                <div class="submission-item" data-test="${submissionInfo.testId}" data-type="${testType}" data-timestamp="${submissionInfo.timestamp}">
+                    <h4>${submissionInfo.name}</h4>
+                    <p>Submitted: ${new Date(submissionInfo.timestamp).toLocaleString()}</p>
+                    <p><a href="${submissionInfo.fileUrl}" target="_blank">View Submission</a></p>
+                </div>`;
+                
+                // Update the submission count for this subject
+                const countRegex = new RegExp(`<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
+                const countMatch = updatedContent.match(countRegex);
+                
+                if (countMatch) {
+                    let frqCount = parseInt(countMatch[1]);
+                    let mcqCount = parseInt(countMatch[2]);
+                    
+                    if (testType === 'FRQ') {
+                        frqCount++;
+                    } else {
+                        mcqCount++;
+                    }
+                    
+                    updatedContent = updatedContent.replace(
+                        countRegex,
+                        `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
+                    );
+                }
+                
+                // Add the submission to the appropriate container
+                if (updatedContent.includes(`<div id="submissions-${testType.toLowerCase()}-${subjectDivId}">`)) {
+                    updatedContent = updatedContent.replace(
+                        `<div id="submissions-${testType.toLowerCase()}-${subjectDivId}">`,
+                        `<div id="submissions-${testType.toLowerCase()}-${subjectDivId}">${submissionEntry}`
+                    );
+                } else {
+                    // Create the container if it doesn't exist
+                    const containerDiv = `
+                <div id="submissions-${testType.toLowerCase()}-${subjectDivId}">
+                    ${submissionEntry}
+                </div>`;
+                    
+                    // Add it at the end of the submissionsContainer
+                    updatedContent = updatedContent.replace(
+                        `<div id="submissionsContainer">`,
+                        `<div id="submissionsContainer">${containerDiv}`
+                    );
+                }
+                
+                // Update the file on GitHub
+                const updateResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Add ${testType} submission from ${submissionInfo.name} for ${subject}`,
+                        content: btoa(updatedContent),
+                        sha: sha,
+                        branch: 'main'
+                    })
+                });
+                
+                if (!updateResponse.ok) {
+                    const errorData = await updateResponse.json();
+                    throw new Error(`Failed to update ${filePath}: ${errorData.message}`);
+                }
+                
+                console.log(`Successfully updated test-results.html with ${testType} submission for ${subject}`);
+            } catch (error) {
+                console.error('Error updating test-results.html:', error);
+                throw error;
+            }
         }
     </script>
 </body>
