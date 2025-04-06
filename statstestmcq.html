@@ -498,6 +498,144 @@
             }
         }
 
+        // Helper function to add a new subject category
+        function addSubjectCategory(content, subject, subjectDivId) {
+            const categoryHTML = `
+            <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
+                <h2>${subject}</h2>
+                <p>0 FRQ submissions, 0 MCQ submissions</p>
+            </div>`;
+            
+            return content.replace('<div class="test-selection-container" id="testCategories">', 
+                `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
+        }
+        
+        // Helper function to update the counter for a subject
+        function updateSubjectCounter(content, subject, subjectDivId, testType) {
+            const regex = new RegExp(`<div class="test-category" id="${subjectDivId}"[^>]*>[\\s\\S]*?<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                let frqCount = parseInt(match[1]);
+                let mcqCount = parseInt(match[2]);
+                
+                if (testType === 'FRQ') {
+                    frqCount++;
+                } else {
+                    mcqCount++;
+                }
+                
+                return content.replace(
+                    `<p>${match[1]} FRQ submissions, ${match[2]} MCQ submissions</p>`,
+                    `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
+                );
+            }
+            
+            return content;
+        }
+        
+        // Helper function to add a new submission container for a subject/type
+        function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
+            // First check if the subject types container exists
+            const typesContainerId = `test-types-${subject.toLowerCase().replace(/\s+/g, '-')}`;
+            
+            if (!content.includes(`id="${typesContainerId}"`)) {
+                // Create the test types container for this subject
+                const testTypesContainer = 
+                    '<div id="' + typesContainerId + '" class="test-types-container" style="display: none;">' +
+                    '<div class="test-type-selection">' +
+                    '<button class="test-type-button" onclick="showSubmissions(\'' + subject + '\', \'MCQ\')">Multiple Choice</button>' +
+                    '<button class="test-type-button" onclick="showSubmissions(\'' + subject + '\', \'FRQ\')">Free Response</button>' +
+                    '</div>' +
+                    '<div id="submissions-' + testType.toLowerCase() + '-' + subject.toLowerCase().replace(/\s+/g, '-') + 
+                    '" class="submission-type-container" style="display: none;">' +
+                    '<h3>' + (testType === 'FRQ' ? 'Free Response' : 'Multiple Choice') + ' Submissions</h3>' +
+                    submissionHTML +
+                    '</div>' +
+                    '</div>';
+                
+                // Add the test types container after the submission container div
+                return content.replace('<div class="submissions-container" id="submissionsContainer">', 
+                    '<div class="submissions-container" id="submissionsContainer">\n                ' + testTypesContainer);
+            } else {
+                // The subject types container exists, check if the specific type container exists
+                const typeContainerId = `submissions-${testType.toLowerCase()}-${subject.toLowerCase().replace(/\s+/g, '-')}`;
+                
+                if (!content.includes(`id="${typeContainerId}"`)) {
+                    // Add the submission type container to the existing subject types container
+                    const submissionTypeContainer = 
+                        '<div id="' + typeContainerId + '" class="submission-type-container" style="display: none;">' +
+                        '<h3>' + (testType === 'FRQ' ? 'Free Response' : 'Multiple Choice') + ' Submissions</h3>' +
+                        submissionHTML +
+                        '</div>';
+                    
+                    // Add the submission type container to the test types container
+                    const regex = new RegExp(`<div id="${typesContainerId}" class="test-types-container"[^>]*>[\\s\\S]*?<div class="test-type-selection">[\\s\\S]*?</div>`);
+                    const match = content.match(regex);
+                    
+                    if (match) {
+                        return content.replace(
+                            match[0],
+                            match[0] + '\n                ' + submissionTypeContainer
+                        );
+                    }
+                } else {
+                    // The submission type container already exists, just add the submission
+                    return addToSubmissionContainer(content, typeContainerId, submissionHTML);
+                }
+            }
+            
+            return content;
+        }
+        
+        // Helper function to add a submission to an existing container
+        function addToSubmissionContainer(content, containerId, submissionHTML) {
+            const regex = new RegExp(`<div id="${containerId}" class="submission-type-container"[^>]*>[\\s\\S]*?<h3>[^<]*</h3>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                return content.replace(
+                    match[0],
+                    `${match[0]}\n                ${submissionHTML}`
+                );
+            }
+            
+            return content;
+        }
+        
+        // Add JavaScript functions needed for the test-results.html page navigation
+        function addNavigationScripts(content) {
+            // Check if script already exists
+            if (!content.includes('function showTestTypes(subject)')) {
+                // Create script content without template literals
+                const scriptContent = 
+                    '<script>\n' +
+                    'function showTestTypes(subject) {\n' +
+                    '    document.querySelectorAll(".test-types-container").forEach(container => {\n' +
+                    '        container.style.display = "none";\n' +
+                    '    });\n' +
+                    '    const subjectId = subject.toLowerCase().replace(/\\s+/g, "-");\n' +
+                    '    const typesContainer = document.getElementById("test-types-" + subjectId);\n' +
+                    '    if (typesContainer) typesContainer.style.display = "block";\n' +
+                    '}\n\n' +
+                    'function showSubmissions(subject, testType) {\n' +
+                    '    document.querySelectorAll(".submission-type-container").forEach(container => {\n' +
+                    '        container.style.display = "none";\n' +
+                    '    });\n' +
+                    '    const subjectId = subject.toLowerCase().replace(/\\s+/g, "-");\n' +
+                    '    const containerId = "submissions-" + testType.toLowerCase() + "-" + subjectId;\n' +
+                    '    const container = document.getElementById(containerId);\n' +
+                    '    if (container) container.style.display = "block";\n' +
+                    '}\n' +
+                    '<\/script>';
+                
+                // Add the script before the closing body tag
+                return content.replace('</body>', scriptContent + '\n</body>');
+            }
+            
+            return content;
+        }
+
         // Function to directly update the test-results.html file with the submission
         async function updateTestResultsHTML(owner, repo, token, submission) {
             try {
@@ -537,6 +675,9 @@
                 // Update the JavaScript data structure
                 let updatedContent = updateJavaScriptData(content, subject, submission);
                 
+                // Add navigation scripts if they don't exist
+                updatedContent = addNavigationScripts(updatedContent);
+                
                 // Update the display containers
                 const subjectDivId = subject.toLowerCase().replace(/\s+/g, '-');
                 
@@ -551,13 +692,7 @@
                 
                 // Add the submission to the appropriate container
                 const containerId = `submissions-${testType.toLowerCase()}-${subjectDivId}`;
-                if (!updatedContent.includes(`id="${containerId}"`)) {
-                    // Container doesn't exist, create it
-                    updatedContent = addSubmissionContainer(updatedContent, containerId, submissionHTML, subject, testType);
-                } else {
-                    // Container exists, add to it
-                    updatedContent = addToSubmissionContainer(updatedContent, containerId, submissionHTML);
-                }
+                updatedContent = addSubmissionContainer(updatedContent, containerId, submissionHTML, subject, testType);
                 
                 // Base64 encode the content properly for non-ASCII characters
                 // This fixes the "Failed to execute 'btoa' on 'Window'" error
@@ -760,69 +895,6 @@
             }
             
             return content.replace('displayTestCategories();', `displayTestCategories();\n        ${scriptContent}`);
-        }
-        
-        // Helper function to add a new subject category
-        function addSubjectCategory(content, subject, subjectDivId) {
-            const categoryHTML = `
-            <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
-                <h2>${subject}</h2>
-                <p>0 FRQ submissions, 0 MCQ submissions</p>
-            </div>`;
-            
-            return content.replace('<div class="test-selection-container" id="testCategories">', 
-                `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
-        }
-        
-        // Helper function to update the counter for a subject
-        function updateSubjectCounter(content, subject, subjectDivId, testType) {
-            const regex = new RegExp(`<div class="test-category" id="${subjectDivId}"[^>]*>[\\s\\S]*?<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
-            const match = content.match(regex);
-            
-            if (match) {
-                let frqCount = parseInt(match[1]);
-                let mcqCount = parseInt(match[2]);
-                
-                if (testType === 'FRQ') {
-                    frqCount++;
-                } else {
-                    mcqCount++;
-                }
-                
-                return content.replace(
-                    `<p>${match[1]} FRQ submissions, ${match[2]} MCQ submissions</p>`,
-                    `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
-                );
-            }
-            
-            return content;
-        }
-        
-        // Helper function to add a new submission container for a subject/type
-        function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
-            const containerHTML = `
-            <div id="${containerId}" class="submission-type-container">
-                <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
-                ${submissionHTML}
-            </div>`;
-            
-            return content.replace('<div class="submissions-container" id="submissionsContainer">', 
-                `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
-        }
-        
-        // Helper function to add a submission to an existing container
-        function addToSubmissionContainer(content, containerId, submissionHTML) {
-            const regex = new RegExp(`<div id="${containerId}" class="submission-type-container">[\\s\\S]*?<h3>[^<]*</h3>`);
-            const match = content.match(regex);
-            
-            if (match) {
-                return content.replace(
-                    match[0],
-                    `${match[0]}\n                ${submissionHTML}`
-                );
-            }
-            
-            return content;
         }
         
         // Close modal when Escape key is pressed
