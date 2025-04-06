@@ -989,17 +989,45 @@
             });
 
             // Collect canvas drawings
-            const canvasData = {
-                positionGraph: document.getElementById('positionGraph').toDataURL(),
-                velocityGraph: document.getElementById('velocityGraph').toDataURL(),
-                gridGraph: document.getElementById('gridGraph').toDataURL(),
-                forceT1: document.getElementById('forceT1').toDataURL(),
-                forceT2: document.getElementById('forceT2').toDataURL()
+            const canvasData = {};
+            
+            // Helper function to properly get canvas image
+            const getCanvasImage = (canvasId) => {
+                try {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) {
+                        console.error(`Canvas element not found: ${canvasId}`);
+                        return null;
+                    }
+                    
+                    console.log(`Getting data URL for ${canvasId}`);
+                    // Force image/png format with high quality
+                    const dataUrl = canvas.toDataURL('image/png', 1.0);
+                    console.log(`${canvasId} data URL length: ${dataUrl.length}`);
+                    
+                    // Discord requires direct URLs, but in this case we'll rely on Discord's ability
+                    // to render some data URLs in embeds, or we can use a service to host the image
+                    return dataUrl;
+                } catch (error) {
+                    console.error(`Error capturing canvas ${canvasId}:`, error);
+                    return null;
+                }
             };
+            
+            // Get each canvas image
+            const canvasList = ['positionGraph', 'velocityGraph', 'gridGraph', 'forceT1', 'forceT2'];
+            canvasList.forEach(canvasId => {
+                const imageUrl = getCanvasImage(canvasId);
+                if (imageUrl) {
+                    canvasData[canvasId] = imageUrl;
+                }
+            });
 
             // Add canvas data to answers
             answers['canvas_data'] = canvasData;
-
+            
+            console.log(`Collected answers with ${Object.keys(canvasData).length} canvas drawings`);
+            
             return answers;
         }
 
@@ -1207,7 +1235,7 @@
                 const drawingsHeaderPayload = {
                     embeds: [{
                         title: `Drawings from ${userName}`,
-                        description: "The following messages contain the student's drawings",
+                        description: "The following messages contain descriptions of the student's drawings. Due to Discord's limitations with data URLs, you'll need to click the GitHub publishing link below to see the actual drawings.",
                         color: 3447003, // Blue color
                     }]
                 };
@@ -1230,36 +1258,33 @@
                         return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
                     });
                 
-                // Send each drawing sequentially
-                Object.entries(answers.canvas_data).forEach(([canvasKey, canvasValue]) => {
-                    const drawingPayload = {
-                        embeds: [{
-                            title: `${canvasKey} Drawing`,
-                            image: {
-                                url: canvasValue
+                // Instead of sending each drawing as an image that probably won't work,
+                // just send a message mentioning each drawing
+                const drawingKeysPayload = {
+                    embeds: [{
+                        title: "Canvas Drawings List",
+                        description: `This submission includes the following drawings which will be viewable after publishing to GitHub:\n\n${Object.keys(answers.canvas_data).map(key => `• ${key}`).join('\n')}`,
+                        color: 3447003
+                    }]
+                };
+                
+                messagePromise = messagePromise
+                    .then(() => {
+                        console.log("Sending drawings list");
+                        return fetch(webhookURL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
                             },
-                            color: 3447003
-                        }]
-                    };
-                    
-                    messagePromise = messagePromise
-                        .then(() => {
-                            console.log(`Sending ${canvasKey} drawing`);
-                            return fetch(webhookURL, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(drawingPayload)
-                            });
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                console.error(`Failed to send ${canvasKey} drawing:`, response.status);
-                            }
-                            return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                            body: JSON.stringify(drawingKeysPayload)
                         });
-                });
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error("Failed to send drawings list:", response.status);
+                        }
+                        return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                    });
             }
             
             // Finally, send a message with a publication link
@@ -1279,11 +1304,13 @@
             // Create a unique URL for this submission that will open the publication dialog
             const baseUrl = window.location.href.split('?')[0];
             const publishUrl = `${baseUrl}?publish=${submissionKey}`;
+            console.log("Publishing URL:", publishUrl);
             
+            // For discord, we need to make this as simple as possible since it doesn't support UI components well
             const publishMessage = {
                 embeds: [{
-                    title: "Publish this Submission to GitHub",
-                    description: "Click the button below to publish this submission to the GitHub repository so everyone can see it.",
+                    title: "🚀 Publish this Submission to GitHub",
+                    description: `**[CLICK HERE TO PUBLISH TO GITHUB](${publishUrl})**\n\nThis link will allow you to publish this submission to the GitHub repository so everyone can see it, including the drawings.\n\nThe link will expire when this page is closed.`,
                     color: 5793266, // Green color
                     fields: [
                         {
@@ -1298,25 +1325,11 @@
                         },
                         {
                             name: "Instructions",
-                            value: "1. Click the link below\n2. Enter your GitHub token\n3. Submit to publish to GitHub",
+                            value: "1. Click the link above\n2. Enter your GitHub token when prompted\n3. Submit to publish to GitHub",
                             inline: false
                         }
-                    ],
-                    url: publishUrl
-                }],
-                components: [
-                    {
-                        type: 1,
-                        components: [
-                            {
-                                type: 2,
-                                style: 5,
-                                label: "Publish to GitHub",
-                                url: publishUrl
-                            }
-                        ]
-                    }
-                ]
+                    ]
+                }]
             };
             
             messagePromise = messagePromise
@@ -1331,8 +1344,10 @@
                     });
                 })
                 .then(response => {
+                    console.log("Publish message response status:", response.status);
                     if (!response.ok) {
                         console.error("Failed to send publish message:", response.status);
+                        return response.text().then(text => console.error("Error details:", text));
                     }
                 });
             
@@ -1351,16 +1366,32 @@
             const publishKey = urlParams.get('publish');
             
             if (publishKey) {
+                // Log for debugging
+                console.log(`Found publish key in URL: ${publishKey}`);
+                
                 // Retrieve the submission from session storage
                 const submissionData = sessionStorage.getItem(publishKey);
                 
                 if (submissionData) {
-                    const submission = JSON.parse(submissionData);
-                    // Show the GitHub publication dialog
-                    publishToGitHub(submission);
-                    
-                    // Clean the URL to avoid triggering the dialog again on refresh
-                    window.history.replaceState({}, document.title, window.location.pathname);
+                    console.log("Found submission data in session storage");
+                    try {
+                        const submission = JSON.parse(submissionData);
+                        console.log("Successfully parsed submission data");
+                        
+                        // Show the GitHub publication dialog
+                        setTimeout(() => {
+                            publishToGitHub(submission);
+                        }, 500); // Small delay to ensure page is fully loaded
+                        
+                        // Clean the URL to avoid triggering the dialog again on refresh
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    } catch (error) {
+                        console.error("Error parsing submission data:", error);
+                        alert("There was an error loading the submission data. Please try again.");
+                    }
+                } else {
+                    console.error("No submission data found for key:", publishKey);
+                    alert("This publish link has expired or is invalid. Please submit a new test to get a fresh link.");
                 }
             }
         });
