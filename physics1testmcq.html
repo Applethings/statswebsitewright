@@ -107,6 +107,65 @@
             color: white;
             margin: 0 20px;
         }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: rgba(0, 0, 32, 0.95);
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            color: white;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .modal-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+        
+        #submitAnonymous {
+            background-color: #666;
+        }
+        
+        #submitWithName {
+            background-color: #004d00;
+        }
+        
+        #cancelSubmit {
+            background-color: #660000;
+        }
     </style>
 </head>
 <body>
@@ -274,6 +333,20 @@
         <button class="nav-button" id="submitBtn" style="background-color: #004d00;">Submit Test</button>
     </div>
 
+    <!-- Submission Modal -->
+    <div id="submissionModal" class="modal">
+        <div class="modal-content">
+            <h3>Submit Your Test</h3>
+            <p>Please enter your name or choose to submit anonymously:</p>
+            <input type="text" id="submitterName" placeholder="Your Name" class="modal-input">
+            <div class="modal-buttons">
+                <button id="submitAnonymous" class="modal-button">Submit Anonymously</button>
+                <button id="submitWithName" class="modal-button">Submit with Name</button>
+                <button id="cancelSubmit" class="modal-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentPageIndex = 1;
         const totalPages = 8; // Update total pages
@@ -350,6 +423,35 @@
         });
 
         document.getElementById('submitBtn').addEventListener('click', () => {
+            // Get selected answers
+            const answerData = collectAnswers();
+            
+            // Show the submission modal
+            const submissionModal = document.getElementById('submissionModal');
+            submissionModal.style.display = 'block';
+            
+            // Handle submission buttons
+            document.getElementById('submitAnonymous').addEventListener('click', () => {
+                submitTest(true, answerData);
+                submissionModal.style.display = 'none';
+            });
+            
+            document.getElementById('submitWithName').addEventListener('click', () => {
+                const name = document.getElementById('submitterName').value.trim();
+                if (!name) {
+                    alert('Please enter your name or choose to submit anonymously.');
+                    return;
+                }
+                submitTest(false, answerData, name);
+                submissionModal.style.display = 'none';
+            });
+            
+            document.getElementById('cancelSubmit').addEventListener('click', () => {
+                submissionModal.style.display = 'none';
+            });
+        });
+
+        function collectAnswers() {
             const answerData = {};
             
             // Collect all answers including unanswered questions
@@ -368,60 +470,8 @@
                 }
             }
             
-            const submissionModal = document.createElement('div');
-            submissionModal.className = 'modal';
-            submissionModal.style.display = 'block';
-            submissionModal.style.position = 'fixed';
-            submissionModal.style.top = '0';
-            submissionModal.style.left = '0';
-            submissionModal.style.width = '100%';
-            submissionModal.style.height = '100%';
-            submissionModal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-            submissionModal.style.zIndex = '1000';
-            
-            const modalContent = document.createElement('div');
-            modalContent.style.backgroundColor = 'rgba(0, 0, 32, 0.95)';
-            modalContent.style.margin = '15% auto';
-            modalContent.style.padding = '20px';
-            modalContent.style.border = '1px solid #888';
-            modalContent.style.width = '80%';
-            modalContent.style.maxWidth = '500px';
-            modalContent.style.borderRadius = '10px';
-            modalContent.style.color = 'white';
-            
-            modalContent.innerHTML = `
-                <h3>Submit Your Test</h3>
-                <p>Please enter your name or choose to submit anonymously:</p>
-                <input type="text" id="submitterName" placeholder="Your Name" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; background-color: rgba(255, 255, 255, 0.1); color: white;">
-                <div style="display: flex; justify-content: space-between; margin-top: 20px; gap: 10px;">
-                    <button id="submitAnonymous" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #666; color: white;">Submit Anonymously</button>
-                    <button id="submitWithName" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #004d00; color: white;">Submit with Name</button>
-                    <button id="cancelSubmit" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #660000; color: white;">Cancel</button>
-                </div>
-            `;
-            
-            document.body.appendChild(submissionModal);
-            
-            // Handle submission buttons
-            document.getElementById('submitAnonymous').addEventListener('click', () => {
-                submitTest(true, answerData);
-                document.body.removeChild(submissionModal);
-            });
-            
-            document.getElementById('submitWithName').addEventListener('click', () => {
-                const name = document.getElementById('submitterName').value.trim();
-                if (!name) {
-                    alert('Please enter your name or choose to submit anonymously.');
-                    return;
-                }
-                submitTest(false, answerData, name);
-                document.body.removeChild(submissionModal);
-            });
-            
-            document.getElementById('cancelSubmit').addEventListener('click', () => {
-                document.body.removeChild(submissionModal);
-            });
-        });
+            return answerData;
+        }
 
         function submitTest(isAnonymous, answers, providedName) {
             try {
@@ -432,14 +482,14 @@
                 alert('Processing your submission...');
                 
                 // Create submission object
-                const submission = {
-                    testType: 'MCQ',
+            const submission = {
+                testType: 'MCQ',
                     testId: 'physics1testmcq',
-                    timestamp: new Date().toISOString(),
+                timestamp: new Date().toISOString(),
                     name: userName,
-                    answers: answers
-                };
-                
+                answers: answers
+            };
+
                 // Store the current submission temporarily
                 sessionStorage.setItem('lastSubmission', JSON.stringify(submission));
                 

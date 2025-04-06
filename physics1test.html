@@ -1010,46 +1010,55 @@
             // Position graph
             const positionGraph = document.getElementById('positionGraph');
             if (positionGraph) {
-                // Check if canvas has actually been drawn on
+                // Always include the graph, even if it doesn't have content
                 const hasContent = canvasHasContent(positionGraph);
-                canvasData.positionGraph = hasContent ? 
-                    positionGraph.toDataURL('image/png') : 
-                    "No drawing provided";
+                canvasData.positionGraph = positionGraph.toDataURL('image/png');
+                if (!hasContent) {
+                    canvasData.positionGraph_status = "No drawing provided - default graph";
+                }
             }
             
             // Velocity graph
             const velocityGraph = document.getElementById('velocityGraph');
             if (velocityGraph) {
+                // Always include the graph, even if it doesn't have content
                 const hasContent = canvasHasContent(velocityGraph);
-                canvasData.velocityGraph = hasContent ? 
-                    velocityGraph.toDataURL('image/png') : 
-                    "No drawing provided";
+                canvasData.velocityGraph = velocityGraph.toDataURL('image/png');
+                if (!hasContent) {
+                    canvasData.velocityGraph_status = "No drawing provided - default graph";
+                }
             }
             
             // Grid graph
             const gridGraph = document.getElementById('gridGraph');
             if (gridGraph) {
+                // Always include the graph, even if it doesn't have content
                 const hasContent = canvasHasContent(gridGraph);
-                canvasData.gridGraph = hasContent ? 
-                    gridGraph.toDataURL('image/png') : 
-                    "No drawing provided";
+                canvasData.gridGraph = gridGraph.toDataURL('image/png');
+                if (!hasContent) {
+                    canvasData.gridGraph_status = "No drawing provided - default grid";
+                }
             }
             
             // Force diagrams
             const forceT1 = document.getElementById('forceT1');
             if (forceT1) {
+                // Always include the graph, even if it doesn't have content
                 const hasContent = canvasHasContent(forceT1);
-                canvasData.forceT1 = hasContent ? 
-                    forceT1.toDataURL('image/png') : 
-                    "No drawing provided";
+                canvasData.forceT1 = forceT1.toDataURL('image/png');
+                if (!hasContent) {
+                    canvasData.forceT1_status = "No drawing provided - default diagram";
+                }
             }
             
             const forceT2 = document.getElementById('forceT2');
             if (forceT2) {
+                // Always include the graph, even if it doesn't have content
                 const hasContent = canvasHasContent(forceT2);
-                canvasData.forceT2 = hasContent ? 
-                    forceT2.toDataURL('image/png') : 
-                    "No drawing provided";
+                canvasData.forceT2 = forceT2.toDataURL('image/png');
+                if (!hasContent) {
+                    canvasData.forceT2_status = "No drawing provided - default diagram";
+                }
             }
             
             // Add canvas data to answers object
@@ -1523,12 +1532,12 @@
                 
                 // First, fetch the current content of the file
                 const getResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-                
+                            headers: {
+                                'Authorization': `token ${token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        });
+                        
                 if (!getResponse.ok) {
                     throw new Error(`Failed to fetch ${filePath}: ${getResponse.status}`);
                 }
@@ -1577,20 +1586,20 @@
                 
                 // Update the file on GitHub
                 const updateResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
-                    method: 'PUT',
+                                method: 'PUT',
                     headers: {
                         'Authorization': `token ${token}`,
                         'Accept': 'application/vnd.github.v3+json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
+                                body: JSON.stringify({
                         message: `Add ${testType} submission from ${submission.name} for ${subject}`,
                         content: utf8ToBase64(updatedContent),
                         sha: sha,
-                        branch: 'main'
-                    })
-                });
-                
+                                    branch: 'main'
+                                })
+                            });
+                            
                 // Function to convert UTF-8 string to base64
                 function utf8ToBase64(str) {
                     try {
@@ -1640,12 +1649,16 @@
             // Format canvas drawings if they exist
             let canvasHTML = '';
             if (submission.answers.canvas_data) {
-                canvasHTML = `
-                    <div class="canvas-container">
-                        <h4>Drawings:</h4>
-                        <div class="canvas-grid">
-                            ${Object.entries(submission.answers.canvas_data)
-                                .map(([key, value]) => {
+                // Get all canvas keys excluding status keys
+                const canvasKeys = Object.keys(submission.answers.canvas_data)
+                    .filter(key => !key.endsWith('_status'));
+                
+                if (canvasKeys.length > 0) {
+                    canvasHTML = `
+                        <div class="canvas-container">
+                            <h4>Drawings:</h4>
+                            <div class="canvas-grid">
+                                ${canvasKeys.map(key => {
                                     let displayName = key;
                                     switch(key) {
                                         case 'positionGraph': displayName = 'Position vs. Time'; break;
@@ -1656,15 +1669,21 @@
                                         default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
                                     }
                                     
-                                    // Handle both image data and text messages
+                                    const value = submission.answers.canvas_data[key];
+                                    const statusKey = `${key}_status`;
+                                    const status = submission.answers.canvas_data[statusKey] || '';
+                                    
+                                    // Always display the image if it's a data URL
                                     if (typeof value === 'string' && value.startsWith('data:image/')) {
                                         return `
                                             <div class="canvas-item">
                                                 <img src="${value}" alt="${displayName}" onclick="zoomImage(this)" style="max-width: 100%; border: 1px solid #ccc;">
                                                 <div class="canvas-label">${displayName}</div>
+                                                ${status ? `<div class="canvas-status" style="font-size: 12px; color: #666; font-style: italic; margin-top: 5px;">${status}</div>` : ''}
                                             </div>
                                         `;
-                                    } else {
+                                    } else if (typeof value === 'string') {
+                                        // Text fallback for non-image data
                                         return `
                                             <div class="canvas-item">
                                                 <div style="padding: 30px; text-align: center; background-color: #f8f8f8; color: #666; border: 1px dashed #ccc;">
@@ -1673,11 +1692,14 @@
                                                 <div class="canvas-label">${displayName}</div>
                                             </div>
                                         `;
+                                    } else {
+                                        return '';
                                     }
                                 }).join('')}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }
             
             // Create the complete submission HTML
@@ -1711,7 +1733,7 @@
                     // If it's a large data URL (image), replace with a description
                     if (typeof value === 'string' && value.startsWith('data:image/') && value.length > 50000) {
                         canvasDataDescriptions[key] = `[Image data for ${key} - size: ${Math.round(value.length/1024)}KB]`;
-                    } else {
+                } else {
                         canvasDataDescriptions[key] = value;
                     }
                 }
@@ -1816,8 +1838,8 @@
                 <div id="${containerId}" class="submission-type-container">
                     <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
                     ${submissionHTML}
-                </div>`;
-            
+                        </div>`;
+                
             return content.replace('<div class="submissions-container" id="submissionsContainer">', 
                 `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
         }
