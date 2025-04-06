@@ -535,7 +535,7 @@
             document.getElementById('tokenModal').style.display = 'block';
         }
 
-        function deleteSubmission(category, index, submissionType, token) {
+        async function deleteSubmission(category, index, submissionType, token) {
             const allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
             const submissions = allSubmissions[category] || [];
             
@@ -545,17 +545,16 @@
             // Update localStorage
             localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
             
-            // Push changes to GitHub repository
-            pushToGitHub(token, allSubmissions)
-                .then(() => {
-                    alert('Submission deleted and changes pushed to GitHub repository');
-                    displaySubmissions(category, submissionType);
-                })
-                .catch(error => {
-                    alert('Error: ' + error.message);
-                    console.error('GitHub push error:', error);
-                    displaySubmissions(category, submissionType);
-                });
+            try {
+                // Push changes to GitHub repository
+                await pushToGitHub(token, allSubmissions);
+                alert('Submission deleted and changes pushed to GitHub repository');
+            } catch (error) {
+                console.error('GitHub push error:', error);
+                // The error alert is already shown in the pushToGitHub function
+            } finally {
+                displaySubmissions(category, submissionType);
+            }
         }
 
         async function pushToGitHub(token, data) {
@@ -566,10 +565,14 @@
                 // GitHub API requires base64 encoding for file content
                 const encodedContent = btoa(unescape(encodeURIComponent(submissionsData)));
                 
-                // Get repository information - you need to adjust these values
-                const owner = 'Aus'; // Replace with actual GitHub username
-                const repo = 'statswebsitewright'; // Replace with actual repository name
+                // Get repository information from URL or use defaults
+                // You should update these values to match your actual GitHub repository
+                const owner = new URLSearchParams(window.location.search).get('owner') || 'applethings';
+                const repo = new URLSearchParams(window.location.search).get('repo') || 'statswebsitewright';
                 const path = 'submissions.json'; // Path where to store the data
+                
+                // Log attempt info for debugging
+                console.log(`Attempting to access GitHub repo: ${owner}/${repo} at path: ${path}`);
                 
                 // Try to get the current file to get its SHA
                 let sha = '';
@@ -581,12 +584,22 @@
                         }
                     });
                     
-                    if (getFileResponse.ok) {
+                    if (getFileResponse.status === 404) {
+                        console.log('File not found, will create new file');
+                    } else if (!getFileResponse.ok) {
+                        const errorData = await getFileResponse.json();
+                        throw new Error(`GitHub API error: ${errorData.message || getFileResponse.statusText}`);
+                    } else {
                         const fileData = await getFileResponse.json();
                         sha = fileData.sha;
+                        console.log('Found existing file with SHA:', sha);
                     }
                 } catch (error) {
-                    console.log('File might not exist yet, creating new file');
+                    if (error.message.includes('Not Found')) {
+                        alert(`Repository not found: ${owner}/${repo}. Please check the repository exists and is accessible with your token.`);
+                        throw new Error(`Repository not found: ${owner}/${repo}`);
+                    }
+                    console.warn('Error accessing file:', error.message);
                 }
                 
                 // Update or create the file
@@ -606,11 +619,24 @@
                 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to push to GitHub');
+                    const errorMessage = errorData.message || 'Failed to push to GitHub';
+                    
+                    // Provide more helpful error messages
+                    if (errorMessage.includes('Not Found')) {
+                        alert(`Repository not found: ${owner}/${repo}. Please check the repository exists and is accessible with your token.`);
+                    } else if (errorMessage.includes('Bad credentials')) {
+                        alert('Invalid GitHub token. Please provide a valid token with appropriate permissions.');
+                    } else {
+                        alert(`GitHub Error: ${errorMessage}`);
+                    }
+                    
+                    throw new Error(errorMessage);
                 }
                 
+                console.log('Successfully pushed to GitHub');
                 return await response.json();
             } catch (error) {
+                console.error('Error during GitHub operation:', error);
                 throw error;
             }
         }
@@ -759,8 +785,17 @@
                 return;
             }
             
+            // Show loading message
+            this.textContent = 'Processing...';
+            this.disabled = true;
+            
             document.getElementById('tokenModal').style.display = 'none';
-            deleteSubmission(deleteInfo.category, deleteInfo.index, deleteInfo.submissionType, token);
+            deleteSubmission(deleteInfo.category, deleteInfo.index, deleteInfo.submissionType, token)
+                .finally(() => {
+                    // Reset button state
+                    this.textContent = 'Confirm Delete';
+                    this.disabled = false;
+                });
         });
 
         document.getElementById('tokenModal').addEventListener('click', function(event) {
