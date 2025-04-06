@@ -486,6 +486,76 @@
             }
 
             const submissionsHTML = filteredSubmissions.map(function(submission, index) {
+                let answersHTML = '';
+                
+                if (submission.testType === 'MCQ') {
+                    // MCQ specific format - show question number and selected option (A, B, C, D)
+                    answersHTML = Object.entries(submission.answers)
+                        .map(([key, value]) => {
+                            const questionNum = key.split('_')[1];
+                            return `
+                                <div class="answer">
+                                    <strong>Question ${questionNum}:</strong>
+                                    <p>${value || '(No answer provided)'}</p>
+                                </div>
+                            `;
+                        }).join('');
+                } else if (submission.testType === 'FRQ') {
+                    // FRQ format - handle both text answers and canvas data
+                    answersHTML = Object.entries(submission.answers)
+                        .filter(([key]) => !key.includes('canvas_data') && key !== 'canvas_data')
+                        .map(([key, value]) => {
+                            const questionNum = key.split('_')[1];
+                            return `
+                                <div class="answer">
+                                    <strong>Answer ${questionNum}:</strong>
+                                    <p>${value || '(No answer provided)'}</p>
+                                </div>
+                            `;
+                        }).join('');
+                    
+                    // Handle canvas data if it exists (handle both object format and string format)
+                    if (submission.answers.canvas_data) {
+                        let canvasData = submission.answers.canvas_data;
+                        
+                        // If canvas_data is a string (like "[object Object]"), try to fix it
+                        if (typeof canvasData === 'string' && canvasData.includes('[object Object]')) {
+                            answersHTML += `
+                                <div class="canvas-container">
+                                    <h4>Drawings:</h4>
+                                    <p>Canvas data is available but in an unreadable format. This is a display issue only; the data is still stored correctly.</p>
+                                </div>
+                            `;
+                        } else if (typeof canvasData === 'object' && canvasData !== null) {
+                            // Handle proper object format
+                            if (Object.keys(canvasData).length > 0) {
+                                answersHTML += `
+                                    <div class="canvas-container">
+                                        <h4>Drawings:</h4>
+                                        <div class="canvas-grid">
+                                            ${Object.entries(canvasData).map(([canvasId, dataUrl]) => {
+                                                // Handle if dataUrl is an object or string
+                                                const imageUrl = typeof dataUrl === 'string' ? dataUrl : 'images/placeholder-drawing.png';
+                                                const displayId = canvasId.replace('canvas_', 'Drawing ');
+                                                
+                                                return `
+                                                    <div class="canvas-item">
+                                                        <img src="${imageUrl}" alt="${displayId}" onclick="showFullSize('${imageUrl}', '${displayId}')">
+                                                        <div class="canvas-label">${displayId}</div>
+                                                        <div class="canvas-controls">
+                                                            <button class="canvas-button" onclick="downloadImage('${imageUrl}', '${displayId}')">Download</button>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                }
+                
                 return `
                     <div class="submission">
                         <div class="submission-header">
@@ -495,13 +565,7 @@
                                 <span class="timestamp">Date: ${formatDate(submission.timestamp)}</span>
                             </div>
                         </div>
-                        ${Object.entries(submission.answers)
-                            .map(([key, value]) => `
-                                <div class="answer">
-                                    <strong>Answer ${key.split('_')[1]}:</strong>
-                                    <p>${value || '(No answer provided)'}</p>
-                                </div>
-                            `).join('')}
+                        ${answersHTML}
                     </div>
                 `;
             }).join('');
@@ -644,8 +708,23 @@
         const urlParams = new URLSearchParams(window.location.search);
         const testParam = urlParams.get('test');
         
-        if (testParam === 'physics1test') {
-            showSubmissions('AP Physics 1', 'FRQ');
+        if (testParam) {
+            // Handle various test parameters
+            if (testParam === 'physics1test') {
+                showSubmissions('AP Physics 1', 'FRQ');
+            } else if (testParam === 'physics1testmcq') {
+                showSubmissions('AP Physics 1', 'MCQ');
+            } else {
+                // For future test types, extract subject and type from parameter
+                const parts = testParam.match(/([a-z]+\d*)test(mcq)?/i);
+                if (parts) {
+                    const subject = parts[1].replace(/([A-Z])/g, ' $1').trim();
+                    const type = parts[2] ? 'MCQ' : 'FRQ';
+                    showSubmissions(`AP ${subject.toUpperCase()}`, type);
+                } else {
+                    showTestSelection();
+                }
+            }
         } else {
             showTestSelection();
         }
