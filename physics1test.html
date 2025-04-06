@@ -988,8 +988,8 @@
             const answers = {};
             
             // Collect text answers from all answer spaces
-            document.querySelectorAll('.answer-space').forEach(answerBox => {
-                const id = answerBox.id;
+            document.querySelectorAll('.answer-space').forEach((answerBox, index) => {
+                const id = answerBox.id || `answer_${index + 1}`;
                 answers[id] = answerBox.value || "";
             });
             
@@ -1164,7 +1164,7 @@
                         title: `Answers ${i + 1}-${Math.min(i + 5, textAnswers.length)}`,
                         color: 3447003,
                         fields: chunk.map(([key, value]) => ({
-                            name: `Q${key.replace('answer_', '')}`,
+                            name: `Answer ${key.replace('answer_', '')}`,
                             value: value || '(No answer provided)'
                         }))
                     }]
@@ -1189,7 +1189,7 @@
             }
             
             // Send canvas drawings if any exist
-            if (answers.canvas_data) {
+            if (answers.canvas_data && Object.keys(answers.canvas_data).length > 0) {
                 const canvasDrawings = Object.entries(answers.canvas_data);
                 
                 // Send a header for the drawings
@@ -1221,34 +1221,87 @@
                         case 'gridGraph': displayName = 'Data Grid'; break;
                         case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
                         case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
-                        default: displayName = name;
+                        default: displayName = name.replace(/([A-Z])/g, ' $1').trim();
                     }
                     
-                    const drawingPayload = {
-                        content: `**${displayName}:**`,
-                        embeds: [{
-                            title: displayName,
-                            image: {
-                                url: dataUrl
-                            },
-                            color: 7506394
-                        }]
-                    };
-                    
-                    try {
-                        await fetch(webhookURL, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(drawingPayload)
-                        });
+                    // Only attempt to send if the dataUrl is valid and not empty
+                    if (dataUrl && dataUrl.startsWith('data:image/')) {
+                        const drawingPayload = {
+                            content: `**${displayName}:**`,
+                            embeds: [{
+                                title: displayName,
+                                image: {
+                                    url: dataUrl
+                                },
+                                color: 7506394
+                            }]
+                        };
                         
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    } catch (error) {
-                        console.error(`Error sending canvas ${name}:`, error);
-                        throw error;
+                        try {
+                            const response = await fetch(webhookURL, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(drawingPayload)
+                            });
+                            
+                            if (!response.ok) {
+                                console.error(`Failed to send ${displayName} drawing: ${response.status}`);
+                                // If image is too large, send a message about it
+                                await fetch(webhookURL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        content: `**${displayName}:** Too large to send via Discord. The image will be available on GitHub.`
+                                    })
+                                });
+                            }
+                            
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        } catch (error) {
+                            console.error(`Error sending canvas ${name}:`, error);
+                            // If sending fails, try to send a message about it
+                            try {
+                                await fetch(webhookURL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        content: `**${displayName}:** Failed to send. The image will be available on GitHub.`
+                                    })
+                                });
+                            } catch (innerError) {
+                                console.error(`Failed to send error message for ${name}:`, innerError);
+                            }
+                        }
+                    } else {
+                        // If the drawing is empty or invalid, send a message about it
+                        try {
+                            await fetch(webhookURL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    content: `**${displayName}:** No drawing provided.`
+                                })
+                            });
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        } catch (error) {
+                            console.error(`Error sending empty canvas message for ${name}:`, error);
+                        }
                     }
+                }
+            } else {
+                // If no drawings exist, send a message about it
+                try {
+                    await fetch(webhookURL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            content: "**No drawings provided in this submission.**"
+                        })
+                    });
+                } catch (error) {
+                    console.error("Error sending no drawings message:", error);
                 }
             }
             
@@ -1261,7 +1314,8 @@
         });
 
         submitWithName.addEventListener('click', () => {
-            if (!submitterName.value.trim()) {
+            const name = submitterName.value.trim();
+            if (!name) {
                 alert('Please enter your name or choose to submit anonymously.');
                 return;
             }

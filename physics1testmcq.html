@@ -350,12 +350,22 @@
         });
 
         document.getElementById('submitBtn').addEventListener('click', () => {
-            const answers = {};
+            const answerData = {};
             
-            // Collect selected answers
-            for (let i = 0; i < totalPages - 1; i++) {
-                answers[`question_${i + 1}`] = answers[i] !== undefined ? 
-                    String.fromCharCode(65 + answers[i]) : "Not answered"; // Convert 0,1,2,3 to A,B,C,D
+            // Collect all answers including unanswered questions
+            for (let i = 1; i <= 6; i++) { // Questions 1-6
+                const questionNumber = i;
+                const selectedOption = document.querySelector(`#page${i+1} .option.selected`);
+                
+                if (selectedOption) {
+                    // Find the index of the selected option
+                    const options = document.querySelectorAll(`#page${i+1} .option`);
+                    const optionIndex = Array.from(options).indexOf(selectedOption);
+                    // Convert index to letter (0->A, 1->B, etc.)
+                    answerData[`question_${questionNumber}`] = String.fromCharCode(65 + optionIndex);
+                } else {
+                    answerData[`question_${questionNumber}`] = "Not answered";
+                }
             }
             
             const submissionModal = document.createElement('div');
@@ -394,7 +404,7 @@
             
             // Handle submission buttons
             document.getElementById('submitAnonymous').addEventListener('click', () => {
-                submitTest(true, answers);
+                submitTest(true, answerData);
                 document.body.removeChild(submissionModal);
             });
             
@@ -404,7 +414,7 @@
                     alert('Please enter your name or choose to submit anonymously.');
                     return;
                 }
-                submitTest(false, answers);
+                submitTest(false, answerData);
                 document.body.removeChild(submissionModal);
             });
             
@@ -415,7 +425,7 @@
 
         function submitTest(isAnonymous, answers) {
             try {
-                const userName = isAnonymous ? 'Anonymous' : document.getElementById('submitterName').value;
+                const userName = isAnonymous ? 'Anonymous' : document.getElementById('submitterName').value.trim();
                 
                 // Create a payload with minimal data first
                 const payload = {
@@ -563,9 +573,17 @@
                     return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
                 });
             
+            // Create a complete list of all questions with answers
+            // This ensures all questions are included even if not answered
+            const completeAnswers = {};
+            for (let i = 1; i <= 50; i++) {
+                const questionKey = `question_${i}`;
+                completeAnswers[questionKey] = answers[questionKey] || "Not answered";
+            }
+            
             // Break up the answers into smaller chunks to stay within Discord's message limits
             const chunkSize = 10; // Send 10 answers per message
-            const answerEntries = Object.entries(answers).sort((a, b) => {
+            const answerEntries = Object.entries(completeAnswers).sort((a, b) => {
                 const numA = parseInt(a[0].replace('question_', '')) || 0;
                 const numB = parseInt(b[0].replace('question_', '')) || 0;
                 return numA - numB;
