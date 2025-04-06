@@ -536,6 +536,9 @@
     </div>
 
     <script>
+        // Configuration
+        const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa";
+        
         let currentPageIndex = 1;
         const totalPages = 6;
 
@@ -980,156 +983,137 @@
             submissionModal.style.display = 'none';
         });
 
+        // Function to collect all the answers from the document
         function collectAnswers() {
             const answers = {};
             
-            // Collect text answers
-            document.querySelectorAll('.answer-space').forEach((textarea, index) => {
-                answers[`answer_${index + 1}`] = textarea.value;
+            // Collect text answers from all answer spaces
+            document.querySelectorAll('.answer-space').forEach(answerBox => {
+                const id = answerBox.id;
+                answers[id] = answerBox.value || "";
             });
-
-            // Collect canvas drawings
-            const canvasData = {
-                positionGraph: document.getElementById('positionGraph').toDataURL(),
-                velocityGraph: document.getElementById('velocityGraph').toDataURL(),
-                gridGraph: document.getElementById('gridGraph').toDataURL(),
-                forceT1: document.getElementById('forceT1').toDataURL(),
-                forceT2: document.getElementById('forceT2').toDataURL()
-            };
-
-            // Add canvas data to answers
-            answers['canvas_data'] = canvasData;
-
+            
+            // Collect canvas drawings and convert them to data URLs
+            const canvasData = {};
+            
+            // Position graph
+            const positionGraph = document.getElementById('positionGraph');
+            if (positionGraph) {
+                canvasData.positionGraph = positionGraph.toDataURL('image/png');
+            }
+            
+            // Velocity graph
+            const velocityGraph = document.getElementById('velocityGraph');
+            if (velocityGraph) {
+                canvasData.velocityGraph = velocityGraph.toDataURL('image/png');
+            }
+            
+            // Grid graph
+            const gridGraph = document.getElementById('gridGraph');
+            if (gridGraph) {
+                canvasData.gridGraph = gridGraph.toDataURL('image/png');
+            }
+            
+            // Force diagrams
+            const forceT1 = document.getElementById('forceT1');
+            if (forceT1) {
+                canvasData.forceT1 = forceT1.toDataURL('image/png');
+            }
+            
+            const forceT2 = document.getElementById('forceT2');
+            if (forceT2) {
+                canvasData.forceT2 = forceT2.toDataURL('image/png');
+            }
+            
+            // Add canvas data to answers object
+            if (Object.keys(canvasData).length > 0) {
+                answers.canvas_data = canvasData;
+            }
+            
             return answers;
         }
 
-        function submitTest(isAnonymous) {
+        // Function to handle test submission
+        async function submitTest(isAnonymous = false) {
+            const nameInput = document.getElementById('studentName');
+            let userName = isAnonymous ? "Anonymous Student" : nameInput.value.trim();
+            
+            if (!isAnonymous && (!userName || userName.length < 2)) {
+                alert("Please enter your name or choose to submit anonymously.");
+                nameInput.focus();
+                return;
+            }
+            
+            // Show loading state
+            const submitButton = document.querySelector('#submitWithName');
+            const anonymousButton = document.querySelector('#submitAnonymous');
+            submitButton.disabled = true;
+            anonymousButton.disabled = true;
+            submitButton.textContent = 'Submitting...';
+            
             try {
-                console.log("Starting submission process...");
+                // Collect all answers
                 const answers = collectAnswers();
-                const userName = isAnonymous ? 'Anonymous' : submitterName.value;
                 
-                // Create a payload with minimal data first
-                const payload = {
-                    content: `Test submission from ${userName}`,
-                    embeds: [{
-                        title: "AP Physics 1 FRQ Submission",
-                        description: `Submitted at ${new Date().toLocaleString()}`,
-                        color: 5814783, // Blue color
-                        fields: [
-                            {
-                                name: "Student",
-                                value: userName,
-                                inline: true
-                            },
-                            {
-                                name: "Test Type",
-                                value: "AP Physics 1 FRQ",
-                                inline: true
-                            },
-                            {
-                                name: "Submitted",
-                                value: new Date().toISOString(),
-                                inline: true
-                            }
-                        ]
-                    }]
+                // Create submission object
+                const submission = {
+                    name: userName,
+                    testId: 'physics1frq',
+                    testType: 'FRQ',
+                    timestamp: new Date().toISOString(),
+                    answers: answers
                 };
                 
-                // The webhook URL
-                const webhookURL = "https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa";
+                // Send to Discord webhook
+                await sendAnswersAsMultipleMessages(userName, answers, DISCORD_WEBHOOK_URL);
                 
-                // Use fetch with plain JSON payload - this is the simplest approach
-                fetch(webhookURL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                })
-                .then(response => {
-                    console.log("Webhook response status:", response.status);
-                    
-                    if (response.ok) {
-                        // If the first message sent successfully, create a second message with the answers
-                        return sendAnswersAsMultipleMessages(userName, answers, webhookURL)
-                            .then(() => {
-                                // Store the submission locally for possible GitHub publishing
-                                const submission = {
-                                    testType: 'FRQ',
-                                    testId: 'physics1test',
-                                    timestamp: new Date().toISOString(),
-                                    name: userName,
-                                    answers: answers
-                                };
-                                
-                                // Store the current submission temporarily
-                                sessionStorage.setItem('lastSubmission', JSON.stringify(submission));
-                                
-                                alert('Your test has been submitted successfully! You can now publish it to GitHub if you wish.');
-                                
-                                // Close modal first
-                                submissionModal.style.display = 'none';
-                                
-                                // Show a button to publish to GitHub
-                                // First, check if button already exists
-                                if (!document.getElementById('publishBtn')) {
-                                    const publishButton = document.createElement('button');
-                                    publishButton.className = 'nav-button';
-                                    publishButton.id = 'publishBtn';
-                                    publishButton.textContent = 'Publish to GitHub';
-                                    publishButton.style.backgroundColor = '#004d00';
-                                    publishButton.style.marginLeft = '20px';
-                                    
-                                    publishButton.addEventListener('click', function() {
-                                        const lastSubmission = JSON.parse(sessionStorage.getItem('lastSubmission'));
-                                        if (lastSubmission) {
-                                            publishToGitHub(lastSubmission);
-                                        } else {
-                                            alert('No submission available to publish.');
-                                        }
-                                    });
-                                    
-                                    // Add the button to the navigation section
-                                    document.querySelector('.navigation').appendChild(publishButton);
-                                } else {
-                                    // If button exists, make sure it's visible
-                                    document.getElementById('publishBtn').style.display = 'inline-block';
-                                }
-                            });
-                    } else {
-                        response.text().then(text => {
-                            console.error("Error response:", text);
-                            alert('There was an error submitting your test. Please try again.');
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error submitting test:', error);
-                    alert('There was an error submitting your test. Please try again.');
-                });
-
-                // Close modal
-                submissionModal.style.display = 'none';
+                // Store submission in local storage for GitHub publishing
+                storeSubmission(submission);
+                
+                // Hide the modal
+                document.querySelector('.modal').style.display = 'none';
+                
+                // Show success message and offer to publish to GitHub
+                if (confirm('Submission successfully sent to Discord! Would you like to publish it to GitHub as well?')) {
+                    publishToGitHub(submission);
+                } else {
+                    alert('Your submission has been saved. You can publish it to GitHub later if you want.');
+                }
             } catch (error) {
-                console.error("Unexpected error in submission process:", error);
-                alert('An unexpected error occurred. Please try again.');
+                console.error('Error submitting test:', error);
+                alert(`Error submitting test: ${error.message}`);
+            } finally {
+                // Reset the buttons
+                submitButton.disabled = false;
+                anonymousButton.disabled = false;
+                submitButton.textContent = 'Submit with Name';
             }
         }
+        
+        // Function to store a submission in local storage
+        function storeSubmission(submission) {
+            const submissions = JSON.parse(localStorage.getItem('testSubmissions') || '[]');
+            submissions.push(submission);
+            localStorage.setItem('testSubmissions', JSON.stringify(submissions));
+        }
 
-        function sendAnswersAsMultipleMessages(userName, answers, webhookURL) {
-            // Create a promise chain to ensure sequential message delivery
-            let messagePromise = Promise.resolve();
-            
-            // First send header message
+        // Function to send answers to Discord in multiple messages
+        async function sendAnswersAsMultipleMessages(userName, answers, webhookURL) {
+            // First send a header message with user details
             const headerPayload = {
+                content: "",
                 embeds: [{
-                    title: `Complete Test Submission from ${userName}`,
-                    description: "This submission includes text answers and drawings",
-                    color: 5814783, // Blue color
+                    title: `Complete FRQ Test Submission from ${userName}`,
+                    description: "This submission includes text answers and canvas drawings.",
+                    color: 3447003,
                     fields: [
                         {
-                            name: "Test Type",
+                            name: "Student",
+                            value: userName,
+                            inline: true
+                        },
+                        {
+                            name: "Test",
                             value: "AP Physics 1 FRQ",
                             inline: true
                         },
@@ -1142,173 +1126,134 @@
                 }]
             };
             
-            // Start the promise chain with the header
-            messagePromise = messagePromise
-                .then(() => {
-                    console.log("Sending header message");
-                    return fetch(webhookURL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(headerPayload)
-                    });
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        console.error("Failed to send header message:", response.status);
-                    }
-                    return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+            // Send the header
+            try {
+                await fetch(webhookURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(headerPayload)
                 });
-            
-            // Get text answers only (not canvas data)
-            const textAnswers = {};
-            for (const [key, value] of Object.entries(answers)) {
-                if (key !== 'canvas_data') {
-                    textAnswers[key] = value || "(No answer provided)";
-                }
+                
+                // Wait a bit before sending the rest to preserve message order
+                await new Promise(resolve => setTimeout(resolve, 500));
+            } catch (error) {
+                console.error("Error sending header message:", error);
+                throw error;
             }
             
-            // Sort answer keys numerically
-            const answerEntries = Object.entries(textAnswers)
+            // Get text answers only (exclude the canvas data)
+            const textAnswers = Object.entries(answers)
+                .filter(([key]) => key !== 'canvas_data')
                 .sort((a, b) => {
+                    // Extract numbers from keys to sort numerically
                     const numA = parseInt(a[0].replace('answer_', '')) || 0;
                     const numB = parseInt(b[0].replace('answer_', '')) || 0;
                     return numA - numB;
                 });
             
-            // Break up the answers into smaller chunks to stay within Discord's message limits
-            const chunkSize = 5; // Send 5 answers per message
-            
-            for (let i = 0; i < answerEntries.length; i += chunkSize) {
-                const chunk = answerEntries.slice(i, i + chunkSize);
-                const fields = chunk.map(([key, value]) => ({
-                    name: `Question ${key.replace('answer_', '')}`,
-                    value: value.substring(0, 1000) || "(No answer provided)",
-                    inline: false
-                }));
+            // Split answers into chunks of 5 to avoid message limits
+            for (let i = 0; i < textAnswers.length; i += 5) {
+                const chunk = textAnswers.slice(i, i + 5);
                 
-                const payload = {
+                // Create a message payload for this chunk
+                const chunkPayload = {
+                    content: "",
                     embeds: [{
-                        title: `Answers from ${userName} (Part ${Math.floor(i/chunkSize) + 1})`,
-                        color: 5814783,
-                        fields: fields
+                        title: `Answers ${i + 1}-${Math.min(i + 5, textAnswers.length)}`,
+                        color: 3447003,
+                        fields: chunk.map(([key, value]) => ({
+                            name: `Q${key.replace('answer_', '')}`,
+                            value: value || '(No answer provided)'
+                        }))
                     }]
                 };
                 
-                // Add each answer chunk to the promise chain
-                messagePromise = messagePromise
-                    .then(() => {
-                        console.log(`Sending answers part ${Math.floor(i/chunkSize) + 1}`);
-                        return fetch(webhookURL, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(payload)
-                        });
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            console.error(`Failed to send answers part ${Math.floor(i/chunkSize) + 1}:`, response.status);
-                        }
-                        return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                // Send this chunk of answers
+                try {
+                    await fetch(webhookURL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(chunkPayload)
                     });
+                    
+                    // Add a small delay between messages
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (error) {
+                    console.error("Error sending answer chunk:", error);
+                    throw error;
+                }
             }
             
-            // Then send all canvas drawings as separate messages with images
-            if (answers.canvas_data && Object.keys(answers.canvas_data).length > 0) {
-                // Add drawings header to the chain
+            // Send canvas drawings if any exist
+            if (answers.canvas_data) {
+                const canvasDrawings = Object.entries(answers.canvas_data);
+                
+                // Send a header for the drawings
                 const drawingsHeaderPayload = {
-                    embeds: [{
-                        title: `Drawings from ${userName}`,
-                        description: "The following messages contain the student's drawings",
-                        color: 3447003, // Blue color
-                    }]
+                    content: "**Canvas Drawings:**"
                 };
                 
-                messagePromise = messagePromise
-                    .then(() => {
-                        console.log("Sending drawings header");
-                        return fetch(webhookURL, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(drawingsHeaderPayload)
-                        });
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            console.error("Failed to send drawings header:", response.status);
-                        }
-                        return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                try {
+                    await fetch(webhookURL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(drawingsHeaderPayload)
                     });
+                    
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (error) {
+                    console.error("Error sending canvas header:", error);
+                    throw error;
+                }
                 
-                // Send each drawing sequentially
-                const drawingPromises = Object.entries(answers.canvas_data).map(([canvasKey, canvasValue]) => {
-                    return () => {
-                        // Map canvas keys to more readable names
-                        let drawingName = canvasKey;
-                        switch(canvasKey) {
-                            case 'positionGraph':
-                                drawingName = 'Position vs. Time Graph';
-                                break;
-                            case 'velocityGraph':
-                                drawingName = 'Velocity vs. Time Graph';
-                                break;
-                            case 'gridGraph':
-                                drawingName = 'Data Grid Graph';
-                                break;
-                            case 'forceT1':
-                                drawingName = 'Force Diagram (t₁)';
-                                break;
-                            case 'forceT2':
-                                drawingName = 'Force Diagram (t₂)';
-                                break;
-                            default:
-                                drawingName = canvasKey.replace(/([A-Z])/g, ' $1').trim();
-                        }
-                        
-                        const drawingPayload = {
-                            embeds: [{
-                                title: drawingName,
-                                image: {
-                                    url: canvasValue
-                                },
-                                color: 3447003
-                            }]
-                        };
-                        
-                        console.log(`Sending ${drawingName} drawing`);
-                        return fetch(webhookURL, {
+                // Send each drawing as a separate message with image
+                for (const [name, dataUrl] of canvasDrawings) {
+                    let displayName = name;
+                    switch(name) {
+                        case 'positionGraph': displayName = 'Position vs. Time Graph'; break;
+                        case 'velocityGraph': displayName = 'Velocity vs. Time Graph'; break;
+                        case 'gridGraph': displayName = 'Data Grid'; break;
+                        case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
+                        case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
+                        default: displayName = name;
+                    }
+                    
+                    const drawingPayload = {
+                        content: `**${displayName}:**`,
+                        embeds: [{
+                            title: displayName,
+                            image: {
+                                url: dataUrl
+                            },
+                            color: 7506394
+                        }]
+                    };
+                    
+                    try {
+                        await fetch(webhookURL, {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json',
+                                'Content-Type': 'application/json'
                             },
                             body: JSON.stringify(drawingPayload)
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                console.error(`Failed to send ${drawingName} drawing:`, response.status);
-                            }
-                            return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
                         });
-                    };
-                });
-                
-                // Chain all drawing promises sequentially
-                drawingPromises.forEach(promiseFn => {
-                    messagePromise = messagePromise.then(promiseFn);
-                });
+                        
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    } catch (error) {
+                        console.error(`Error sending canvas ${name}:`, error);
+                        throw error;
+                    }
+                }
             }
             
-            // Handle any errors in the promise chain
-            messagePromise.catch(error => {
-                console.error("Error in message chain:", error);
-            });
-            
-            return messagePromise;
+            console.log("All messages sent successfully.");
+            return true;
         }
 
         submitAnonymous.addEventListener('click', () => {
@@ -1466,16 +1411,31 @@
             const publishModal = document.createElement('div');
             publishModal.className = 'modal';
             publishModal.style.display = 'block';
+            publishModal.style.position = 'fixed';
+            publishModal.style.top = '0';
+            publishModal.style.left = '0';
+            publishModal.style.width = '100%';
+            publishModal.style.height = '100%';
+            publishModal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            publishModal.style.zIndex = '1000';
             
             const modalContent = document.createElement('div');
             modalContent.className = 'modal-content';
+            modalContent.style.backgroundColor = 'rgba(0, 0, 32, 0.95)';
+            modalContent.style.margin = '15% auto';
+            modalContent.style.padding = '20px';
+            modalContent.style.border = '1px solid #888';
+            modalContent.style.width = '80%';
+            modalContent.style.maxWidth = '500px';
+            modalContent.style.borderRadius = '10px';
+            modalContent.style.color = 'white';
             
             modalContent.innerHTML = `
                 <h3>Publish to GitHub</h3>
-                <p>This will publish your submission to the GitHub repository so everyone can see it.</p>
+                <p>This will publish your submission to the website for everyone to see.</p>
                 <div class="form-group" style="margin: 15px 0;">
                     <label for="githubToken" style="display: block; margin-bottom: 5px;">GitHub Personal Access Token:</label>
-                    <input type="password" id="githubToken" class="modal-input" placeholder="Enter your GitHub token">
+                    <input type="password" id="githubToken" class="modal-input" placeholder="Enter your GitHub token" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; background-color: rgba(255, 255, 255, 0.1); color: white;">
                     <small style="display: block; color: #aaa; margin-top: 5px;">Required to publish to GitHub. 
                         <a href="https://github.com/settings/tokens" target="_blank" style="color: #88f;">Generate a token here</a> 
                         with 'repo' scope access.
@@ -1487,9 +1447,9 @@
                         <span style="color: #fff; font-weight: bold;">Applethings/statswebsitewright</span>
                     </p>
                 </div>
-                <div class="modal-buttons">
-                    <button id="confirmPublish" class="modal-button" style="background-color: #004d00;">Publish Submission</button>
-                    <button id="cancelPublish" class="modal-button" style="background-color: #660000;">Cancel</button>
+                <div class="modal-buttons" style="display: flex; justify-content: space-between; margin-top: 20px; gap: 10px;">
+                    <button id="confirmPublish" class="modal-button" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #004d00; color: white;">Publish Submission</button>
+                    <button id="cancelPublish" class="modal-button" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #660000; color: white;">Cancel</button>
                 </div>
             `;
             
@@ -1509,24 +1469,30 @@
                 const owner = 'Applethings';
                 const repo = 'statswebsitewright';
                 
-                // Create a folder path based on test type and date
-                const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                const folderPath = `submissions/${dateStr}`;
-                const fileName = `${submission.testId}_${submission.name.replace(/\s+/g, '_')}_${new Date().getTime()}.json`;
-                const path = `${folderPath}/${fileName}`;
-                
-                const message = `Test submission from ${submission.name}`;
-                const content = btoa(JSON.stringify(submission, null, 2)); // Convert to base64
-                
                 // Show loading state
                 document.getElementById('confirmPublish').textContent = 'Publishing...';
                 document.getElementById('confirmPublish').disabled = true;
                 
-                // Create the submission file in the GitHub repository
-                createFileInGitHub(owner, repo, path, message, content, token)
+                // Add submission to local storage first (this makes it immediately accessible)
+                const subject = "AP Physics 1"; // Determine based on test ID
+                let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                if (!allSubmissions[subject]) {
+                    allSubmissions[subject] = [];
+                }
+                allSubmissions[subject].push(submission);
+                localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                
+                // Directly update the test-results.html file
+                updateTestResultsHTML(owner, repo, token, submission)
                     .then(result => {
                         if (result.success) {
+                            alert('Your submission has been published and can now be viewed on the Results page!');
                             document.body.removeChild(publishModal);
+                            
+                            // Optionally redirect to the test results page
+                            if (confirm('Would you like to view your submission on the results page?')) {
+                                window.location.href = 'test-results.html';
+                            }
                         }
                     });
             });
@@ -1543,99 +1509,8 @@
             });
         }
 
-        // Function to create a file in GitHub repository
-        async function createFileInGitHub(owner, repo, path, message, content, token) {
-            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-            
-            try {
-                // Prepare request headers
-                const headers = {
-                    'Content-Type': 'application/json',
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                };
-                
-                // Check if we need to create the directory first by trying to get its contents
-                const dirPath = path.split('/').slice(0, -1).join('/');
-                
-                if (dirPath) {
-                    try {
-                        // Try to fetch the directory to see if it exists
-                        const dirCheckResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}`, {
-                            headers: {
-                                'Authorization': `token ${token}`,
-                                'Accept': 'application/vnd.github.v3+json'
-                            }
-                        });
-                        
-                        // If directory doesn't exist (404), create it with a README
-                        if (dirCheckResponse.status === 404) {
-                            console.log(`Creating directory: ${dirPath}`);
-                            const readmeResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}/README.md`, {
-                                method: 'PUT',
-                                headers: headers,
-                                body: JSON.stringify({
-                                    message: `Creating submissions directory`,
-                                    content: btoa('# Test Submissions\nThis directory contains test submissions from users.'),
-                                    branch: 'main'
-                                })
-                            });
-                            
-                            if (!readmeResponse.ok) {
-                                throw new Error(`Failed to create directory: ${await readmeResponse.text()}`);
-                            }
-                        }
-                    } catch (dirError) {
-                        console.error('Error checking/creating directory:', dirError);
-                    }
-                }
-                
-                // Now create the actual file
-                const response = await fetch(apiUrl, {
-                    method: 'PUT',
-                    headers: headers,
-                    body: JSON.stringify({
-                        message: message,
-                        content: content,
-                        branch: 'main'
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.message || 'Unknown error');
-                }
-                
-                if (data.content) {
-                    alert(`Submission successfully published to GitHub!\nView it at: ${data.content.html_url}`);
-                    
-                    // Update test-results.html to show this submission
-                    try {
-                        await updateTestResultsFile(owner, repo, token, {
-                            name: submission.name,
-                            testId: submission.testId,
-                            timestamp: submission.timestamp,
-                            fileUrl: data.content.html_url
-                        });
-                    } catch (updateError) {
-                        console.error('Failed to update test-results.html:', updateError);
-                        // Continue even if this fails, as the submission was already published
-                    }
-                    
-                    return { success: true, url: data.content.html_url };
-                } else {
-                    throw new Error('No content returned from GitHub API');
-                }
-            } catch (error) {
-                console.error('Error publishing to GitHub:', error);
-                alert(`Error publishing to GitHub: ${error.message}\n\nPlease check your token has the correct permissions.`);
-                return { success: false, error: error.message };
-            }
-        }
-
-        // Function to update the test-results.html file to include the new submission
-        async function updateTestResultsFile(owner, repo, token, submissionInfo) {
+        // Function to directly update the test-results.html file with the submission
+        async function updateTestResultsHTML(owner, repo, token, submission) {
             try {
                 const filePath = 'test-results.html';
                 
@@ -1657,79 +1532,40 @@
                 
                 // Determine the subject based on the testId
                 let subject = "AP Physics 1";
-                if (submissionInfo.testId.includes('physics1')) {
+                if (submission.testId.includes('physics1')) {
                     subject = "AP Physics 1";
                 }
-                // Add more subject mappings as needed
+                // Add more subject mappings as needed for future tests
                 
                 // Determine if it's FRQ or MCQ
-                const testType = submissionInfo.testId.includes('mcq') ? 'MCQ' : 'FRQ';
+                const testType = submission.testType;
                 
-                // Find where to insert the new submission
-                // Look for subject div first
-                let updatedContent = content;
+                // Format the submission data for display
+                const submissionHTML = formatSubmissionHTML(submission);
+                
+                // Update the JavaScript data structure
+                let updatedContent = updateJavaScriptData(content, subject, submission);
+                
+                // Update the display containers
                 const subjectDivId = subject.toLowerCase().replace(/\s+/g, '-');
                 
-                if (!content.includes(`id="${subjectDivId}"`)) {
-                    // Subject doesn't exist yet, add it at the end of the test-selection-container
-                    const subjectDiv = `
-                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
-                    <h2>${subject}</h2>
-                    <p>0 FRQ submissions, 0 MCQ submissions</p>
-                </div>`;
-                    
-                    updatedContent = updatedContent.replace(
-                        `<div class="test-selection-container" id="testCategories">`,
-                        `<div class="test-selection-container" id="testCategories">${subjectDiv}`
-                    );
-                }
-                
-                // Add this specific submission to the appropriate section
-                const submissionEntry = `
-                <div class="submission-item" data-test="${submissionInfo.testId}" data-type="${testType}" data-timestamp="${submissionInfo.timestamp}">
-                    <h4>${submissionInfo.name}</h4>
-                    <p>Submitted: ${new Date(submissionInfo.timestamp).toLocaleString()}</p>
-                    <p><a href="${submissionInfo.fileUrl}" target="_blank">View Submission</a></p>
-                </div>`;
-                
-                // Update the submission count for this subject
-                const countRegex = new RegExp(`<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
-                const countMatch = updatedContent.match(countRegex);
-                
-                if (countMatch) {
-                    let frqCount = parseInt(countMatch[1]);
-                    let mcqCount = parseInt(countMatch[2]);
-                    
-                    if (testType === 'FRQ') {
-                        frqCount++;
-                    } else {
-                        mcqCount++;
-                    }
-                    
-                    updatedContent = updatedContent.replace(
-                        countRegex,
-                        `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
-                    );
+                // Find or create the container for this subject
+                if (!updatedContent.includes(`id="${subjectDivId}"`)) {
+                    // Subject doesn't exist yet, add it to the test categories
+                    updatedContent = addSubjectCategory(updatedContent, subject, subjectDivId);
+                } else {
+                    // Update the counter for the subject
+                    updatedContent = updateSubjectCounter(updatedContent, subject, subjectDivId, testType);
                 }
                 
                 // Add the submission to the appropriate container
-                if (updatedContent.includes(`<div id="submissions-${testType.toLowerCase()}-${subjectDivId}">`)) {
-                    updatedContent = updatedContent.replace(
-                        `<div id="submissions-${testType.toLowerCase()}-${subjectDivId}">`,
-                        `<div id="submissions-${testType.toLowerCase()}-${subjectDivId}">${submissionEntry}`
-                    );
+                const containerId = `submissions-${testType.toLowerCase()}-${subjectDivId}`;
+                if (!updatedContent.includes(`id="${containerId}"`)) {
+                    // Container doesn't exist, create it
+                    updatedContent = addSubmissionContainer(updatedContent, containerId, submissionHTML, subject, testType);
                 } else {
-                    // Create the container if it doesn't exist
-                    const containerDiv = `
-                <div id="submissions-${testType.toLowerCase()}-${subjectDivId}">
-                    ${submissionEntry}
-                </div>`;
-                    
-                    // Add it at the end of the submissionsContainer
-                    updatedContent = updatedContent.replace(
-                        `<div id="submissionsContainer">`,
-                        `<div id="submissionsContainer">${containerDiv}`
-                    );
+                    // Container exists, add to it
+                    updatedContent = addToSubmissionContainer(updatedContent, containerId, submissionHTML);
                 }
                 
                 // Update the file on GitHub
@@ -1741,7 +1577,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        message: `Add ${testType} submission from ${submissionInfo.name} for ${subject}`,
+                        message: `Add ${testType} submission from ${submission.name} for ${subject}`,
                         content: btoa(updatedContent),
                         sha: sha,
                         branch: 'main'
@@ -1754,10 +1590,182 @@
                 }
                 
                 console.log(`Successfully updated test-results.html with ${testType} submission for ${subject}`);
+                return { success: true };
             } catch (error) {
                 console.error('Error updating test-results.html:', error);
-                throw error;
+                alert(`Error publishing to GitHub: ${error.message}`);
+                return { success: false, error: error.message };
             }
+        }
+        
+        // Helper function to format a submission as HTML
+        function formatSubmissionHTML(submission) {
+            const formattedDate = new Date(submission.timestamp).toLocaleString();
+            
+            let answersHTML = '';
+            
+            if (submission.testType === 'MCQ') {
+                // Format MCQ answers
+                answersHTML = Object.entries(submission.answers)
+                    .sort((a, b) => {
+                        const numA = parseInt(a[0].replace('question_', '')) || 0;
+                        const numB = parseInt(b[0].replace('question_', '')) || 0;
+                        return numA - numB;
+                    })
+                    .map(([key, value]) => `
+                        <div class="answer">
+                            <strong>Question ${key.replace('question_', '')}:</strong>
+                            <p>${value || '(Not answered)'}</p>
+                        </div>
+                    `).join('');
+            } else {
+                // Format FRQ answers
+                const textAnswers = Object.entries(submission.answers)
+                    .filter(([key]) => key !== 'canvas_data')
+                    .sort((a, b) => {
+                        const numA = parseInt(a[0].replace('answer_', '')) || 0;
+                        const numB = parseInt(b[0].replace('answer_', '')) || 0;
+                        return numA - numB;
+                    })
+                    .map(([key, value]) => `
+                        <div class="answer">
+                            <strong>Answer ${key.replace('answer_', '')}:</strong>
+                            <p>${value || '(No answer provided)'}</p>
+                        </div>
+                    `).join('');
+                
+                let canvasHTML = '';
+                if (submission.answers.canvas_data) {
+                    canvasHTML = `
+                        <div class="canvas-container">
+                            <h4>Drawings:</h4>
+                            <div class="canvas-grid">
+                                ${Object.entries(submission.answers.canvas_data).map(([key, value]) => {
+                                    let displayName = key;
+                                    switch(key) {
+                                        case 'positionGraph': displayName = 'Position vs. Time'; break;
+                                        case 'velocityGraph': displayName = 'Velocity vs. Time'; break;
+                                        case 'gridGraph': displayName = 'Data Grid'; break;
+                                        case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
+                                        case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
+                                        default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
+                                    }
+                                    return `
+                                        <div class="canvas-item">
+                                            <img src="${value}" alt="${displayName}" onclick="zoomImage(this)">
+                                            <div class="canvas-label">${displayName}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                answersHTML = textAnswers + canvasHTML;
+            }
+            
+            return `
+                <div class="submission" data-timestamp="${submission.timestamp}">
+                    <div class="submission-header">
+                        <div class="submitter">Submitted by: ${submission.name}</div>
+                        <div>
+                            <span class="timestamp">Date: ${formattedDate}</span>
+                        </div>
+                    </div>
+                    ${answersHTML}
+                </div>
+            `;
+        }
+        
+        // Helper function to update the JavaScript data in the HTML
+        function updateJavaScriptData(content, subject, submission) {
+            // This just adds it to localStorage on load
+            // Add this after the displayTestCategories() call
+            const script = `
+                // Add newest submission to localStorage
+                (function() {
+                    let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                    if (!allSubmissions['${subject}']) {
+                        allSubmissions['${subject}'] = [];
+                    }
+                    // Check if submission already exists
+                    const exists = allSubmissions['${subject}'].some(s => 
+                        s.name === '${submission.name}' && 
+                        s.timestamp === '${submission.timestamp}' &&
+                        s.testType === '${submission.testType}'
+                    );
+                    if (!exists) {
+                        allSubmissions['${subject}'].push(${JSON.stringify(submission)});
+                        localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                    }
+                })();
+            `;
+            
+            return content.replace('displayTestCategories();', `displayTestCategories();\n        ${script}`);
+        }
+        
+        // Helper function to add a new subject category
+        function addSubjectCategory(content, subject, subjectDivId) {
+            const categoryHTML = `
+                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
+                    <h2>${subject}</h2>
+                    <p>0 FRQ submissions, 0 MCQ submissions</p>
+                </div>`;
+                
+            return content.replace('<div class="test-selection-container" id="testCategories">', 
+                `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
+        }
+        
+        // Helper function to update the counter for a subject
+        function updateSubjectCounter(content, subject, subjectDivId, testType) {
+            const regex = new RegExp(`<div class="test-category" id="${subjectDivId}"[^>]*>[\\s\\S]*?<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                let frqCount = parseInt(match[1]);
+                let mcqCount = parseInt(match[2]);
+                
+                if (testType === 'FRQ') {
+                    frqCount++;
+                } else {
+                    mcqCount++;
+                }
+                
+                return content.replace(
+                    `<p>${match[1]} FRQ submissions, ${match[2]} MCQ submissions</p>`,
+                    `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
+                );
+            }
+            
+            return content;
+        }
+        
+        // Helper function to add a new submission container for a subject/type
+        function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
+            const containerHTML = `
+                <div id="${containerId}" class="submission-type-container">
+                    <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
+                    ${submissionHTML}
+                </div>`;
+            
+            return content.replace('<div class="submissions-container" id="submissionsContainer">', 
+                `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
+        }
+        
+        // Helper function to add a submission to an existing container
+        function addToSubmissionContainer(content, containerId, submissionHTML) {
+            const regex = new RegExp(`<div id="${containerId}" class="submission-type-container">[\\s\\S]*?<h3>[^<]*</h3>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                return content.replace(
+                    match[0],
+                    `${match[0]}\n                    ${submissionHTML}`
+                );
+            }
+            
+            return content;
         }
     </script>
 </body>

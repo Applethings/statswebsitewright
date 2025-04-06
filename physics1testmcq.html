@@ -636,7 +636,7 @@
             
             modalContent.innerHTML = `
                 <h3>Publish to GitHub</h3>
-                <p>This will publish your submission to the GitHub repository so everyone can see it.</p>
+                <p>This will publish your submission to the website for everyone to see.</p>
                 <div class="form-group" style="margin: 15px 0;">
                     <label for="githubToken" style="display: block; margin-bottom: 5px;">GitHub Personal Access Token:</label>
                     <input type="password" id="githubToken" class="modal-input" placeholder="Enter your GitHub token" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; background-color: rgba(255, 255, 255, 0.1); color: white;">
@@ -673,24 +673,30 @@
                 const owner = 'Applethings';
                 const repo = 'statswebsitewright';
                 
-                // Create a folder path based on test type and date
-                const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                const folderPath = `submissions/${dateStr}`;
-                const fileName = `${submission.testId}_${submission.name.replace(/\s+/g, '_')}_${new Date().getTime()}.json`;
-                const path = `${folderPath}/${fileName}`;
-                
-                const message = `Test submission from ${submission.name}`;
-                const content = btoa(JSON.stringify(submission, null, 2)); // Convert to base64
-                
                 // Show loading state
                 document.getElementById('confirmPublish').textContent = 'Publishing...';
                 document.getElementById('confirmPublish').disabled = true;
                 
-                // Create the submission file in the GitHub repository
-                createFileInGitHub(owner, repo, path, message, content, token)
+                // Add submission to local storage first (this makes it immediately accessible)
+                const subject = "AP Physics 1"; // Determine based on test ID
+                let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                if (!allSubmissions[subject]) {
+                    allSubmissions[subject] = [];
+                }
+                allSubmissions[subject].push(submission);
+                localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                
+                // Directly update the test-results.html file
+                updateTestResultsHTML(owner, repo, token, submission)
                     .then(result => {
                         if (result.success) {
+                            alert('Your submission has been published and can now be viewed on the Results page!');
                             document.body.removeChild(publishModal);
+                            
+                            // Optionally redirect to the test results page
+                            if (confirm('Would you like to view your submission on the results page?')) {
+                                window.location.href = 'test-results.html';
+                            }
                         }
                     });
             });
@@ -707,99 +713,8 @@
             });
         }
 
-        // Function to create a file in GitHub repository
-        async function createFileInGitHub(owner, repo, path, message, content, token) {
-            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-            
-            try {
-                // Prepare request headers
-                const headers = {
-                    'Content-Type': 'application/json',
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                };
-                
-                // Check if we need to create the directory first by trying to get its contents
-                const dirPath = path.split('/').slice(0, -1).join('/');
-                
-                if (dirPath) {
-                    try {
-                        // Try to fetch the directory to see if it exists
-                        const dirCheckResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}`, {
-                            headers: {
-                                'Authorization': `token ${token}`,
-                                'Accept': 'application/vnd.github.v3+json'
-                            }
-                        });
-                        
-                        // If directory doesn't exist (404), create it with a README
-                        if (dirCheckResponse.status === 404) {
-                            console.log(`Creating directory: ${dirPath}`);
-                            const readmeResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}/README.md`, {
-                                method: 'PUT',
-                                headers: headers,
-                                body: JSON.stringify({
-                                    message: `Creating submissions directory`,
-                                    content: btoa('# Test Submissions\nThis directory contains test submissions from users.'),
-                                    branch: 'main'
-                                })
-                            });
-                            
-                            if (!readmeResponse.ok) {
-                                throw new Error(`Failed to create directory: ${await readmeResponse.text()}`);
-                            }
-                        }
-                    } catch (dirError) {
-                        console.error('Error checking/creating directory:', dirError);
-                    }
-                }
-                
-                // Now create the actual file
-                const response = await fetch(apiUrl, {
-                    method: 'PUT',
-                    headers: headers,
-                    body: JSON.stringify({
-                        message: message,
-                        content: content,
-                        branch: 'main'
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.message || 'Unknown error');
-                }
-                
-                if (data.content) {
-                    alert(`Submission successfully published to GitHub!\nView it at: ${data.content.html_url}`);
-                    
-                    // Update test-results.html to show this submission
-                    try {
-                        await updateTestResultsFile(owner, repo, token, {
-                            name: submission.name,
-                            testId: submission.testId,
-                            timestamp: submission.timestamp,
-                            fileUrl: data.content.html_url
-                        });
-                    } catch (updateError) {
-                        console.error('Failed to update test-results.html:', updateError);
-                        // Continue even if this fails, as the submission was already published
-                    }
-                    
-                    return { success: true, url: data.content.html_url };
-                } else {
-                    throw new Error('No content returned from GitHub API');
-                }
-            } catch (error) {
-                console.error('Error publishing to GitHub:', error);
-                alert(`Error publishing to GitHub: ${error.message}\n\nPlease check your token has the correct permissions.`);
-                return { success: false, error: error.message };
-            }
-        }
-
-        // Function to update the test-results.html file to include the new submission
-        async function updateTestResultsFile(owner, repo, token, submissionInfo) {
+        // Function to directly update the test-results.html file with the submission
+        async function updateTestResultsHTML(owner, repo, token, submission) {
             try {
                 const filePath = 'test-results.html';
                 
@@ -821,79 +736,40 @@
                 
                 // Determine the subject based on the testId
                 let subject = "AP Physics 1";
-                if (submissionInfo.testId.includes('physics1')) {
+                if (submission.testId.includes('physics1')) {
                     subject = "AP Physics 1";
                 }
-                // Add more subject mappings as needed
+                // Add more subject mappings as needed for future tests
                 
                 // Determine if it's FRQ or MCQ
-                const testType = submissionInfo.testId.includes('mcq') ? 'MCQ' : 'FRQ';
+                const testType = submission.testType;
                 
-                // Find where to insert the new submission
-                // Look for subject div first
-                let updatedContent = content;
+                // Format the submission data for display
+                const submissionHTML = formatSubmissionHTML(submission);
+                
+                // Update the JavaScript data structure
+                let updatedContent = updateJavaScriptData(content, subject, submission);
+                
+                // Update the display containers
                 const subjectDivId = subject.toLowerCase().replace(/\s+/g, '-');
                 
-                if (!content.includes(`id="${subjectDivId}"`)) {
-                    // Subject doesn't exist yet, add it at the end of the test-selection-container
-                    const subjectDiv = `
-                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
-                    <h2>${subject}</h2>
-                    <p>0 FRQ submissions, 0 MCQ submissions</p>
-                </div>`;
-                    
-                    updatedContent = updatedContent.replace(
-                        `<div class="test-selection-container" id="testCategories">`,
-                        `<div class="test-selection-container" id="testCategories">${subjectDiv}`
-                    );
-                }
-                
-                // Add this specific submission to the appropriate section
-                const submissionEntry = `
-                <div class="submission-item" data-test="${submissionInfo.testId}" data-type="${testType}" data-timestamp="${submissionInfo.timestamp}">
-                    <h4>${submissionInfo.name}</h4>
-                    <p>Submitted: ${new Date(submissionInfo.timestamp).toLocaleString()}</p>
-                    <p><a href="${submissionInfo.fileUrl}" target="_blank">View Submission</a></p>
-                </div>`;
-                
-                // Update the submission count for this subject
-                const countRegex = new RegExp(`<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
-                const countMatch = updatedContent.match(countRegex);
-                
-                if (countMatch) {
-                    let frqCount = parseInt(countMatch[1]);
-                    let mcqCount = parseInt(countMatch[2]);
-                    
-                    if (testType === 'FRQ') {
-                        frqCount++;
-                    } else {
-                        mcqCount++;
-                    }
-                    
-                    updatedContent = updatedContent.replace(
-                        countRegex,
-                        `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
-                    );
+                // Find or create the container for this subject
+                if (!updatedContent.includes(`id="${subjectDivId}"`)) {
+                    // Subject doesn't exist yet, add it to the test categories
+                    updatedContent = addSubjectCategory(updatedContent, subject, subjectDivId);
+                } else {
+                    // Update the counter for the subject
+                    updatedContent = updateSubjectCounter(updatedContent, subject, subjectDivId, testType);
                 }
                 
                 // Add the submission to the appropriate container
-                if (updatedContent.includes(`<div id="submissions-${testType.toLowerCase()}-${subjectDivId}">`)) {
-                    updatedContent = updatedContent.replace(
-                        `<div id="submissions-${testType.toLowerCase()}-${subjectDivId}">`,
-                        `<div id="submissions-${testType.toLowerCase()}-${subjectDivId}">${submissionEntry}`
-                    );
+                const containerId = `submissions-${testType.toLowerCase()}-${subjectDivId}`;
+                if (!updatedContent.includes(`id="${containerId}"`)) {
+                    // Container doesn't exist, create it
+                    updatedContent = addSubmissionContainer(updatedContent, containerId, submissionHTML, subject, testType);
                 } else {
-                    // Create the container if it doesn't exist
-                    const containerDiv = `
-                <div id="submissions-${testType.toLowerCase()}-${subjectDivId}">
-                    ${submissionEntry}
-                </div>`;
-                    
-                    // Add it at the end of the submissionsContainer
-                    updatedContent = updatedContent.replace(
-                        `<div id="submissionsContainer">`,
-                        `<div id="submissionsContainer">${containerDiv}`
-                    );
+                    // Container exists, add to it
+                    updatedContent = addToSubmissionContainer(updatedContent, containerId, submissionHTML);
                 }
                 
                 // Update the file on GitHub
@@ -905,7 +781,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        message: `Add ${testType} submission from ${submissionInfo.name} for ${subject}`,
+                        message: `Add ${testType} submission from ${submission.name} for ${subject}`,
                         content: btoa(updatedContent),
                         sha: sha,
                         branch: 'main'
@@ -918,10 +794,182 @@
                 }
                 
                 console.log(`Successfully updated test-results.html with ${testType} submission for ${subject}`);
+                return { success: true };
             } catch (error) {
                 console.error('Error updating test-results.html:', error);
-                throw error;
+                alert(`Error publishing to GitHub: ${error.message}`);
+                return { success: false, error: error.message };
             }
+        }
+        
+        // Helper function to format a submission as HTML
+        function formatSubmissionHTML(submission) {
+            const formattedDate = new Date(submission.timestamp).toLocaleString();
+            
+            let answersHTML = '';
+            
+            if (submission.testType === 'MCQ') {
+                // Format MCQ answers
+                answersHTML = Object.entries(submission.answers)
+                    .sort((a, b) => {
+                        const numA = parseInt(a[0].replace('question_', '')) || 0;
+                        const numB = parseInt(b[0].replace('question_', '')) || 0;
+                        return numA - numB;
+                    })
+                    .map(([key, value]) => `
+                        <div class="answer">
+                            <strong>Question ${key.replace('question_', '')}:</strong>
+                            <p>${value || '(Not answered)'}</p>
+                        </div>
+                    `).join('');
+            } else {
+                // Format FRQ answers
+                const textAnswers = Object.entries(submission.answers)
+                    .filter(([key]) => key !== 'canvas_data')
+                    .sort((a, b) => {
+                        const numA = parseInt(a[0].replace('answer_', '')) || 0;
+                        const numB = parseInt(b[0].replace('answer_', '')) || 0;
+                        return numA - numB;
+                    })
+                    .map(([key, value]) => `
+                        <div class="answer">
+                            <strong>Answer ${key.replace('answer_', '')}:</strong>
+                            <p>${value || '(No answer provided)'}</p>
+                        </div>
+                    `).join('');
+                
+                let canvasHTML = '';
+                if (submission.answers.canvas_data) {
+                    canvasHTML = `
+                        <div class="canvas-container">
+                            <h4>Drawings:</h4>
+                            <div class="canvas-grid">
+                                ${Object.entries(submission.answers.canvas_data).map(([key, value]) => {
+                                    let displayName = key;
+                                    switch(key) {
+                                        case 'positionGraph': displayName = 'Position vs. Time'; break;
+                                        case 'velocityGraph': displayName = 'Velocity vs. Time'; break;
+                                        case 'gridGraph': displayName = 'Data Grid'; break;
+                                        case 'forceT1': displayName = 'Force Diagram (t₁)'; break;
+                                        case 'forceT2': displayName = 'Force Diagram (t₂)'; break;
+                                        default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
+                                    }
+                                    return `
+                                        <div class="canvas-item">
+                                            <img src="${value}" alt="${displayName}" onclick="zoomImage(this)">
+                                            <div class="canvas-label">${displayName}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                answersHTML = textAnswers + canvasHTML;
+            }
+            
+            return `
+                <div class="submission" data-timestamp="${submission.timestamp}">
+                    <div class="submission-header">
+                        <div class="submitter">Submitted by: ${submission.name}</div>
+                        <div>
+                            <span class="timestamp">Date: ${formattedDate}</span>
+                        </div>
+                    </div>
+                    ${answersHTML}
+                </div>
+            `;
+        }
+        
+        // Helper function to update the JavaScript data in the HTML
+        function updateJavaScriptData(content, subject, submission) {
+            // This just adds it to localStorage on load
+            // Add this after the displayTestCategories() call
+            const script = `
+                // Add newest submission to localStorage
+                (function() {
+                    let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                    if (!allSubmissions['${subject}']) {
+                        allSubmissions['${subject}'] = [];
+                    }
+                    // Check if submission already exists
+                    const exists = allSubmissions['${subject}'].some(s => 
+                        s.name === '${submission.name}' && 
+                        s.timestamp === '${submission.timestamp}' &&
+                        s.testType === '${submission.testType}'
+                    );
+                    if (!exists) {
+                        allSubmissions['${subject}'].push(${JSON.stringify(submission)});
+                        localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                    }
+                })();
+            `;
+            
+            return content.replace('displayTestCategories();', `displayTestCategories();\n        ${script}`);
+        }
+        
+        // Helper function to add a new subject category
+        function addSubjectCategory(content, subject, subjectDivId) {
+            const categoryHTML = `
+                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
+                    <h2>${subject}</h2>
+                    <p>0 FRQ submissions, 0 MCQ submissions</p>
+                </div>`;
+                
+            return content.replace('<div class="test-selection-container" id="testCategories">', 
+                `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
+        }
+        
+        // Helper function to update the counter for a subject
+        function updateSubjectCounter(content, subject, subjectDivId, testType) {
+            const regex = new RegExp(`<div class="test-category" id="${subjectDivId}"[^>]*>[\\s\\S]*?<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                let frqCount = parseInt(match[1]);
+                let mcqCount = parseInt(match[2]);
+                
+                if (testType === 'FRQ') {
+                    frqCount++;
+                } else {
+                    mcqCount++;
+                }
+                
+                return content.replace(
+                    `<p>${match[1]} FRQ submissions, ${match[2]} MCQ submissions</p>`,
+                    `<p>${frqCount} FRQ submissions, ${mcqCount} MCQ submissions</p>`
+                );
+            }
+            
+            return content;
+        }
+        
+        // Helper function to add a new submission container for a subject/type
+        function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
+            const containerHTML = `
+                <div id="${containerId}" class="submission-type-container">
+                    <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
+                    ${submissionHTML}
+                </div>`;
+            
+            return content.replace('<div class="submissions-container" id="submissionsContainer">', 
+                `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
+        }
+        
+        // Helper function to add a submission to an existing container
+        function addToSubmissionContainer(content, containerId, submissionHTML) {
+            const regex = new RegExp(`<div id="${containerId}" class="submission-type-container">[\\s\\S]*?<h3>[^<]*</h3>`);
+            const match = content.match(regex);
+            
+            if (match) {
+                return content.replace(
+                    match[0],
+                    `${match[0]}\n                    ${submissionHTML}`
+                );
+            }
+            
+            return content;
         }
 
         updatePage();
