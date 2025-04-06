@@ -1004,29 +1004,285 @@
         }
 
         function submitTest(isAnonymous) {
-            const answers = collectAnswers();
-            const submission = {
-                testType: 'FRQ',
-                testId: 'physics1test',
-                timestamp: new Date().toISOString(),
-                name: isAnonymous ? 'Anonymous' : submitterName.value,
-                answers: answers
-            };
+            try {
+                console.log("Starting submission process...");
+                const answers = collectAnswers();
+                const userName = isAnonymous ? 'Anonymous' : submitterName.value;
+                
+                // Create a payload with minimal data first
+                const payload = {
+                    content: `Test submission from ${userName}`,
+                    embeds: [{
+                        title: "AP Physics 1 FRQ Submission",
+                        description: `Submitted at ${new Date().toLocaleString()}`,
+                        color: 5814783, // Blue color
+                        fields: [
+                            {
+                                name: "Student",
+                                value: userName,
+                                inline: true
+                            },
+                            {
+                                name: "Test Type",
+                                value: "AP Physics 1 FRQ",
+                                inline: true
+                            },
+                            {
+                                name: "Submitted",
+                                value: new Date().toISOString(),
+                                inline: true
+                            }
+                        ]
+                    }]
+                };
+                
+                // The webhook URL
+                const webhookURL = "https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa";
+                
+                // Use fetch with plain JSON payload - this is the simplest approach
+                fetch(webhookURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    console.log("Webhook response status:", response.status);
+                    
+                    if (response.ok) {
+                        // If the first message sent successfully, create a second message with the answers
+                        return sendAnswersAsMultipleMessages(userName, answers, webhookURL)
+                            .then(() => {
+                                // Store the submission locally for possible GitHub publishing
+                                const submission = {
+                                    testType: 'FRQ',
+                                    testId: 'physics1test',
+                                    timestamp: new Date().toISOString(),
+                                    name: userName,
+                                    answers: answers
+                                };
+                                
+                                // Store the current submission temporarily
+                                sessionStorage.setItem('lastSubmission', JSON.stringify(submission));
+                                
+                                alert('Your test has been submitted successfully! You can now publish it to GitHub if you wish.');
+                                
+                                // Close modal first
+                                submissionModal.style.display = 'none';
+                                
+                                // Show a button to publish to GitHub
+                                // First, check if button already exists
+                                if (!document.getElementById('publishBtn')) {
+                                    const publishButton = document.createElement('button');
+                                    publishButton.className = 'nav-button';
+                                    publishButton.id = 'publishBtn';
+                                    publishButton.textContent = 'Publish to GitHub';
+                                    publishButton.style.backgroundColor = '#004d00';
+                                    publishButton.style.marginLeft = '20px';
+                                    
+                                    publishButton.addEventListener('click', function() {
+                                        const lastSubmission = JSON.parse(sessionStorage.getItem('lastSubmission'));
+                                        if (lastSubmission) {
+                                            publishToGitHub(lastSubmission);
+                                        } else {
+                                            alert('No submission available to publish.');
+                                        }
+                                    });
+                                    
+                                    // Add the button to the navigation section
+                                    document.querySelector('.navigation').appendChild(publishButton);
+                                } else {
+                                    // If button exists, make sure it's visible
+                                    document.getElementById('publishBtn').style.display = 'inline-block';
+                                }
+                            });
+                    } else {
+                        response.text().then(text => {
+                            console.error("Error response:", text);
+                            alert('There was an error submitting your test. Please try again.');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting test:', error);
+                    alert('There was an error submitting your test. Please try again.');
+                });
 
-            // Store in localStorage with category organization
-            let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
-            if (!allSubmissions['AP Physics 1']) {
-                allSubmissions['AP Physics 1'] = [];
+                // Close modal
+                submissionModal.style.display = 'none';
+            } catch (error) {
+                console.error("Unexpected error in submission process:", error);
+                alert('An unexpected error occurred. Please try again.');
             }
-            allSubmissions['AP Physics 1'].push(submission);
-            localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+        }
 
-            // Close modal and show confirmation
-            submissionModal.style.display = 'none';
-            alert('Your test has been submitted successfully!');
+        function sendAnswersAsMultipleMessages(userName, answers, webhookURL) {
+            // Create a promise chain to ensure sequential message delivery
+            let messagePromise = Promise.resolve();
             
-            // Redirect to results page
-            window.location.href = 'test-results.html?test=physics1test';
+            // First send header message
+            const headerPayload = {
+                embeds: [{
+                    title: `Complete Test Submission from ${userName}`,
+                    description: "This submission includes text answers and drawings",
+                    color: 5814783, // Blue color
+                    fields: [
+                        {
+                            name: "Test Type",
+                            value: "AP Physics 1 FRQ",
+                            inline: true
+                        },
+                        {
+                            name: "Timestamp",
+                            value: new Date().toISOString(),
+                            inline: true
+                        }
+                    ]
+                }]
+            };
+            
+            // Start the promise chain with the header
+            messagePromise = messagePromise
+                .then(() => {
+                    console.log("Sending header message");
+                    return fetch(webhookURL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(headerPayload)
+                    });
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        console.error("Failed to send header message:", response.status);
+                    }
+                    return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                });
+            
+            // Get text answers only (not canvas data)
+            const textAnswers = {};
+            for (const [key, value] of Object.entries(answers)) {
+                if (key !== 'canvas_data') {
+                    textAnswers[key] = value || "(No answer provided)";
+                }
+            }
+            
+            // Sort answer keys numerically
+            const answerEntries = Object.entries(textAnswers)
+                .sort((a, b) => {
+                    const numA = parseInt(a[0].replace('answer_', '')) || 0;
+                    const numB = parseInt(b[0].replace('answer_', '')) || 0;
+                    return numA - numB;
+                });
+            
+            // Break up the answers into smaller chunks to stay within Discord's message limits
+            const chunkSize = 5; // Send 5 answers per message
+            
+            for (let i = 0; i < answerEntries.length; i += chunkSize) {
+                const chunk = answerEntries.slice(i, i + chunkSize);
+                const fields = chunk.map(([key, value]) => ({
+                    name: `Question ${key.replace('answer_', '')}`,
+                    value: value.substring(0, 1000) || "(No answer provided)",
+                    inline: false
+                }));
+                
+                const payload = {
+                    embeds: [{
+                        title: `Answers from ${userName} (Part ${Math.floor(i/chunkSize) + 1})`,
+                        color: 5814783,
+                        fields: fields
+                    }]
+                };
+                
+                // Add each answer chunk to the promise chain
+                messagePromise = messagePromise
+                    .then(() => {
+                        console.log(`Sending answers part ${Math.floor(i/chunkSize) + 1}`);
+                        return fetch(webhookURL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(`Failed to send answers part ${Math.floor(i/chunkSize) + 1}:`, response.status);
+                        }
+                        return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                    });
+            }
+            
+            // Then send all canvas drawings as separate messages with images
+            if (answers.canvas_data && Object.keys(answers.canvas_data).length > 0) {
+                // Add drawings header to the chain
+                const drawingsHeaderPayload = {
+                    embeds: [{
+                        title: `Drawings from ${userName}`,
+                        description: "The following messages contain the student's drawings",
+                        color: 3447003, // Blue color
+                    }]
+                };
+                
+                messagePromise = messagePromise
+                    .then(() => {
+                        console.log("Sending drawings header");
+                        return fetch(webhookURL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(drawingsHeaderPayload)
+                        });
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error("Failed to send drawings header:", response.status);
+                        }
+                        return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                    });
+                
+                // Send each drawing sequentially
+                Object.entries(answers.canvas_data).forEach(([canvasKey, canvasValue]) => {
+                    const drawingPayload = {
+                        embeds: [{
+                            title: `${canvasKey} Drawing`,
+                            image: {
+                                url: canvasValue
+                            },
+                            color: 3447003
+                        }]
+                    };
+                    
+                    messagePromise = messagePromise
+                        .then(() => {
+                            console.log(`Sending ${canvasKey} drawing`);
+                            return fetch(webhookURL, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(drawingPayload)
+                            });
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                console.error(`Failed to send ${canvasKey} drawing:`, response.status);
+                            }
+                            return new Promise(resolve => setTimeout(resolve, 500)); // Add delay between messages
+                        });
+                });
+            }
+            
+            // Handle any errors in the promise chain
+            messagePromise.catch(error => {
+                console.error("Error in message chain:", error);
+            });
+            
+            return messagePromise;
         }
 
         submitAnonymous.addEventListener('click', () => {
@@ -1177,6 +1433,252 @@
             initForceDiagram('forceT2');
             makeCanvasFocusable();
         });
+
+        // Add this function to handle GitHub publishing
+        function publishToGitHub(submission) {
+            // Display a confirmation dialog
+            const publishModal = document.createElement('div');
+            publishModal.className = 'modal';
+            publishModal.style.display = 'block';
+            
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            
+            modalContent.innerHTML = `
+                <h3>Publish to GitHub</h3>
+                <p>This will publish your submission to the GitHub repository so everyone can see it.</p>
+                <div class="form-group" style="margin: 15px 0;">
+                    <label for="githubToken" style="display: block; margin-bottom: 5px;">GitHub Personal Access Token:</label>
+                    <input type="password" id="githubToken" class="modal-input" placeholder="Enter your GitHub token">
+                    <small style="display: block; color: #aaa; margin-top: 5px;">Required to publish to GitHub. 
+                        <a href="https://github.com/settings/tokens" target="_blank" style="color: #88f;">Generate a token here</a> 
+                        with 'repo' scope access.
+                    </small>
+                </div>
+                <div class="form-group" style="margin: 15px 0;">
+                    <p style="font-size: 14px; color: #ddd;">
+                        Your submission will be published to:<br>
+                        <span style="color: #fff; font-weight: bold;">Applethings/statswebsitewright</span>
+                    </p>
+                </div>
+                <div class="modal-buttons">
+                    <button id="confirmPublish" class="modal-button" style="background-color: #004d00;">Publish Submission</button>
+                    <button id="cancelPublish" class="modal-button" style="background-color: #660000;">Cancel</button>
+                </div>
+            `;
+            
+            publishModal.appendChild(modalContent);
+            document.body.appendChild(publishModal);
+            
+            // Handle button clicks
+            document.getElementById('confirmPublish').addEventListener('click', function() {
+                const token = document.getElementById('githubToken').value.trim();
+                
+                if (!token) {
+                    alert('GitHub token is required to publish submissions. Please generate one at https://github.com/settings/tokens with "repo" scope.');
+                    return;
+                }
+                
+                // Set repository details
+                const owner = 'Applethings';
+                const repo = 'statswebsitewright';
+                
+                // Create a folder path based on test type and date
+                const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                const folderPath = `submissions/${dateStr}`;
+                const fileName = `${submission.testId}_${submission.name.replace(/\s+/g, '_')}_${new Date().getTime()}.json`;
+                const path = `${folderPath}/${fileName}`;
+                
+                const message = `Test submission from ${submission.name}`;
+                const content = btoa(JSON.stringify(submission, null, 2)); // Convert to base64
+                
+                // Show loading state
+                document.getElementById('confirmPublish').textContent = 'Publishing...';
+                document.getElementById('confirmPublish').disabled = true;
+                
+                // Create the submission file in the GitHub repository
+                createFileInGitHub(owner, repo, path, message, content, token)
+                    .then(result => {
+                        if (result.success) {
+                            document.body.removeChild(publishModal);
+                        }
+                    });
+            });
+            
+            document.getElementById('cancelPublish').addEventListener('click', function() {
+                document.body.removeChild(publishModal);
+            });
+            
+            // Close modal if clicking outside
+            publishModal.addEventListener('click', function(event) {
+                if (event.target === publishModal) {
+                    document.body.removeChild(publishModal);
+                }
+            });
+        }
+
+        // Function to create a file in GitHub repository
+        async function createFileInGitHub(owner, repo, path, message, content, token) {
+            const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+            
+            try {
+                // Prepare request headers
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                };
+                
+                // Check if we need to create the directory first by trying to get its contents
+                const dirPath = path.split('/').slice(0, -1).join('/');
+                
+                if (dirPath) {
+                    try {
+                        // Try to fetch the directory to see if it exists
+                        const dirCheckResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}`, {
+                            headers: {
+                                'Authorization': `token ${token}`,
+                                'Accept': 'application/vnd.github.v3+json'
+                            }
+                        });
+                        
+                        // If directory doesn't exist (404), create it with a README
+                        if (dirCheckResponse.status === 404) {
+                            console.log(`Creating directory: ${dirPath}`);
+                            const readmeResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dirPath}/README.md`, {
+                                method: 'PUT',
+                                headers: headers,
+                                body: JSON.stringify({
+                                    message: `Creating submissions directory`,
+                                    content: btoa('# Test Submissions\nThis directory contains test submissions from users.'),
+                                    branch: 'main'
+                                })
+                            });
+                            
+                            if (!readmeResponse.ok) {
+                                throw new Error(`Failed to create directory: ${await readmeResponse.text()}`);
+                            }
+                        }
+                    } catch (dirError) {
+                        console.error('Error checking/creating directory:', dirError);
+                    }
+                }
+                
+                // Now create the actual file
+                const response = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify({
+                        message: message,
+                        content: content,
+                        branch: 'main'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Unknown error');
+                }
+                
+                if (data.content) {
+                    alert(`Submission successfully published to GitHub!\nView it at: ${data.content.html_url}`);
+                    
+                    // Update test-results.html to show this submission
+                    try {
+                        await updateTestResultsFile(owner, repo, token, {
+                            name: submission.name,
+                            testId: submission.testId,
+                            timestamp: submission.timestamp,
+                            fileUrl: data.content.html_url
+                        });
+                    } catch (updateError) {
+                        console.error('Failed to update test-results.html:', updateError);
+                        // Continue even if this fails, as the submission was already published
+                    }
+                    
+                    return { success: true, url: data.content.html_url };
+                } else {
+                    throw new Error('No content returned from GitHub API');
+                }
+            } catch (error) {
+                console.error('Error publishing to GitHub:', error);
+                alert(`Error publishing to GitHub: ${error.message}\n\nPlease check your token has the correct permissions.`);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Function to update the test-results.html file to include the new submission
+        async function updateTestResultsFile(owner, repo, token, submissionInfo) {
+            try {
+                const filePath = 'test-results.html';
+                
+                // First, fetch the current content of the file
+                const getResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!getResponse.ok) {
+                    throw new Error(`Failed to fetch ${filePath}: ${getResponse.status}`);
+                }
+                
+                const fileData = await getResponse.json();
+                const content = atob(fileData.content);
+                const sha = fileData.sha;
+                
+                // Find the location to insert the new submission
+                // This is a simple approach - in a real-world scenario, 
+                // you might want to use a more robust HTML parser
+                const submissionEntry = `
+                        <div class="submission-item" data-test="${submissionInfo.testId}" data-timestamp="${submissionInfo.timestamp}">
+                            <h4>${submissionInfo.name}</h4>
+                            <p>Submitted: ${new Date(submissionInfo.timestamp).toLocaleString()}</p>
+                            <p><a href="${submissionInfo.fileUrl}" target="_blank">View Submission</a></p>
+                        </div>`;
+                
+                // Simple approach: add the submission before the end of the submissions container
+                let updatedContent;
+                if (content.includes('<div id="submissionsContainer">')) {
+                    updatedContent = content.replace(
+                        '<div id="submissionsContainer">',
+                        '<div id="submissionsContainer">' + submissionEntry
+                    );
+                } else {
+                    // If the container doesn't exist, we don't modify the file
+                    console.log('Could not find submissions container in test-results.html');
+                    return;
+                }
+                
+                // Update the file on GitHub
+                const updateResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Add submission from ${submissionInfo.name}`,
+                        content: btoa(updatedContent),
+                        sha: sha,
+                        branch: 'main'
+                    })
+                });
+                
+                if (!updateResponse.ok) {
+                    const errorData = await updateResponse.json();
+                    throw new Error(`Failed to update ${filePath}: ${errorData.message}`);
+                }
+                
+                console.log('Successfully updated test-results.html');
+            } catch (error) {
+                console.error('Error updating test-results.html:', error);
+                throw error;
+            }
+        }
     </script>
 </body>
 </html> 

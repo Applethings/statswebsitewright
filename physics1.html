@@ -65,5 +65,35 @@
         <a href="physics1test.html" class="test-button">Start AP Physics 1 FRQ</a>
         <a href="physics1testmcq.html" class="test-button">Start AP Physics 1 MCQ</a>
     </div>
+    <script>
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            const submission = {
+                testType: 'MCQ',
+                testId: 'physics1test',
+                timestamp: new Date().toISOString(),
+                name: submitterName.value || 'Anonymous',
+                answers: answers
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(submission)
+                });
+
+                if (response.ok) {
+                    alert('Your test has been submitted successfully!');
+                    window.location.href = 'test-results.html';
+                } else {
+                    console.error('Failed to submit test');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
 </body>
 </html> 

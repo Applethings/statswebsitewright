@@ -4,6 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Submissions</title>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AlzaSyD2cHYsrd-ZLu09qY1ifgn6YHBON6HFris",
+            authDomain: "interactiveaptestsonline.firebaseapp.com",
+            projectId: "interactiveaptestsonline",
+            storageBucket: "interactiveaptestsonline.appspot.com",
+            messagingSenderId: "1032176385978",
+            appId: "1:1032176385978:web:1a0838264a252815bce783",
+            measurementId: "G-SS1K7GZ1J4"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Make these available globally
+        window.database = database;
+        window.ref = ref;
+        window.push = push;
+        window.onValue = onValue;
+    </script>
     <style>
         body {
             margin: 0;
@@ -446,7 +472,6 @@
             }
 
             const categoriesHTML = Object.entries(allSubmissions).map(([category, submissions]) => {
-                // Count FRQ and MCQ submissions
                 const frqCount = submissions.filter(s => s.testType === 'FRQ').length;
                 const mcqCount = submissions.filter(s => s.testType === 'MCQ').length;
                 
@@ -464,6 +489,45 @@
             container.innerHTML = categoriesHTML;
         }
 
+        function displaySubmissions(testType, submissionType) {
+            const container = document.getElementById('submissionsContainer');
+            const allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+            const submissions = allSubmissions[testType] || [];
+            const filteredSubmissions = submissions.filter(s => s.testType === submissionType);
+
+            if (filteredSubmissions.length === 0) {
+                container.innerHTML = `
+                    <div class="no-submissions">
+                        <p>No ${submissionType} submissions for ${testType} yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const submissionsHTML = filteredSubmissions.map((submission, index) => {
+                return `
+                    <div class="submission">
+                        <div class="submission-header">
+                            <div class="submitter">Submitted by: ${submission.name}</div>
+                            <div>
+                                <button class="delete-button" onclick="promptDelete('${testType}', ${index})">Delete</button>
+                                <span class="timestamp">Date: ${formatDate(submission.timestamp)}</span>
+                            </div>
+                        </div>
+                        ${Object.entries(submission.answers)
+                            .map(([key, value]) => `
+                                <div class="answer">
+                                    <strong>Answer ${key.split('_')[1]}:</strong>
+                                    <p>${value || '(No answer provided)'}</p>
+                                </div>
+                            `).join('')}
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = submissionsHTML;
+        }
+
         let submissionToDelete = null;
         let categoryToRefresh = null;
 
@@ -476,234 +540,37 @@
         }
 
         function cancelDelete() {
-            // Reset all deletion-related states
             submissionToDelete = null;
             categoryToRefresh = null;
             document.getElementById('passwordInput').value = '';
             document.getElementById('passwordModal').style.display = 'none';
-            // Don't reset rate limit when canceling
-        }
-
-        // Rate limiting variables
-        const MAX_ATTEMPTS = 3;
-        const LOCKOUT_DURATION = 30000; // 30 seconds in milliseconds
-        let attemptCount = 0;
-        let lastAttemptTime = 0;
-        let isLocked = false;
-
-        function checkRateLimit() {
-            const now = Date.now();
-            
-            // Reset attempts if lockout duration has passed
-            if (isLocked && now - lastAttemptTime >= LOCKOUT_DURATION) {
-                isLocked = false;
-                attemptCount = 0;
-            }
-
-            // Check if locked out
-            if (isLocked) {
-                const remainingTime = Math.ceil((LOCKOUT_DURATION - (now - lastAttemptTime)) / 1000);
-                alert(`Too many failed attempts. Please wait ${remainingTime} seconds before trying again.`);
-                return false;
-            }
-
-            // Increment attempt count
-            attemptCount++;
-            lastAttemptTime = now;
-
-            // Check if max attempts reached
-            if (attemptCount >= MAX_ATTEMPTS) {
-                isLocked = true;
-                alert(`Maximum attempts reached. Please wait ${LOCKOUT_DURATION/1000} seconds before trying again.`);
-                return false;
-            }
-
-            return true;
-        }
-
-        function resetRateLimit() {
-            attemptCount = 0;
-            isLocked = false;
-        }
-
-        async function loadPasswordHash() {
-            try {
-                const response = await fetch('/.env');
-                const text = await response.text();
-                const match = text.match(/DEVELOPER_PASSWORD_HASH=(.+)/);
-                return match ? match[1] : null;
-            } catch (error) {
-                console.error('Error loading password hash:', error);
-                return null;
-            }
-        }
-
-        async function verifyPassword(password) {
-            if (password === "delete123") {
-                return true;
-            }
-            return false;
         }
 
         async function confirmDelete() {
             const password = document.getElementById('passwordInput').value;
             
-            if (!checkRateLimit()) {
-                return;
-            }
-            
-            try {
-                const isValid = await verifyPassword(password);
-                if (isValid) {
-                    resetRateLimit();
-                    deleteSubmission();
-                    document.getElementById('passwordModal').style.display = 'none';
-                } else {
-                    alert('Incorrect password');
-                }
-            } catch (error) {
-                console.error('Error during password verification:', error);
-                alert('An error occurred during password verification');
+            if (password === "delete123") {
+                deleteSubmission();
+                document.getElementById('passwordModal').style.display = 'none';
+            } else {
+                alert('Incorrect password');
             }
         }
 
         function deleteSubmission() {
             if (submissionToDelete === null || categoryToRefresh === null) return;
 
-            let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
-            if (allSubmissions[categoryToRefresh]) {
-                allSubmissions[categoryToRefresh].splice(submissionToDelete, 1);
-                
-                // Remove the category if it's empty
-                if (allSubmissions[categoryToRefresh].length === 0) {
-                    delete allSubmissions[categoryToRefresh];
-                }
-                
-                localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
-                
-                // Refresh the display
-                if (Object.keys(allSubmissions).length === 0) {
-                    showTestSelection();
-                    displayTestCategories();
-                } else {
-                    displaySubmissions(categoryToRefresh);
-                }
-            }
+            const allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+            const submissions = allSubmissions[categoryToRefresh] || [];
+            submissions.splice(submissionToDelete, 1);
+            localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+
+            displaySubmissions(categoryToRefresh, 'FRQ');
 
             submissionToDelete = null;
             categoryToRefresh = null;
         }
 
-        function displaySubmissions(testType, submissionType) {
-            const container = document.getElementById('submissionsContainer');
-            const allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
-            const submissions = (allSubmissions[testType] || []).filter(s => s.testType === submissionType);
-
-            if (submissions.length === 0) {
-                container.innerHTML = `
-                    <div class="no-submissions">
-                        <p>No ${submissionType} submissions for ${testType} yet.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const submissionsHTML = submissions.map((submission, index) => {
-                const canvasData = submission.answers.canvas_data;
-                const canvasHTML = canvasData ? `
-                    <div class="canvas-container">
-                        <h3>Graphs and Diagrams</h3>
-                        <div class="canvas-grid">
-                            ${canvasData.positionGraph ? `
-                                <div class="canvas-item">
-                                    <img src="${canvasData.positionGraph}" 
-                                         alt="Position Graph" 
-                                         onclick="showFullSize('${canvasData.positionGraph}', 'Position vs. Time Graph')">
-                                    <div class="canvas-label">Position vs. Time</div>
-                                    <div class="canvas-controls">
-                                        <button class="canvas-button" onclick="showFullSize('${canvasData.positionGraph}', 'Position vs. Time Graph')">View Full Size</button>
-                                        <button class="canvas-button" onclick="downloadImage('${canvasData.positionGraph}', 'Position_vs_Time_Graph')">Download</button>
-                                    </div>
-                                </div>
-                            ` : ''}
-                            ${canvasData.velocityGraph ? `
-                                <div class="canvas-item">
-                                    <img src="${canvasData.velocityGraph}" 
-                                         alt="Velocity Graph" 
-                                         onclick="showFullSize('${canvasData.velocityGraph}', 'Velocity vs. Time Graph')">
-                                    <div class="canvas-label">Velocity vs. Time</div>
-                                    <div class="canvas-controls">
-                                        <button class="canvas-button" onclick="showFullSize('${canvasData.velocityGraph}', 'Velocity vs. Time Graph')">View Full Size</button>
-                                        <button class="canvas-button" onclick="downloadImage('${canvasData.velocityGraph}', 'Velocity_vs_Time_Graph')">Download</button>
-                                    </div>
-                                </div>
-                            ` : ''}
-                            ${canvasData.gridGraph ? `
-                                <div class="canvas-item">
-                                    <img src="${canvasData.gridGraph}" 
-                                         alt="Grid Graph" 
-                                         onclick="showFullSize('${canvasData.gridGraph}', 'Data Plot')">
-                                    <div class="canvas-label">Data Plot</div>
-                                    <div class="canvas-controls">
-                                        <button class="canvas-button" onclick="showFullSize('${canvasData.gridGraph}', 'Data Plot')">View Full Size</button>
-                                        <button class="canvas-button" onclick="downloadImage('${canvasData.gridGraph}', 'Data_Plot')">Download</button>
-                                    </div>
-                                </div>
-                            ` : ''}
-                            ${canvasData.forceT1 ? `
-                                <div class="canvas-item">
-                                    <img src="${canvasData.forceT1}" 
-                                         alt="Force Diagram t₁" 
-                                         onclick="showFullSize('${canvasData.forceT1}', 'Force Diagram (t = t₁)')">
-                                    <div class="canvas-label">Force Diagram (t = t₁)</div>
-                                    <div class="canvas-controls">
-                                        <button class="canvas-button" onclick="showFullSize('${canvasData.forceT1}', 'Force Diagram (t = t₁)')">View Full Size</button>
-                                        <button class="canvas-button" onclick="downloadImage('${canvasData.forceT1}', 'Force_Diagram_t1')">Download</button>
-                                    </div>
-                                </div>
-                            ` : ''}
-                            ${canvasData.forceT2 ? `
-                                <div class="canvas-item">
-                                    <img src="${canvasData.forceT2}" 
-                                         alt="Force Diagram t₂" 
-                                         onclick="showFullSize('${canvasData.forceT2}', 'Force Diagram (t = t₂)')">
-                                    <div class="canvas-label">Force Diagram (t = t₂)</div>
-                                    <div class="canvas-controls">
-                                        <button class="canvas-button" onclick="showFullSize('${canvasData.forceT2}', 'Force Diagram (t = t₂)')">View Full Size</button>
-                                        <button class="canvas-button" onclick="downloadImage('${canvasData.forceT2}', 'Force_Diagram_t2')">Download</button>
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                ` : '';
-
-                return `
-                    <div class="submission">
-                        <div class="submission-header">
-                            <div class="submitter">Submitted by: ${submission.name}</div>
-                            <div>
-                                <button class="delete-button" onclick="promptDelete('${testType}', ${index})">Delete</button>
-                                <span class="timestamp">Date: ${formatDate(submission.timestamp)}</span>
-                            </div>
-                        </div>
-                        ${Object.entries(submission.answers)
-                            .filter(([key]) => key !== 'canvas_data')
-                            .map(([key, value]) => `
-                                <div class="answer">
-                                    <strong>Answer ${key.split('_')[1]}:</strong>
-                                    <p>${value || '(No answer provided)'}</p>
-                                </div>
-                            `).join('')}
-                        ${canvasHTML}
-                    </div>
-                `;
-            }).join('');
-
-            container.innerHTML = submissionsHTML;
-        }
-
-        // Update the URL parameter handling
         const urlParams = new URLSearchParams(window.location.search);
         const testParam = urlParams.get('test');
         
@@ -713,9 +580,7 @@
             showTestSelection();
         }
 
-
         displayTestCategories();
-
 
         document.getElementById('passwordInput').addEventListener('keyup', function(event) {
             if (event.key === 'Enter') {
@@ -723,12 +588,10 @@
             }
         });
 
-
         window.addEventListener('click', (event) => {
             const modal = document.getElementById('passwordModal');
             if (event.target === modal) {
                 cancelDelete();
-
             }
         });
 
@@ -766,19 +629,15 @@
             document.body.removeChild(link);
         }
 
- 
         document.getElementById('fullSizeModal').addEventListener('click', function(event) {
             if (event.target === this || event.target.classList.contains('close-fullsize')) {
                 this.style.display = 'none';
             }
         });
 
-
         document.addEventListener('keydown', function(event) {
-
             const fullSizeModalOpen = document.getElementById('fullSizeModal').style.display === 'block';
             const passwordModalOpen = document.getElementById('passwordModal').style.display === 'block';
-
 
             if (fullSizeModalOpen) {
                 switch(event.key) {
@@ -805,38 +664,30 @@
                         }
                         break;
                     case 'ArrowLeft':
-
                         break;
                     case 'ArrowRight':
-
                         break;
                 }
             }
-
 
             if (!fullSizeModalOpen && !passwordModalOpen) {
                 if (event.ctrlKey) {
                     switch(event.key) {
                         case 'z':
                             event.preventDefault();
-
                             break;
                         case 'y':
                             event.preventDefault();
-
                             break;
                         case 'f':
                             event.preventDefault();
-
                             break;
                         case 's':
                             event.preventDefault();
-
                             break;
                     }
                 }
             }
-
 
             if (passwordModalOpen) {
                 switch(event.key) {
@@ -885,6 +736,75 @@
             'Enter': 'Confirm action',
             '←/→': 'Navigate images'
         };
+
+        function submitTest(isAnonymous) {
+            const answers = collectAnswers();
+            const submission = {
+                testType: 'FRQ',
+                testId: 'physics1test',
+                timestamp: new Date().toISOString(),
+                name: isAnonymous ? 'Anonymous' : submitterName.value,
+                answers: answers
+            };
+
+            // Prepare the message content
+            const messageContent = {
+                content: `New submission from ${submission.name}`,
+                embeds: [
+                    {
+                        title: "Test Submission",
+                        fields: [
+                            { name: "Test Type", value: submission.testType, inline: true },
+                            { name: "Test ID", value: submission.testId, inline: true },
+                            { name: "Timestamp", value: submission.timestamp, inline: false },
+                            { name: "Answers", value: formatAnswers(submission.answers) }
+                        ]
+                    }
+                ]
+            };
+
+
+            fetch('https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(messageContent)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Your test has been submitted successfully!');
+                    window.location.href = 'test-results.html?test=physics1test';
+                } else {
+                    response.text().then(text => {
+                        console.error('Error response:', text);
+                        alert('There was an error submitting your test. Please try again.');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting test:', error);
+                alert('There was an error submitting your test. Please try again.');
+            });
+
+            // Close modal
+            submissionModal.style.display = 'none';
+        }
+
+        function formatAnswers(answers) {
+            let formattedAnswers = '';
+            Object.entries(answers).forEach(([key, value]) => {
+                if (key === 'canvas_data') {
+                    formattedAnswers += '**Canvas Drawings:**\n';
+                    Object.entries(value).forEach(([canvasKey, canvasValue]) => {
+                        formattedAnswers += `- ${canvasKey}: [View Image](${canvasValue})\n`;
+                    });
+                } else {
+                    formattedAnswers += `**${key.replace('_', ' ')}:** ${value || '(No answer provided)'}\n`;
+                }
+            });
+            return formattedAnswers;
+        }
     </script>
 </body>
 </html>

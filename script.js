@@ -134,7 +134,7 @@ document.getElementById('send-question').addEventListener('click', function() {
         return;
     }
     
-    fetch('https://discord.com/api/webhooks/1357894378328428584/NdFhsolNc-kTN1XQE_8qx_aOwJR0rwCqOgE36BZEduXgG1S8bN-qqpCHX6RnO1uI6Ot1', {
+    fetch('https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -166,3 +166,121 @@ document.getElementById('back-button').addEventListener('click', function() {
     document.getElementById('practice-page').style.display = 'none';
     document.querySelector('.container').style.display = 'block';
 });
+
+async function submitTestAsPDF(isAnonymous) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Collect answers and other content
+    const answers = collectAnswers();
+    const submission = {
+        testType: 'FRQ',
+        testId: 'physics1test',
+        timestamp: new Date().toISOString(),
+        name: isAnonymous ? 'Anonymous' : submitterName.value,
+        answers: answers
+    };
+
+    // Add content to PDF
+    doc.text(`Test Submission from ${submission.name}`, 10, 10);
+    doc.text(`Test Type: ${submission.testType}`, 10, 20);
+    doc.text(`Test ID: ${submission.testId}`, 10, 30);
+    doc.text(`Timestamp: ${submission.timestamp}`, 10, 40);
+
+    let yOffset = 50;
+    Object.entries(submission.answers).forEach(([key, value]) => {
+        if (key === 'canvas_data') {
+            doc.text('Canvas Drawings:', 10, yOffset);
+            yOffset += 10;
+            Object.entries(value).forEach(([canvasKey, canvasValue]) => {
+                doc.addImage(canvasValue, 'PNG', 10, yOffset, 180, 100);
+                yOffset += 110;
+            });
+        } else {
+            doc.text(`${key.replace('_', ' ')}: ${value || '(No answer provided)'}`, 10, yOffset);
+            yOffset += 10;
+        }
+    });
+
+    // Convert PDF to base64
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+    fetch('https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            content: `New submission from ${submission.name}`,
+            files: [
+                {
+                    attachment: pdfBase64,
+                    name: 'submission.pdf'
+                }
+            ]
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Your test has been submitted successfully!');
+            window.location.href = 'test-results.html?test=physics1test';
+        } else {
+            response.text().then(text => {
+                console.error('Error response:', text);
+                alert('There was an error submitting your test. Please try again.');
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting test:', error);
+        alert('There was an error submitting your test. Please try again.');
+    });
+
+    // Close modal
+    submissionModal.style.display = 'none';
+}
+
+submitAnonymous.addEventListener('click', () => {
+    submitTestAsPDF(true);
+});
+
+submitWithName.addEventListener('click', () => {
+    if (!submitterName.value.trim()) {
+        alert('Please enter your name or choose to submit anonymously.');
+        return;
+    }
+    submitTestAsPDF(false);
+});
+
+function submitTest() {
+    // Prepare the message content
+    const messageContent = {
+        content: "hi"
+    };
+
+    // Send a simple message to Discord webhook
+    fetch('https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(messageContent)
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Message sent successfully!');
+        } else {
+            response.text().then(text => {
+                console.error('Error response:', text);
+                alert('There was an error sending the message. Please try again.');
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+        alert('There was an error sending the message. Please try again.');
+    });
+}
+
+// Trigger the test message
+submitTest();
