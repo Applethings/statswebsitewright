@@ -36,15 +36,19 @@
         .navigation {
             position: fixed;
             bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             gap: 20px;
-            background-color: rgba(0, 0, 32, 0.4);
+            background-color: rgba(0, 0, 32, 0.8);
             padding: 10px 20px;
             border-radius: 5px;
             backdrop-filter: blur(5px);
+            z-index: 999;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         .nav-button {
-            background-color: rgba(0, 0, 128, 0.3);
+            background-color: rgba(0, 0, 128, 0.7);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -52,9 +56,11 @@
             font-size: 16px;
             border-radius: 5px;
             transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .nav-button:hover {
-            background-color: rgba(0, 0, 128, 0.5);
+            background-color: rgba(0, 0, 128, 0.9);
+            transform: translateY(-2px);
         }
         .back-button {
             position: fixed;
@@ -80,6 +86,7 @@
         .page-number {
             color: white;
             margin: 0 20px;
+            font-weight: bold;
         }
         .question-image {
             max-width: 100%;
@@ -213,7 +220,7 @@
             font-size: 14px;
         }
         .modal {
-            display: none; /* Initially hidden */
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -440,6 +447,16 @@
     <input type="hidden" id="name" name="name">
     <input type="hidden" id="student-name" name="student-name">
 
+    <!-- Fixed navigation bar that will always be visible -->
+    <div class="fixed-nav" style="position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000;">
+        <div style="background-color: #1a237e; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 15px;">
+            <button onclick="goToPrevPage()" id="prevBtnAlt" style="background-color: #3949ab; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Previous</button>
+            <span style="color: white; font-weight: bold;">Page <span id="currentPageAlt">1</span> of 6</span>
+            <button onclick="goToNextPage()" id="nextBtnAlt" style="background-color: #3949ab; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">Next</button>
+            <button onclick="openSubmissionModal()" id="submitBtnAlt" style="background-color: #00c853; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px;">Submit Test</button>
+        </div>
+    </div>
+
     <div class="navigation">
         <button class="nav-button" id="prevBtn" onclick="goToPrevPage()">←</button>
         <span class="page-number">Page <span id="currentPage">1</span></span>
@@ -454,9 +471,9 @@
             <p>Please enter your name or choose to submit anonymously:</p>
             <input type="text" id="submitterName" placeholder="Your Name" style="width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px;">
             <div class="modal-buttons" style="display: flex; justify-content: space-between; margin-top: 15px;">
-                <button id="submitAnonymous" class="modal-button" onclick="handleAnonymousSubmit()" style="background-color: #555; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Submit Anonymously</button>
-                <button id="submitWithName" class="modal-button" onclick="handleNamedSubmit()" style="background-color: #2980b9; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Submit with Name</button>
-                <button id="cancelSubmit" class="modal-button" onclick="closeSubmissionModal()" style="background-color: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Cancel</button>
+                <button id="anonymousSubmit" class="modal-button" onclick="handleAnonymousSubmit()" style="background-color: #555; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Submit Anonymously</button>
+                <button id="namedSubmit" class="modal-button" onclick="handleNamedSubmit()" style="background-color: #2980b9; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Submit with Name</button>
+                <button id="closeModal" class="modal-button" onclick="closeSubmissionModal()" style="background-color: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Cancel</button>
             </div>
         </div>
     </div>
@@ -472,34 +489,31 @@
         const totalPages = 6;
         
         // Initialize canvas state holders
-        const canvasStates = {
-            positionGraph: [],
-            velocityGraph: []
-        };
-        
-        const gridCanvasStates = [];
-        
-        const forceDiagramStates = {
-            forceT1: [],
-            forceT2: []
-        };
+        const positionGraphCanvasState = [];
+        const velocityGraphCanvasState = [];
+        const gridGraphCanvasState = [];
+        const forceDiagram1CanvasState = [];
+        const forceDiagram2CanvasState = [];
         
         // Initialize everything when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM content loaded, initializing...');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM content loaded - initializing test page');
             
-            // Initialize canvas elements
-            initCanvas('positionGraph');
-            initCanvas('velocityGraph');
+            // Initialize all canvas elements
+            initCanvas('velocityGraph', velocityGraphCanvasState);
+            initCanvas('positionGraph', positionGraphCanvasState);
             initGridGraph();
             
-            // Setup page navigation
+            // Initialize event listeners and navigation
+            initializeEventListeners();
+            
+            // Initialize page
             updatePage();
             
-            // Check URL parameters for publish key
+            // Check URL parameters
             checkUrlParameters();
             
-            console.log('Initialization complete');
+            console.log('Test page initialization complete');
         });
 
         // Page navigation functions
@@ -520,18 +534,31 @@
                 console.error(`Could not find page element: page${currentPageIndex}`);
             }
             
-            // Update the page number display
+            // Update the page number displays (both original and alternate)
             const pageNumberElement = document.getElementById('currentPage');
             if (pageNumberElement) {
                 pageNumberElement.textContent = currentPageIndex;
             }
             
-            // Update button states
+            // Also update the alternate page number display
+            const pageNumberAltElement = document.getElementById('currentPageAlt');
+            if (pageNumberAltElement) {
+                pageNumberAltElement.textContent = currentPageIndex;
+            }
+            
+            // Update button states for both nav bars
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
+            const prevBtnAlt = document.getElementById('prevBtnAlt');
+            const nextBtnAlt = document.getElementById('nextBtnAlt');
             
+            // Update original buttons
             if (prevBtn) prevBtn.disabled = currentPageIndex === 1;
             if (nextBtn) nextBtn.disabled = currentPageIndex === totalPages;
+            
+            // Update alternate buttons
+            if (prevBtnAlt) prevBtnAlt.disabled = currentPageIndex === 1;
+            if (nextBtnAlt) nextBtnAlt.disabled = currentPageIndex === totalPages;
         }
 
         function goToNextPage() {
@@ -551,12 +578,14 @@
         }
 
         // Canvas functions
-        function initCanvas(canvasId) {
+        function initCanvas(canvasId, stateHolder) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) {
                 console.error(`Canvas not found: ${canvasId}`);
                 return;
             }
+            
+            console.log(`Initializing canvas: ${canvasId}`);
             
             const ctx = canvas.getContext('2d');
             
@@ -594,11 +623,16 @@
             ctx.font = '14px Arial';
             ctx.fillStyle = '#000';
             ctx.fillText('t', canvas.width - 20, canvas.height/2 + 20);
-            ctx.fillText(canvasId === 'positionGraph' ? 'x' : 'v', 30, 30);
+            ctx.fillText(canvasId.includes('position') ? 'x' : 'v', 30, 30);
             ctx.fillText('O', 35, canvas.height/2 + 15);
             
+            // Initialize state holder if needed
+            if (!window[`${canvasId}State`]) {
+                window[`${canvasId}State`] = [];
+            }
+            
             // Save initial state
-            canvasStates[canvasId] = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
+            window[`${canvasId}State`].push(ctx.getImageData(0, 0, canvas.width, canvas.height));
             
             let isDrawing = false;
             let lastX = 0;
@@ -632,7 +666,7 @@
             function stopDrawing() {
                 if (isDrawing) {
                     isDrawing = false;
-                    canvasStates[canvasId].push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                    window[`${canvasId}State`].push(ctx.getImageData(0, 0, canvas.width, canvas.height));
                 }
             }
         }
@@ -647,22 +681,40 @@
 
         function clearCanvas(canvasId) {
             const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
+            if (!canvas) {
+                console.error(`Cannot clear canvas: ${canvasId} not found`);
+                return;
+            }
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvasStates[canvasId] = [];
+            
+            // Reset state holder
+            window[`${canvasId}State`] = [];
+            
+            // Reinitialize the canvas
             initCanvas(canvasId);
+            
+            console.log(`Canvas ${canvasId} cleared`);
         }
 
         function undoLastStroke(canvasId) {
-            if (canvasStates[canvasId] && canvasStates[canvasId].length > 1) {
-                canvasStates[canvasId].pop();
+            const stateHolder = window[`${canvasId}State`];
+            
+            if (stateHolder && stateHolder.length > 1) {
+                stateHolder.pop(); // Remove the last state
+                
                 const canvas = document.getElementById(canvasId);
-                if (!canvas) return;
+                if (!canvas) {
+                    console.error(`Cannot undo: Canvas ${canvasId} not found`);
+                    return;
+                }
                 
                 const ctx = canvas.getContext('2d');
-                ctx.putImageData(canvasStates[canvasId][canvasStates[canvasId].length - 1], 0, 0);
+                ctx.putImageData(stateHolder[stateHolder.length - 1], 0, 0);
+                console.log(`Undid last stroke on canvas ${canvasId}`);
+            } else {
+                console.log(`Nothing to undo on canvas ${canvasId}`);
             }
         }
 
@@ -740,7 +792,7 @@
             ctx.fill();
             
             // Save initial state
-            gridCanvasStates.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            gridGraphCanvasState.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
             
             let isDrawing = false;
             let lastX = 0;
@@ -774,7 +826,7 @@
             function stopDrawing() {
                 if (isDrawing) {
                     isDrawing = false;
-                    gridCanvasStates.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                    gridGraphCanvasState.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
                 }
             }
         }
@@ -785,18 +837,18 @@
             
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            gridCanvasStates.length = 0;
+            gridGraphCanvasState.length = 0;
             initGridGraph();
         }
 
         function undoGridStroke() {
-            if (gridCanvasStates.length > 1) {
-                gridCanvasStates.pop();
+            if (gridGraphCanvasState.length > 1) {
+                gridGraphCanvasState.pop();
                 const canvas = document.getElementById('gridGraph');
                 if (!canvas) return;
                 
                 const ctx = canvas.getContext('2d');
-                ctx.putImageData(gridCanvasStates[gridCanvasStates.length - 1], 0, 0);
+                ctx.putImageData(gridGraphCanvasState[gridGraphCanvasState.length - 1], 0, 0);
             }
         }
 
@@ -1171,6 +1223,53 @@
                     submitBtn.textContent = "Submit Test";
                 }
             }
+        }
+
+        function initializeEventListeners() {
+            console.log("Initializing event listeners");
+            
+            // Navigation button event listeners
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Alternate navigation buttons
+            const prevBtnAlt = document.getElementById('prevBtnAlt');
+            const nextBtnAlt = document.getElementById('nextBtnAlt');
+            const submitBtnAlt = document.getElementById('submitBtnAlt');
+            
+            console.log("Navigation buttons:", 
+                { prevBtn: !!prevBtn, nextBtn: !!nextBtn, submitBtn: !!submitBtn,
+                  prevBtnAlt: !!prevBtnAlt, nextBtnAlt: !!nextBtnAlt, submitBtnAlt: !!submitBtnAlt });
+            
+            if (prevBtn) prevBtn.addEventListener('click', goToPrevPage);
+            if (nextBtn) nextBtn.addEventListener('click', goToNextPage);
+            if (submitBtn) submitBtn.addEventListener('click', openSubmissionModal);
+            
+            // Add event listeners to alternate buttons
+            if (prevBtnAlt) prevBtnAlt.addEventListener('click', goToPrevPage);
+            if (nextBtnAlt) nextBtnAlt.addEventListener('click', goToNextPage);
+            if (submitBtnAlt) submitBtnAlt.addEventListener('click', openSubmissionModal);
+            
+            // Canvas buttons event listeners
+            const positionClearBtn = document.querySelector('.graph-box:nth-child(1) .graph-button:nth-child(1)');
+            const positionUndoBtn = document.querySelector('.graph-box:nth-child(1) .graph-button:nth-child(2)');
+            const velocityClearBtn = document.querySelector('.graph-box:nth-child(2) .graph-button:nth-child(1)');
+            const velocityUndoBtn = document.querySelector('.graph-box:nth-child(2) .graph-button:nth-child(2)');
+            
+            if (positionClearBtn) positionClearBtn.addEventListener('click', () => clearCanvas('positionGraph'));
+            if (positionUndoBtn) positionUndoBtn.addEventListener('click', () => undoLastStroke('positionGraph'));
+            if (velocityClearBtn) velocityClearBtn.addEventListener('click', () => clearCanvas('velocityGraph'));
+            if (velocityUndoBtn) velocityUndoBtn.addEventListener('click', () => undoLastStroke('velocityGraph'));
+            
+            // Submission modal event listeners
+            const anonymousSubmitBtn = document.getElementById('anonymousSubmit') || document.getElementById('submitAnonymous');
+            const namedSubmitBtn = document.getElementById('namedSubmit') || document.getElementById('submitWithName');
+            const closeModalBtn = document.getElementById('closeModal') || document.getElementById('cancelSubmit');
+            
+            if (anonymousSubmitBtn) anonymousSubmitBtn.addEventListener('click', handleAnonymousSubmit);
+            if (namedSubmitBtn) namedSubmitBtn.addEventListener('click', handleNamedSubmit);
+            if (closeModalBtn) closeModalBtn.addEventListener('click', closeSubmissionModal);
         }
     </script>
 </body>
