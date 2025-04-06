@@ -539,8 +539,69 @@
     </div>
 
     <script>
+        // Ensure the submit button works by adding a direct event listener
+        // This should happen early in the script
+        window.onload = function() {
+            // Add direct event listeners for critical buttons
+            const submitBtn = document.getElementById('submitBtn');
+            const submissionModal = document.getElementById('submissionModal');
+            const submitAnonymous = document.getElementById('submitAnonymous');
+            const submitWithName = document.getElementById('submitWithName');
+            const cancelSubmit = document.getElementById('cancelSubmit');
+            const submitterName = document.getElementById('submitterName');
+            
+            // Submit button opens the modal
+            if (submitBtn && submissionModal) {
+                submitBtn.addEventListener('click', function() {
+                    submissionModal.style.display = 'block';
+                    console.log('Modal displayed');
+                });
+                console.log('Direct event listener added to submit button');
+            }
+            
+            // Cancel button closes the modal
+            if (cancelSubmit && submissionModal) {
+                cancelSubmit.addEventListener('click', function() {
+                    submissionModal.style.display = 'none';
+                    console.log('Modal closed');
+                });
+            }
+            
+            // Anonymous submission
+            if (submitAnonymous && submissionModal) {
+                submitAnonymous.addEventListener('click', function() {
+                    document.getElementById('submitterName').value = "Anonymous";
+                    document.getElementById('name').value = "Anonymous";
+                    submissionModal.style.display = 'none';
+                    submitTest();
+                    console.log('Anonymous submission triggered');
+                });
+            }
+            
+            // Named submission
+            if (submitWithName && submissionModal && submitterName) {
+                submitWithName.addEventListener('click', function() {
+                    const nameValue = submitterName.value.trim();
+                    if (!nameValue) {
+                        alert('Please enter your name or choose to submit anonymously.');
+                        return;
+                    }
+                    document.getElementById('name').value = nameValue;
+                    submissionModal.style.display = 'none';
+                    submitTest();
+                    console.log('Named submission triggered with: ' + nameValue);
+                });
+            }
+            
+            // Add debugging output
+            console.log('Submit button found:', !!submitBtn);
+            console.log('Submission modal found:', !!submissionModal);
+            console.log('Anonymous button found:', !!submitAnonymous);
+            console.log('Named button found:', !!submitWithName);
+            console.log('Cancel button found:', !!cancelSubmit);
+        };
+
         let currentPageIndex = 1;
-        const totalPages = 6;
 
         function updatePage() {
             document.querySelectorAll('.page').forEach(page => {
@@ -1918,7 +1979,47 @@
 
         // Initialize all the event listeners in one place to avoid duplicates
         function initializeEventListeners() {
-            // Event listeners are now defined in one place
+            // Submit button shows the modal
+            document.getElementById('submitBtn').addEventListener('click', () => {
+                submissionModal.style.display = 'block';
+            });
+            
+            // Cancel button in the modal
+            document.getElementById('cancelSubmit').addEventListener('click', () => {
+                submissionModal.style.display = 'none';
+            });
+            
+            // Anonymous submission button
+            document.getElementById('submitAnonymous').addEventListener('click', () => {
+                document.getElementById('submitterName').value = "Anonymous"; 
+                document.getElementById('name').value = "Anonymous";
+                submissionModal.style.display = 'none';
+                submitTest();
+            });
+            
+            // Named submission button
+            document.getElementById('submitWithName').addEventListener('click', () => {
+                const nameValue = document.getElementById('submitterName').value.trim();
+                if (!nameValue) {
+                    alert('Please enter your name or choose to submit anonymously.');
+                    return;
+                }
+                document.getElementById('name').value = nameValue;
+                submissionModal.style.display = 'none';
+                submitTest();
+            });
+            
+            // Synchronize the submitterName with the hidden name field
+            document.getElementById('submitterName').addEventListener('input', () => {
+                document.getElementById('name').value = document.getElementById('submitterName').value;
+            });
+            
+            // Close modal if clicking outside
+            window.addEventListener('click', (event) => {
+                if (event.target === submissionModal) {
+                    submissionModal.style.display = 'none';
+                }
+            });
         }
 
         // Call this function after DOMContentLoaded
@@ -1932,6 +2033,11 @@
             // Initialize all the event listeners
             initializeEventListeners();
         });
+
+        // Also initialize event listeners immediately in case the DOM is already loaded
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            initializeEventListeners();
+        }
     </script>
 </body>
 </html> 
