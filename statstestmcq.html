@@ -197,6 +197,18 @@
         .modal-button:hover {
             background-color: rgba(0, 0, 128, 0.8);
         }
+        
+        #submitAnonymous {
+            background-color: #666;
+        }
+        
+        #submitWithName {
+            background-color: #004d00;
+        }
+        
+        #cancelSubmit {
+            background-color: #660000;
+        }
     </style>
 </head>
 <body>
@@ -221,6 +233,7 @@
                 <p>AP Statistics MCQ Question 1 content will go here.</p>
                 <div class="image-container">
                     <img src="images/positionGraph_status.png" alt="Statistics Graph" id="stats_graph_1">
+                    <button onclick="downloadImage('stats_graph_1')" class="download-button">Download</button>
                 </div>
                 <div class="options">
                     <label class="option">
@@ -270,28 +283,27 @@
             <h2>Submission</h2>
             <p>You have completed all 40 questions of the AP Statistics MCQ Practice Test.</p>
             <p>Review your answers or click the Submit button to submit your test.</p>
+            
+            <div id="tokenModal" class="modal">
+                <div class="modal-content">
+                    <h3>Submit Your Test</h3>
+                    <p>Please enter your name or choose to submit anonymously:</p>
+                    <input type="text" id="nameInput" placeholder="Your Name" class="modal-input">
+                    <div class="modal-buttons">
+                        <button id="submitAnonymous" class="modal-button">Submit Anonymously</button>
+                        <button id="submitWithName" class="modal-button">Submit with Name</button>
+                        <button id="cancelSubmit" class="modal-button">Cancel</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
     <div class="navigation">
-        <button class="nav-button" id="prevBtn">Previous</button>
-        <span class="page-number" id="pageNumber">Page 1 of 40</span>
-        <button class="nav-button" id="nextBtn">Next</button>
+        <button class="nav-button" id="prevBtn">←</button>
+        <span class="page-number">Question <span id="currentPage">1</span> of 40</span>
+        <button class="nav-button" id="nextBtn">→</button>
         <button class="nav-button" id="submitBtn" style="background-color: #004d00;">Submit Test</button>
-    </div>
-    
-    <!-- Submission Modal -->
-    <div id="submissionModal" class="modal">
-        <div class="modal-content">
-            <h3>Submit Your Test</h3>
-            <p>Please enter your name or choose to submit anonymously:</p>
-            <input type="text" id="submitterName" placeholder="Your Name" class="modal-input">
-            <div class="modal-buttons">
-                <button id="submitAnonymous" class="modal-button">Submit Anonymously</button>
-                <button id="submitWithName" class="modal-button">Submit with Name</button>
-                <button id="cancelSubmit" class="modal-button">Cancel</button>
-            </div>
-        </div>
     </div>
     
     <script>
@@ -300,7 +312,14 @@
         const totalPages = 40;
         
         function updatePageNumber() {
-            document.getElementById('pageNumber').textContent = `Page ${currentPage} of ${totalPages}`;
+            // Update the page number display and text
+            if (currentPage === 1) {
+                document.querySelector('.page-number').textContent = "Page 1 - Instructions";
+                document.getElementById('currentPage').textContent = "1";
+            } else {
+                document.querySelector('.page-number').textContent = `Question ${currentPage - 1} of 40`;
+                document.getElementById('currentPage').textContent = currentPage - 1;
+            }
         }
         
         function showPage(pageNum) {
@@ -378,61 +397,69 @@
             document.body.removeChild(a);
         }
         
-        // Add submission handling
-        const submissionModal = document.getElementById('submissionModal');
-        const submitBtn = document.getElementById('submitBtn');
-        const submitAnonymous = document.getElementById('submitAnonymous');
-        const submitWithName = document.getElementById('submitWithName');
-        const cancelSubmit = document.getElementById('cancelSubmit');
-        const submitterName = document.getElementById('submitterName');
-
-        submitBtn.addEventListener('click', () => {
-            submissionModal.style.display = 'block';
-        });
-
-        cancelSubmit.addEventListener('click', () => {
-            submissionModal.style.display = 'none';
+        // Submit functionality
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            document.getElementById('tokenModal').style.display = 'block';
         });
         
-        submitAnonymous.addEventListener('click', () => {
-            submitTest(true);
+        document.getElementById('cancelSubmit').addEventListener('click', () => {
+            document.getElementById('tokenModal').style.display = 'none';
         });
         
-        submitWithName.addEventListener('click', () => {
-            const name = document.getElementById('submitterName').value.trim();
+        document.getElementById('submitAnonymous').addEventListener('click', () => {
+            const answerData = collectAnswers();
+            submitTest(true, answerData);
+            document.getElementById('tokenModal').style.display = 'none';
+        });
+        
+        document.getElementById('submitWithName').addEventListener('click', () => {
+            const name = document.getElementById('nameInput').value.trim();
             if (!name) {
                 alert('Please enter your name or choose to submit anonymously.');
                 return;
             }
-            submitTest(false, name);
+            const answerData = collectAnswers();
+            submitTest(false, answerData, name);
+            document.getElementById('tokenModal').style.display = 'none';
         });
         
-        // Function to handle test submission
-        async function submitTest(isAnonymous = false, providedName = null) {
-            // Use the provided name if available, otherwise get it from the submitterName field
-            let userName = isAnonymous ? "Anonymous Student" : (providedName || document.getElementById('submitterName').value.trim());
+        function collectAnswers() {
+            const answerData = {};
             
-            if (!isAnonymous && (!userName || userName.length < 2)) {
-                alert("Please enter your name or choose to submit anonymously.");
-                return;
+            // Collect all answers including unanswered questions
+            for (let i = 1; i <= 40; i++) { // Questions 1-40
+                const questionNumber = i;
+                const selectedOption = document.querySelector(`input[name="q${i}"]:checked`);
+                
+                if (selectedOption) {
+                    answerData[`question_${questionNumber}`] = selectedOption.value;
+                } else {
+                    answerData[`question_${questionNumber}`] = "Not answered";
+                }
             }
             
-            // Show loading state
-            const submitButton = document.querySelector('#submitWithName');
-            const anonymousButton = document.querySelector('#submitAnonymous');
-            submitButton.disabled = true;
-            anonymousButton.disabled = true;
-            submitButton.textContent = 'Submitting...';
-            
+            return answerData;
+        }
+        
+        function submitTest(isAnonymous, answers, providedName) {
             try {
+                // Use the provided name if available, otherwise get it from the input field
+                const userName = isAnonymous ? 'Anonymous Student' : (providedName || document.getElementById('nameInput').value.trim());
+                
+                // Show loading state 
+                alert('Processing your submission...');
+                
                 // Create submission object
                 const submission = {
-                    name: userName,
-                    testId: 'statstestmcq',
                     testType: 'MCQ',
+                    testId: 'statstestmcq',
                     timestamp: new Date().toISOString(),
+                    name: userName,
                     answers: answers
                 };
+
+                // Store the current submission temporarily
+                sessionStorage.setItem('lastSubmission', JSON.stringify(submission));
                 
                 // Prompt for GitHub token instead of hardcoding it
                 const githubToken = prompt("Please enter the GitHub token to submit your test:", "");
@@ -440,9 +467,6 @@
                 // Check if token was provided
                 if (!githubToken) {
                     alert('GitHub token is required for submission. Please try again.');
-                    submitButton.disabled = false;
-                    anonymousButton.disabled = false;
-                    submitButton.textContent = 'Submit with Name';
                     return;
                 }
                 
@@ -450,47 +474,30 @@
                 const owner = 'Applethings';
                 const repo = 'statswebsitewright';
                 
-                // Hide the modal
-                submissionModal.style.display = 'none';
-                
-                // Store submission in local storage for immediate access
-                storeSubmission(submission);
-                
-                // Show processing message
-                alert('Processing your submission...');
-                
                 // Directly update the test-results.html file with the submission
-                const result = await updateTestResultsHTML(owner, repo, githubToken, submission);
-                
-                if (result.success) {
-                    alert('Your submission has been successfully published to GitHub! You can view it on the Results page.');
-                    localStorage.removeItem('statsMcqAnswers');
-                    
-                    // Optionally redirect to the test results page
-                    if (confirm('Would you like to view your submission on the results page?')) {
-                        window.location.href = 'test-results.html';
-                    }
-                } else {
-                    throw new Error(result.error || 'Failed to publish to GitHub');
-                }
+                updateTestResultsHTML(owner, repo, githubToken, submission)
+                    .then(result => {
+                        if (result.success) {
+                            alert('Your submission has been successfully published to GitHub! You can view it on the Results page.');
+                            
+                            // Optionally redirect to the test results page
+                            if (confirm('Would you like to view your submission on the results page?')) {
+                                window.location.href = 'test-results.html';
+                            }
+                        } else {
+                            throw new Error(result.error || 'Failed to publish to GitHub');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating test results:', error);
+                        alert(`Error publishing to GitHub: ${error.message}`);
+                    });
             } catch (error) {
-                console.error('Error submitting test:', error);
-                alert(`Error submitting test: ${error.message}`);
-            } finally {
-                // Reset the buttons
-                submitButton.disabled = false;
-                anonymousButton.disabled = false;
-                submitButton.textContent = 'Submit with Name';
+                console.error("Unexpected error in submission process:", error);
+                alert('An unexpected error occurred. Please try again.');
             }
         }
-        
-        // Function to store a submission in local storage
-        function storeSubmission(submission) {
-            const submissions = JSON.parse(localStorage.getItem('testSubmissions') || '[]');
-            submissions.push(submission);
-            localStorage.setItem('testSubmissions', JSON.stringify(submissions));
-        }
-        
+
         // Function to directly update the test-results.html file with the submission
         async function updateTestResultsHTML(owner, repo, token, submission) {
             try {
@@ -503,7 +510,7 @@
                         'Accept': 'application/vnd.github.v3+json'
                     }
                 });
-                        
+                
                 if (!getResponse.ok) {
                     throw new Error(`Failed to fetch ${filePath}: ${getResponse.status}`);
                 }
@@ -516,7 +523,10 @@
                 let subject = "AP Statistics";
                 if (submission.testId.includes('stats')) {
                     subject = "AP Statistics";
+                } else if (submission.testId.includes('physics1')) {
+                    subject = "AP Physics 1";
                 }
+                // Add more subject mappings as needed for future tests
                 
                 // Determine if it's FRQ or MCQ
                 const testType = submission.testType;
@@ -549,6 +559,10 @@
                     updatedContent = addToSubmissionContainer(updatedContent, containerId, submissionHTML);
                 }
                 
+                // Base64 encode the content properly for non-ASCII characters
+                // This fixes the "Failed to execute 'btoa' on 'Window'" error
+                const base64Content = utf8ToBase64(updatedContent);
+                
                 // Update the file on GitHub
                 const updateResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
                     method: 'PUT',
@@ -559,7 +573,7 @@
                     },
                     body: JSON.stringify({
                         message: `Add ${testType} submission from ${submission.name} for ${subject}`,
-                        content: btoa(unescape(encodeURIComponent(updatedContent))),
+                        content: base64Content,
                         sha: sha,
                         branch: 'main'
                     })
@@ -567,69 +581,200 @@
                 
                 if (!updateResponse.ok) {
                     const errorData = await updateResponse.json();
-                    throw new Error(`Failed to update ${filePath}: ${updateResponse.status} - ${JSON.stringify(errorData)}`);
+                    throw new Error(`Failed to update ${filePath}: ${errorData.message}`);
                 }
                 
+                console.log(`Successfully updated test-results.html with ${testType} submission for ${subject}`);
                 return { success: true };
             } catch (error) {
                 console.error('Error updating test-results.html:', error);
+                alert(`Error publishing to GitHub: ${error.message}`);
                 return { success: false, error: error.message };
             }
         }
         
-        // Helper functions from the physics test
+        // Function to convert UTF-8 string to base64
+        function utf8ToBase64(str) {
+            try {
+                return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                    return String.fromCharCode('0x' + p1);
+                }));
+            } catch (e) {
+                console.error("Encoding error:", e);
+                // Fallback method if the above fails
+                return btoa(unescape(encodeURIComponent(str)));
+            }
+        }
+        
+        // Helper function to format a submission as HTML
         function formatSubmissionHTML(submission) {
-            const timestamp = new Date(submission.timestamp).toLocaleString();
-            const name = submission.name;
+            const formattedDate = new Date(submission.timestamp).toLocaleString();
             
-            // Start with the submission header
-            let html = `
-                <div class="submission-item">
-                    <div class="submission-header">
-                        <span class="submission-name">${name}</span>
-                        <span class="submission-date">${timestamp}</span>
-                    </div>
-                    <div class="submission-content">
-            `;
-            
-            // Add each answer
-            for (const [questionId, answer] of Object.entries(submission.answers)) {
-                if (questionId !== 'canvas_data') {
-                    html += `
-                        <div class="answer-item">
-                            <div class="answer-question">Question ${questionId}</div>
-                            <div class="answer-text">${answer}</div>
-                        </div>
-                    `;
-                }
+            // Format text answers (everything except canvas_data)
+            let textAnswers = '';
+            if (submission.answers) {
+                textAnswers = Object.entries(submission.answers)
+                    .filter(([key]) => key !== 'canvas_data')
+                    .map(([key, value]) => {
+                        // For multiple choice, convert question_1 to Q1, etc.
+                        const questionLabel = key.replace('question_', 'Q');
+                        return `
+                            <div class="answer">
+                                <strong>${questionLabel}:</strong>
+                                <span>${value || 'No answer provided'}</span>
+                            </div>
+                        `;
+                    }).join('');
             }
             
-            // Close the submission
-            html += `
+            // Format canvas drawings if they exist
+            let canvasHTML = '';
+            if (submission.answers && submission.answers.canvas_data) {
+                canvasHTML = `
+                    <div class="canvas-container">
+                        <h4>Drawings:</h4>
+                        <div class="canvas-grid">
+                            ${Object.entries(submission.answers.canvas_data)
+                                .map(([key, value]) => {
+                                    let displayName = key;
+                                    switch(key) {
+                                        case 'positionGraph': displayName = 'Position vs. Time'; break;
+                                        case 'velocityGraph': displayName = 'Velocity vs. Time'; break;
+                                        case 'gridGraph': displayName = 'Data Grid'; break;
+                                        default: displayName = key.replace(/([A-Z])/g, ' $1').trim();
+                                    }
+                                    
+                                    // Handle both image data and text messages
+                                    if (typeof value === 'string' && value.startsWith('data:image/')) {
+                                        return `
+                                            <div class="canvas-item">
+                                                <img src="${value}" alt="${displayName}" onclick="zoomImage(this)" style="max-width: 100%; border: 1px solid #ccc;">
+                                                <div class="canvas-label">${displayName}</div>
+                                            </div>
+                                        `;
+                                    } else {
+                                        return `
+                                            <div class="canvas-item">
+                                                <div style="padding: 30px; text-align: center; background-color: #f8f8f8; color: #666; border: 1px dashed #ccc;">
+                                                    ${value}
+                                                </div>
+                                                <div class="canvas-label">${displayName}</div>
+                                            </div>
+                                        `;
+                                    }
+                                }).join('')}
+                        </div>
                     </div>
+                `;
+            }
+            
+            // Create the complete submission HTML
+            return `
+                <div class="submission" data-timestamp="${submission.timestamp}">
+                    <div class="submission-header">
+                        <div class="submitter">Submitted by: ${submission.name}</div>
+                        <div>
+                            <span class="timestamp">Date: ${formattedDate}</span>
+                        </div>
+                    </div>
+                    ${textAnswers}
+                    ${canvasHTML}
                 </div>
             `;
-            
-            return html;
         }
-
+        
+        // Helper function to update the JavaScript data in the HTML
         function updateJavaScriptData(content, subject, submission) {
-            // This is a simplified version that just returns the content unchanged
-            // In the full implementation, this would update a JavaScript data structure in the HTML
-            return content;
+            // This just adds it to localStorage on load
+            // Add this after the displayTestCategories() call
+            
+            // Create a safe copy of the submission for JSON stringification
+            const safeSubmission = {...submission};
+            
+            // Handle potential large canvas data that might cause JSON.stringify to fail
+            if (safeSubmission.answers && safeSubmission.answers.canvas_data) {
+                let canvasDataDescriptions = {};
+                
+                for (const [key, value] of Object.entries(safeSubmission.answers.canvas_data)) {
+                    // If it's a large data URL (image), replace with a description
+                    if (typeof value === 'string' && value.startsWith('data:image/') && value.length > 50000) {
+                        canvasDataDescriptions[key] = `[Image data for ${key} - size: ${Math.round(value.length/1024)}KB]`;
+                    } else {
+                        canvasDataDescriptions[key] = value;
+                    }
+                }
+                
+                // Replace the large canvas data with descriptions
+                safeSubmission.answers.canvas_data = canvasDataDescriptions;
+            }
+            
+            // Create the script with a safer JSON string
+            let scriptContent;
+            try {
+                scriptContent = `
+                    // Add newest submission to localStorage
+                    (function() {
+                        let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                        if (!allSubmissions['${subject}']) {
+                            allSubmissions['${subject}'] = [];
+                        }
+                        // Check if submission already exists
+                        const exists = allSubmissions['${subject}'].some(s => 
+                            s.name === '${submission.name}' && 
+                            s.timestamp === '${submission.timestamp}' &&
+                            s.testType === '${submission.testType}'
+                        );
+                        if (!exists) {
+                            allSubmissions['${subject}'].push(${JSON.stringify(safeSubmission)});
+                            localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                        }
+                    })();
+                `;
+            } catch (error) {
+                console.error('Error stringifying submission:', error);
+                scriptContent = `
+                    // Add newest submission to localStorage (metadata only due to size limits)
+                    (function() {
+                        let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+                        if (!allSubmissions['${subject}']) {
+                            allSubmissions['${subject}'] = [];
+                        }
+                        // Add submission metadata only
+                        const exists = allSubmissions['${subject}'].some(s => 
+                            s.name === '${submission.name}' && 
+                            s.timestamp === '${submission.timestamp}' &&
+                            s.testType === '${submission.testType}'
+                        );
+                        if (!exists) {
+                            allSubmissions['${subject}'].push({
+                                name: '${submission.name}',
+                                testType: '${submission.testType}',
+                                timestamp: '${submission.timestamp}',
+                                testId: '${submission.testId}',
+                                note: 'Full submission data too large for localStorage'
+                            });
+                            localStorage.setItem('allTestSubmissions', JSON.stringify(allSubmissions));
+                        }
+                    })();
+                `;
+            }
+            
+            return content.replace('displayTestCategories();', `displayTestCategories();\n        ${scriptContent}`);
         }
-
+        
+        // Helper function to add a new subject category
         function addSubjectCategory(content, subject, subjectDivId) {
             const categoryHTML = `
-                <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
-                    <h2>${subject}</h2>
-                    <p>0 FRQ submissions, 0 MCQ submissions</p>
-                </div>`;
-                
+            <div class="test-category" id="${subjectDivId}" onclick="showTestTypes('${subject}')">
+                <h2>${subject}</h2>
+                <p>0 FRQ submissions, 0 MCQ submissions</p>
+            </div>`;
+            
             return content.replace('<div class="test-selection-container" id="testCategories">', 
                 `<div class="test-selection-container" id="testCategories">\n                ${categoryHTML}`);
         }
         
+        // Helper function to update the counter for a subject
         function updateSubjectCounter(content, subject, subjectDivId, testType) {
             const regex = new RegExp(`<div class="test-category" id="${subjectDivId}"[^>]*>[\\s\\S]*?<p>(\\d+) FRQ submissions, (\\d+) MCQ submissions</p>`);
             const match = content.match(regex);
@@ -653,17 +798,19 @@
             return content;
         }
         
+        // Helper function to add a new submission container for a subject/type
         function addSubmissionContainer(content, containerId, submissionHTML, subject, testType) {
             const containerHTML = `
-                <div id="${containerId}" class="submission-type-container">
-                    <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
-                    ${submissionHTML}
-                </div>`;
-                
+            <div id="${containerId}" class="submission-type-container">
+                <h3>${testType === 'FRQ' ? 'Free Response' : 'Multiple Choice'} Submissions</h3>
+                ${submissionHTML}
+            </div>`;
+            
             return content.replace('<div class="submissions-container" id="submissionsContainer">', 
                 `<div class="submissions-container" id="submissionsContainer">\n                ${containerHTML}`);
         }
         
+        // Helper function to add a submission to an existing container
         function addToSubmissionContainer(content, containerId, submissionHTML) {
             const regex = new RegExp(`<div id="${containerId}" class="submission-type-container">[\\s\\S]*?<h3>[^<]*</h3>`);
             const match = content.match(regex);
@@ -671,12 +818,19 @@
             if (match) {
                 return content.replace(
                     match[0],
-                    `${match[0]}\n                    ${submissionHTML}`
+                    `${match[0]}\n                ${submissionHTML}`
                 );
             }
             
             return content;
         }
+        
+        // Close modal when Escape key is pressed
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.getElementById('tokenModal').style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html> 
