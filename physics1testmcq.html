@@ -349,7 +349,7 @@
             }
         });
 
-        document.getElementById('submitBtn').addEventListener('click', () => {
+        document.getElementById('submitBtn').addEventListener('click', function() {
             const answerData = {};
             
             // Collect all answers including unanswered questions
@@ -369,63 +369,78 @@
             }
             
             // Create a modal directly in the DOM rather than creating it dynamically
-            const modal = document.createElement('div');
-            modal.style.position = 'fixed';
-            modal.style.top = '0';
-            modal.style.left = '0';
-            modal.style.width = '100%';
-            modal.style.height = '100%';
-            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-            modal.style.zIndex = '1000';
-            modal.style.display = 'flex';
-            modal.style.justifyContent = 'center';
-            modal.style.alignItems = 'center';
+            const modalDiv = document.createElement('div');
+            modalDiv.style.position = 'fixed';
+            modalDiv.style.top = '0';
+            modalDiv.style.left = '0';
+            modalDiv.style.width = '100%';
+            modalDiv.style.height = '100%';
+            modalDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            modalDiv.style.zIndex = '1000';
+            modalDiv.style.display = 'flex';
+            modalDiv.style.justifyContent = 'center';
+            modalDiv.style.alignItems = 'center';
             
-            modal.innerHTML = `
-                <div style="background-color: rgba(0, 0, 32, 0.95); padding: 20px; border-radius: 10px; width: 80%; max-width: 500px; color: white;">
-                    <h3>Submit Your Test</h3>
-                    <p>Please enter your name or choose to submit anonymously:</p>
-                    <input type="text" id="modalName" placeholder="Your Name" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; background-color: rgba(255, 255, 255, 0.1); color: white;">
-                    <div style="display: flex; justify-content: space-between; margin-top: 20px; gap: 10px;">
-                        <button id="modalAnonymous" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #666; color: white;">Submit Anonymously</button>
-                        <button id="modalWithName" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #004d00; color: white;">Submit with Name</button>
-                        <button id="modalCancel" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #660000; color: white;">Cancel</button>
-                    </div>
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = 'rgba(0, 0, 32, 0.95)';
+            modalContent.style.padding = '20px';
+            modalContent.style.borderRadius = '10px';
+            modalContent.style.width = '80%';
+            modalContent.style.maxWidth = '500px';
+            modalContent.style.color = 'white';
+            
+            modalContent.innerHTML = `
+                <h3>Submit Your Test</h3>
+                <p>Please enter your name or choose to submit anonymously:</p>
+                <input type="text" id="modalName" placeholder="Your Name" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; background-color: rgba(255, 255, 255, 0.1); color: white;">
+                <div style="display: flex; justify-content: space-between; margin-top: 20px; gap: 10px;">
+                    <button id="modalAnonymous" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #666; color: white;">Submit Anonymously</button>
+                    <button id="modalWithName" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #004d00; color: white;">Submit with Name</button>
+                    <button id="modalCancel" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; background-color: #660000; color: white;">Cancel</button>
                 </div>
             `;
             
-            document.body.appendChild(modal);
+            modalDiv.appendChild(modalContent);
+            document.body.appendChild(modalDiv);
             
             // Get references to elements after they're in the DOM
             const modalName = document.getElementById('modalName');
+            const modalAnonymous = document.getElementById('modalAnonymous');
+            const modalWithName = document.getElementById('modalWithName');
+            const modalCancel = document.getElementById('modalCancel');
             
             // Handle anonymous submission
-            document.getElementById('modalAnonymous').onclick = function() {
+            modalAnonymous.addEventListener('click', function() {
                 submitTest(true, answerData);
-                document.body.removeChild(modal);
-            };
+                document.body.removeChild(modalDiv);
+            });
             
             // Handle named submission
-            document.getElementById('modalWithName').onclick = function() {
+            modalWithName.addEventListener('click', function() {
                 const name = modalName.value.trim();
                 if (!name) {
                     alert('Please enter your name or choose to submit anonymously.');
                     return;
                 }
                 submitTest(false, answerData, name);
-                document.body.removeChild(modal);
-            };
+                document.body.removeChild(modalDiv);
+            });
             
             // Handle cancel
-            document.getElementById('modalCancel').onclick = function() {
-                document.body.removeChild(modal);
-            };
+            modalCancel.addEventListener('click', function() {
+                document.body.removeChild(modalDiv);
+            });
         });
 
         function submitTest(isAnonymous, answers, providedName) {
             try {
+                console.log("Starting test submission process");
+                
                 // Use the provided name if available, otherwise get it from the input field
-                const userName = isAnonymous ? 'Anonymous' : (providedName || document.getElementById('modalName').value.trim());
+                const userName = isAnonymous ? 'Anonymous' : (providedName || document.getElementById('modalName')?.value?.trim() || "Unknown User");
+                
+                console.log("Submitting test for user:", userName);
+                console.log("Answers:", Object.keys(answers).length, "items");
                 
                 // Create a payload with minimal data first
                 const payload = {
@@ -457,6 +472,8 @@
                 // The webhook URL
                 const webhookURL = "https://discord.com/api/webhooks/1358211714021064734/xSnw0fEHm8pdGauYYtR3Y--tqXTzfTd5TUWj53LmVFgeasutHkvJuoeVDrTuLB_htkZa";
                 
+                console.log("Sending initial payload to Discord webhook");
+                
                 // Use fetch with plain JSON payload
                 fetch(webhookURL, {
                     method: 'POST',
@@ -469,63 +486,65 @@
                     console.log("Webhook response status:", response.status);
                     
                     if (response.ok) {
+                        console.log("Initial payload sent successfully, sending answers");
                         // Send the answers as additional messages
-                        sendMCQAnswers(userName, answers, webhookURL)
-                            .then(() => {
-                                // Store the submission locally for possible GitHub publishing
-                                const submission = {
-                                    testType: 'MCQ',
-                                    testId: 'physics1testmcq',
-                                    timestamp: new Date().toISOString(),
-                                    name: userName,
-                                    answers: answers
-                                };
-                                
-                                // Store the current submission temporarily
-                                sessionStorage.setItem('lastSubmission', JSON.stringify(submission));
-                                
-                                alert('Your test has been submitted successfully! You can now publish it to GitHub if you wish.');
-                                
-                                // Show a button to publish to GitHub
-                                if (!document.getElementById('publishBtn')) {
-                                    const publishButton = document.createElement('button');
-                                    publishButton.className = 'nav-button';
-                                    publishButton.id = 'publishBtn';
-                                    publishButton.textContent = 'Publish to GitHub';
-                                    publishButton.style.backgroundColor = '#004d00';
-                                    publishButton.style.marginLeft = '20px';
-                                    
-                                    publishButton.addEventListener('click', function() {
-                                        const lastSubmission = JSON.parse(sessionStorage.getItem('lastSubmission'));
-                                        if (lastSubmission) {
-                                            publishToGitHub(lastSubmission);
-                                        } else {
-                                            alert('No submission available to publish.');
-                                        }
-                                    });
-                                    
-                                    // Add the button to the navigation section
-                                    document.querySelector('.navigation').appendChild(publishButton);
-                                } else {
-                                    // If button exists, make sure it's visible
-                                    document.getElementById('publishBtn').style.display = 'inline-block';
-                                }
-                            });
+                        return sendMCQAnswers(userName, answers, webhookURL);
                     } else {
-                        response.text().then(text => {
+                        return response.text().then(text => {
                             console.error("Error response:", text);
-                            alert('There was an error submitting your test. Please try again.');
+                            throw new Error('There was an error submitting your test. Please try again.');
                         });
                     }
                 })
+                .then(() => {
+                    console.log("All messages sent successfully, creating submission object");
+                    // Store the submission locally for possible GitHub publishing
+                    const submission = {
+                        testType: 'MCQ',
+                        testId: 'physics1testmcq',
+                        timestamp: new Date().toISOString(),
+                        name: userName,
+                        answers: answers
+                    };
+                    
+                    // Store the current submission temporarily
+                    sessionStorage.setItem('lastSubmission', JSON.stringify(submission));
+                    
+                    alert('Your test has been submitted successfully! You can now publish it to GitHub if you wish.');
+                    
+                    // Show a button to publish to GitHub
+                    if (!document.getElementById('publishBtn')) {
+                        const publishButton = document.createElement('button');
+                        publishButton.className = 'nav-button';
+                        publishButton.id = 'publishBtn';
+                        publishButton.textContent = 'Publish to GitHub';
+                        publishButton.style.backgroundColor = '#004d00';
+                        publishButton.style.marginLeft = '20px';
+                        
+                        publishButton.addEventListener('click', function() {
+                            const lastSubmission = JSON.parse(sessionStorage.getItem('lastSubmission'));
+                            if (lastSubmission) {
+                                publishToGitHub(lastSubmission);
+                            } else {
+                                alert('No submission available to publish.');
+                            }
+                        });
+                        
+                        // Add the button to the navigation section
+                        document.querySelector('.navigation').appendChild(publishButton);
+                    } else {
+                        // If button exists, make sure it's visible
+                        document.getElementById('publishBtn').style.display = 'inline-block';
+                    }
+                })
                 .catch(error => {
-                    console.error('Error submitting test:', error);
-                    alert('There was an error submitting your test. Please try again.');
+                    console.error('Error during submission process:', error);
+                    alert(`Error: ${error.message || 'There was an error submitting your test. Please try again.'}`);
                 });
                 
             } catch (error) {
                 console.error("Unexpected error in submission process:", error);
-                alert('An unexpected error occurred. Please try again.');
+                alert(`An unexpected error occurred: ${error.message || 'Please try again.'}`);
             }
         }
 
