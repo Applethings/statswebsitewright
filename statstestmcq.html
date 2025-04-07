@@ -450,13 +450,13 @@
                 alert('Processing your submission...');
                 
                 // Create submission object
-                const submission = {
-                    testType: 'MCQ',
-                    testId: 'statstestmcq',
-                    timestamp: new Date().toISOString(),
+            const submission = {
+                testType: 'MCQ',
+                testId: 'statstestmcq',
+                timestamp: new Date().toISOString(),
                     name: userName,
-                    answers: answers
-                };
+                answers: answers
+            };
 
                 // Store the current submission temporarily
                 sessionStorage.setItem('lastSubmission', JSON.stringify(submission));

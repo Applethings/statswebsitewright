@@ -860,7 +860,7 @@
                 scriptContent = `
                     // Add newest submission to localStorage (metadata only due to size limits)
                     (function() {
-                        let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
+            let allSubmissions = JSON.parse(localStorage.getItem('allTestSubmissions') || '{}');
                         if (!allSubmissions['${subject}']) {
                             allSubmissions['${subject}'] = [];
                         }
